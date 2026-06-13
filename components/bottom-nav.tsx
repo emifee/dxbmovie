@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import { Home, Sparkles, Clapperboard, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/lib/store";
@@ -192,8 +192,6 @@ export function BottomNav() {
     </>
   );
 }
-
-import { forwardRef } from "react";
 
 /** Renders a gradient circle + glow when active, dim icon when not. */
 function IconCircle({
