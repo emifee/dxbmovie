@@ -34,7 +34,7 @@ jobs:
           # Hard-coded stubs — safe placeholder values for CI build
           # Real values are only needed at runtime on the server
           NEXTAUTH_SECRET: ci-secret-placeholder
-          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_URL: https://dxbmovie.online
           MONGODB_URI: mongodb://localhost:27017/ci
           GOOGLE_CLIENT_ID: ci-google-client-id
           GOOGLE_CLIENT_SECRET: ci-google-client-secret
@@ -86,6 +86,9 @@ jobs:
 
             echo "── Installing dependencies ──"
             npm ci --omit=dev
+
+            echo "── Ensure NEXTAUTH_URL is set to domain ──"
+            sed -i 's|NEXTAUTH_URL=.*|NEXTAUTH_URL=https://dxbmovie.online|' .env.local
 
             echo "── Building Next.js standalone ──"
             npm run build
