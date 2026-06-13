@@ -29,9 +29,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
       - name: Next.js build
         env:
           # Hard-coded stubs — safe placeholder values for CI build

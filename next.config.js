@@ -4,8 +4,6 @@ const nextConfig = {
   // runtime image only needs the traced node_modules, not the full install.
   output: "standalone",
   optimizeFonts: false,
-  // CI runs lint as a dedicated step — skip the redundant lint inside next build
-  eslint: { ignoreDuringBuilds: true },
   images: {
     remotePatterns: [
       // TMDB poster/backdrop images
