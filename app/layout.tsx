@@ -13,6 +13,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "DXB",
   },
+  icons: {
+    apple: "/icons/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -31,11 +34,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-      </head>
       <body className="bg-background font-sans text-text-primary antialiased">
         <Providers>
           <AccountHydrator />
