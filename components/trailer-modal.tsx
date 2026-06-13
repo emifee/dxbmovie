@@ -31,7 +31,6 @@ export function TrailerModal() {
   // Use a ref so the player instance is always accessible without triggering re-renders
   const ytPlayerRef = useRef<any>(null);
   const [ytPlayerReady, setYtPlayerReady] = useState(false); // signals player exists
-  const [isVideoPaused, setIsVideoPaused] = useState(false);
   const [showTapHint, setShowTapHint] = useState<"play" | "pause" | null>(null);
   const tapHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartY = useRef<number>(0);
@@ -118,8 +117,7 @@ export function TrailerModal() {
             setYtPlayerReady(true);
           },
           onStateChange: (e: any) => {
-            if (e.data === 1) { setPlayerReady(true); setIsVideoPaused(false); } // PLAYING
-            if (e.data === 2) setIsVideoPaused(true); // PAUSED
+            if (e.data === 1) { setPlayerReady(true); } // PLAYING
           }
         }
       });
@@ -273,12 +271,17 @@ export function TrailerModal() {
       if (dy > 10) return;
     }
     if (!ytPlayerRef.current) return;
-    if (isVideoPaused) {
+    const state = ytPlayerRef.current.getPlayerState();
+    if (state !== 1) {
+      // Not playing — start it
       ytPlayerRef.current.playVideo();
       flashTapHint("play");
     } else {
-      ytPlayerRef.current.pauseVideo();
-      flashTapHint("pause");
+      // Already playing — toggle mute (same as Reels)
+      const newMuted = !globalMuted;
+      setGlobalMuted(newMuted);
+      if (newMuted) ytPlayerRef.current.mute();
+      else { ytPlayerRef.current.unMute(); ytPlayerRef.current.playVideo(); }
     }
   }
 
@@ -349,10 +352,7 @@ export function TrailerModal() {
                   </div>
                 </div>
               )}
-              <div className="absolute inset-x-0 bottom-0 z-30 flex items-end justify-between bg-gradient-to-t from-black/90 via-black/40 to-transparent px-4 pb-12 pt-32 lg:px-8 pointer-events-auto"
-                onClick={(e) => e.stopPropagation()}
-                onTouchEnd={(e) => e.stopPropagation()}
-              >
+              <div className="absolute inset-x-0 bottom-0 z-30 flex items-end justify-between bg-gradient-to-t from-black/90 via-black/40 to-transparent px-4 pb-12 pt-32 lg:px-8 pointer-events-auto">
                 
                 <div className="flex flex-col gap-2 max-w-[70%]">
                   <h2 className="text-2xl font-bold text-white drop-shadow-lg lg:text-3xl">
@@ -369,7 +369,8 @@ export function TrailerModal() {
 
                 <div className="flex flex-col items-center gap-6 pb-4">
                   <button 
-                    onClick={() => { if(reel.movie?.id) handleReaction(reel.movie.id, 'like'); }}
+                    onClick={(e) => { e.stopPropagation(); if(reel.movie?.id) handleReaction(reel.movie.id, 'like'); }}
+                    onTouchEnd={(e) => e.stopPropagation()}
                     className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
                   >
                     <div className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border ${reel.movie?.id && reactions[reel.movie.id] === 'like' ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]' : 'bg-black/40 border-white/20 text-white group-hover:bg-black/60'}`}>
@@ -378,7 +379,8 @@ export function TrailerModal() {
                   </button>
                   
                   <button 
-                    onClick={() => { if(reel.movie?.id) handleReaction(reel.movie.id, 'dislike'); }}
+                    onClick={(e) => { e.stopPropagation(); if(reel.movie?.id) handleReaction(reel.movie.id, 'dislike'); }}
+                    onTouchEnd={(e) => e.stopPropagation()}
                     className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
                   >
                     <div className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border ${reel.movie?.id && reactions[reel.movie.id] === 'dislike' ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]' : 'bg-black/40 border-white/20 text-white group-hover:bg-black/60'}`}>
@@ -387,7 +389,8 @@ export function TrailerModal() {
                   </button>
 
                   <button 
-                    onClick={() => { if(reel.movie) handleWatchlist(reel.movie); }}
+                    onClick={(e) => { e.stopPropagation(); if(reel.movie) handleWatchlist(reel.movie); }}
+                    onTouchEnd={(e) => e.stopPropagation()}
                     className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
                   >
                     <div className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border ${isAdded ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]' : 'bg-black/40 border-white/20 text-white group-hover:bg-black/60'}`}>
@@ -400,7 +403,8 @@ export function TrailerModal() {
                   </button>
 
                   <button 
-                    onClick={() => reel.movie && useUIStore.getState().openChat(reel.movie)}
+                    onClick={(e) => { e.stopPropagation(); reel.movie && useUIStore.getState().openChat(reel.movie); }}
+                    onTouchEnd={(e) => e.stopPropagation()}
                     className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
                   >
                     <div className="flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border bg-black/40 border-white/20 text-white group-hover:bg-black/60">
