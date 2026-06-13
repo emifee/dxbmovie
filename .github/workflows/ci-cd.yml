@@ -58,7 +58,7 @@ jobs:
             set -e
             cd /home/ubuntu/dxbmovies
             git pull origin main
-            npm ci --omit=dev
+            npm ci
             npm run build
             pm2 restart dxbmovies || pm2 start npm --name dxbmovies -- start
             pm2 save
