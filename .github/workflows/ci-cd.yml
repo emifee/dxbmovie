@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  ci:
-    name: Build
+  build-and-deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -40,31 +40,22 @@ jobs:
           CRON_SECRET: ci-cron-secret
         run: npm run build
 
-      # Rsync built output + source directly to Oracle — no rebuild on server
-      - name: Deploy to Oracle Cloud
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ORACLE_HOST != ''
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s' "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/oracle.pem
-          chmod 600 ~/.ssh/oracle.pem
-
-          # Sync source files (excl. node_modules/.next)
-          rsync -az --delete \
-            --exclude='.next' \
-            --exclude='node_modules' \
-            --exclude='.git' \
-            --exclude='.env*' \
-            -e "ssh -i ~/.ssh/oracle.pem -o StrictHostKeyChecking=no" \
-            ./ ubuntu@${{ secrets.ORACLE_HOST }}:/home/ubuntu/dxbmovies/
-
-          # Sync built .next output (excluding cache)
-          rsync -az --delete \
-            --exclude='cache' \
-            -e "ssh -i ~/.ssh/oracle.pem -o StrictHostKeyChecking=no" \
-            .next/ ubuntu@${{ secrets.ORACLE_HOST }}:/home/ubuntu/dxbmovies/.next/
+      # ── Deploy: only on push to main when secrets are set ──────────────────
+      - name: Copy .next to Oracle
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ubuntu
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          # Ship everything except node_modules, .env, .git, and build cache
+          source: ".next/,public/,package.json,package-lock.json,next.config.js"
+          target: /home/ubuntu/dxbmovies
+          rm: false
+          strip_components: 0
 
       - name: Restart app
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ORACLE_HOST != ''
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ORACLE_HOST }}
