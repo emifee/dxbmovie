@@ -60,7 +60,18 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
+      - name: Check deploy secrets
+        id: secrets
+        run: |
+          if [ -z "${{ secrets.ORACLE_HOST }}" ] || [ -z "${{ secrets.ORACLE_SSH_KEY }}" ]; then
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "⚠️  ORACLE_HOST / ORACLE_SSH_KEY secrets not set — skipping deploy"
+          else
+            echo "configured=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy via SSH
+        if: steps.secrets.outputs.configured == 'true'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ORACLE_HOST }}
