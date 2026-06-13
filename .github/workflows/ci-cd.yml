@@ -7,21 +7,14 @@ on:
     branches: [main]
 
 jobs:
-  # ─────────────────────────────────────────────────────────────────────────────
-  # CI: type-check + lint + build
-  # Runs on every push and every PR targeting main.
-  # The deploy job only runs after this passes AND only on pushes to main.
-  # ─────────────────────────────────────────────────────────────────────────────
   ci:
-    name: Type-check, Lint & Build
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node 22
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
@@ -31,8 +24,6 @@ jobs:
 
       - name: Next.js build
         env:
-          # Hard-coded stubs — safe placeholder values for CI build
-          # Real values are only needed at runtime on the server
           NEXTAUTH_SECRET: ci-secret-placeholder
           NEXTAUTH_URL: https://dxbmovie.online
           MONGODB_URI: mongodb://localhost:27017/ci
@@ -49,10 +40,18 @@ jobs:
           CRON_SECRET: ci-cron-secret
         run: npm run build
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # CD: SSH into Oracle Cloud and pull + rebuild + restart
-  # Only runs when CI passes AND the event is a push to main (not a PR).
-  # ─────────────────────────────────────────────────────────────────────────────
+      # Upload built .next (exclude cache + standalone — not needed at runtime)
+      - name: Upload build artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build
+          retention-days: 1
+          path: |
+            .next
+            !.next/cache
+            !.next/standalone
+
   deploy:
     name: Deploy to Oracle Cloud
     runs-on: ubuntu-latest
@@ -65,12 +64,29 @@ jobs:
         run: |
           if [ -z "${{ secrets.ORACLE_HOST }}" ] || [ -z "${{ secrets.ORACLE_SSH_KEY }}" ]; then
             echo "configured=false" >> $GITHUB_OUTPUT
-            echo "⚠️  ORACLE_HOST / ORACLE_SSH_KEY secrets not set — skipping deploy"
+            echo "ORACLE secrets not set — skipping deploy"
           else
             echo "configured=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Deploy via SSH
+      - name: Download build artifact
+        if: steps.secrets.outputs.configured == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: next-build
+          path: .next
+
+      - name: Rsync .next to Oracle
+        if: steps.secrets.outputs.configured == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/oracle.pem
+          chmod 600 ~/.ssh/oracle.pem
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/oracle.pem -o StrictHostKeyChecking=no" \
+            .next/ ubuntu@${{ secrets.ORACLE_HOST }}:/home/ubuntu/dxbmovies/.next/
+
+      - name: Restart app
         if: steps.secrets.outputs.configured == 'true'
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -80,21 +96,7 @@ jobs:
           script: |
             set -e
             cd /home/ubuntu/dxbmovies
-
-            echo "── Pulling latest code ──"
             git pull origin main
-
-            echo "── Installing dependencies ──"
-            npm ci --omit=dev
-
-            echo "── Ensure NEXTAUTH_URL is set to domain ──"
             sed -i 's|NEXTAUTH_URL=.*|NEXTAUTH_URL=https://dxbmovie.online|' .env.local
-
-            echo "── Building Next.js standalone ──"
-            npm run build
-
-            echo "── Restarting pm2 ──"
             pm2 restart dxbmovies || pm2 start npm --name dxbmovies -- start
-
-            echo "── Done ──"
             pm2 status dxbmovies
