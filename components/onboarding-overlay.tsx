@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { ArrowRight, Check } from "lucide-react";
 import { GradientOrb } from "@/components/ui/gradient-orb";
 import { STREAMING_SERVICES, GENRES } from "@/lib/constants";
@@ -9,34 +10,79 @@ import { cn } from "@/lib/utils";
 
 /**
  * First-run 3-step onboarding overlay. Shown after Google login for new users
- * (here: triggered by ?onboarding=1). Collects streaming services, 3 favorite
- * genres, and a display name — the inputs that power AI recs from chat #1.
- * On the live build each step persists to Supabase (user_preferences /
- * profiles); here it just advances and dismisses.
+ * (triggered by ?onboarding=1). Checks the user's `onboardingDone` flag from
+ * the session — if already done, auto-dismisses. Otherwise collects streaming
+ * services, 3 favorite genres, and a display name, then persists to MongoDB.
  */
 export function OnboardingOverlay() {
   const router = useRouter();
   const params = useSearchParams();
-  const active = params.get("onboarding") === "1";
+  const hasParam = params.get("onboarding") === "1";
+  const { data: session, status } = useSession();
 
   const [step, setStep] = useState(0);
   const [services, setServices] = useState<string[]>([]);
   const [genres, setGenres] = useState<(number | "all")[]>([]);
-  const [name, setName] = useState("Emi");
+  const [name, setName] = useState("");
 
+  // Determine if onboarding should show:
+  // - URL has ?onboarding=1
+  // - Session is loaded and user has NOT completed onboarding
+  const sessionUser = session?.user as (typeof session)["user"] & {
+    onboardingDone?: boolean;
+  } | undefined;
+
+  const shouldShow =
+    hasParam &&
+    status === "authenticated" &&
+    sessionUser &&
+    !sessionUser.onboardingDone;
+
+  // Pre-fill name from Google profile
   useEffect(() => {
-    if (active) {
+    if (sessionUser?.name && !name) {
+      setName(sessionUser.name.split(" ")[0]); // First name only
+    }
+  }, [sessionUser?.name, name]);
+
+  // If returning user lands on ?onboarding=1 but already completed, strip param
+  useEffect(() => {
+    if (
+      hasParam &&
+      status === "authenticated" &&
+      sessionUser?.onboardingDone
+    ) {
+      router.replace("/");
+    }
+  }, [hasParam, status, sessionUser?.onboardingDone, router]);
+
+  // Lock body scroll when overlay is visible
+  useEffect(() => {
+    if (shouldShow) {
       document.body.style.overflow = "hidden";
     }
     return () => {
       document.body.style.overflow = "";
     };
-  }, [active]);
+  }, [shouldShow]);
 
-  if (!active) return null;
+  if (!shouldShow) return null;
 
-  function finish() {
-    // TODO(onboarding): persist services/genres/name to Supabase
+  async function finish() {
+    try {
+      await fetch("/api/user/dna", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: name.trim(),
+          streamingServices: services,
+          favoriteGenres: genres,
+          onboardingDone: true,
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to save onboarding:", e);
+    }
     router.replace("/");
   }
 
@@ -147,7 +193,7 @@ export function OnboardingOverlay() {
               What should we call you?
             </h2>
             <p className="mt-2 text-sm text-text-secondary">
-              DXB will use this to talk to you.
+              DXBmovies will use this to talk to you.
             </p>
             <div className="input-glow mt-6 w-full rounded-2xl border border-border bg-surface px-4 py-3.5 transition">
               <input

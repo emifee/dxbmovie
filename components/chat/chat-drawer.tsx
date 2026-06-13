@@ -96,7 +96,7 @@ export function ChatDrawer() {
     windowStart,
   } as AccountState);
 
-  const assistantName = !signedIn || !aiCompanion ? "DXBmovies AI" : aiCompanion.name;
+  const assistantName = !signedIn || !aiCompanion ? "DXBmovies" : aiCompanion.name;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");

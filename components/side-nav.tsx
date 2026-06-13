@@ -36,12 +36,11 @@ export function SideNav() {
       {/* Logo + collapse toggle */}
       <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between px-2")}>
         {!collapsed ? (
-          <Link href="/" className="text-xl font-bold">
-            <span className="text-gradient">DXBmovies</span>
-            <span className="text-white">.Ai</span>
+          <Link href="/" className="text-xl font-bold text-gradient">
+            DXBmovies
           </Link>
         ) : (
-          <Link href="/" aria-label="DXBmovies.Ai home" className="text-lg font-bold text-gradient">
+          <Link href="/" aria-label="DXBmovies home" className="text-lg font-bold text-gradient">
             DXB
           </Link>
         )}

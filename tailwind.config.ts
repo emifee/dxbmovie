@@ -1,6 +1,6 @@
 import type { Config } from "tailwindcss";
 
-// DXBmovies.Ai design tokens — single source of truth for the dark cinematic
+// DXBmovies design tokens — single source of truth for the dark cinematic
 // theme. Colors map 1:1 to the spec so component classes stay semantic
 // (bg-surface, border-border, text-secondary, etc.).
 const config: Config = {

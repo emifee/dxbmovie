@@ -5,8 +5,8 @@ import { GoogleGlyph } from "@/components/ui/google-glyph";
 
 /**
  * "Continue with Google" CTA. Calls NextAuth's Google OAuth flow.
- * First-time users land on /?onboarding=1 to complete their profile setup;
- * returning users go straight to the home page.
+ * Always lands on /?onboarding=1 — the overlay checks the user's DB
+ * `onboardingDone` flag and auto-dismisses for returning users.
  */
 export function GoogleButton() {
   function handleClick() {

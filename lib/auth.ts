@@ -35,9 +35,19 @@ export const authOptions: NextAuthOptions = {
 
     session({ session, user }) {
       if (session.user) {
-        (session.user as typeof session.user & { id: string }).id = user.id;
+        (session.user as typeof session.user & { id: string; onboardingDone?: boolean }).id = user.id;
+        (session.user as typeof session.user & { id: string; onboardingDone?: boolean }).onboardingDone =
+          (user as typeof user & { onboardingDone?: boolean }).onboardingDone ?? false;
       }
       return session;
+    },
+
+    // Redirect new users to onboarding, returning users straight to home
+    async redirect({ url, baseUrl }) {
+      // If the callbackUrl is just the base URL (from login page), check if
+      // new-user flag was set and redirect to onboarding
+      if (url.startsWith(baseUrl)) return url;
+      return baseUrl;
     },
   },
 

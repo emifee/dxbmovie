@@ -276,7 +276,7 @@ export default function ProfilePage() {
               <div className="grid h-20 w-20 place-items-center rounded-full bg-surface mb-4">
                 <User size={32} className="text-text-secondary" />
               </div>
-              <h1 className="text-xl font-bold text-white">Sign in to DXBmovies.Ai</h1>
+              <h1 className="text-xl font-bold text-white">Sign in to DXBmovies</h1>
               <p className="mt-2 text-sm text-text-secondary max-w-sm">Create your AI companion, save movies to your watchlist, and sync your chat history across devices.</p>
               <button onClick={openAuthGate} className="mt-6 rounded-xl bg-white px-6 py-3 font-semibold text-black transition hover:bg-white/90">
                 Continue with Google

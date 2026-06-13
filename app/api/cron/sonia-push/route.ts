@@ -4,7 +4,7 @@ import { sendPushNotification, type PushSubscriptionData } from "@/lib/push";
 import Groq from "groq-sdk";
 import OpenAI from "openai";
 
-const SONIA_SYSTEM = `You are Sonia, a friendly AI movie companion for DXBmovies AI.
+const SONIA_SYSTEM = `You are Sonia, a friendly AI movie companion for DXBmovies.
 Generate a single short, enthusiastic push notification recommending a movie or show.
 
 Rules:

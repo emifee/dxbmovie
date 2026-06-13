@@ -69,3 +69,57 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+/**
+ * POST /api/user/dna — completes user onboarding.
+ * Body: { displayName: string, streamingServices: string[], favoriteGenres: number[], onboardingDone: true }
+ */
+export async function POST(request: Request) {
+  const userId = await getUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+  }
+
+  try {
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+
+    // Save preferences
+    await db.collection(COLLECTION).updateOne(
+      { userId },
+      { 
+        $set: { 
+          genres: body.favoriteGenres || [], 
+          streamingServices: body.streamingServices || [],
+          updatedAt: new Date() 
+        },
+        $setOnInsert: { userId }
+      },
+      { upsert: true }
+    );
+
+    // Update user profile
+    const { ObjectId } = require("mongodb");
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $set: { 
+          name: body.displayName || "User",
+          onboardingDone: true 
+        } 
+      }
+    );
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[dna POST]", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
