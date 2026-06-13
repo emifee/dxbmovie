@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Next.js build (standalone)
+      - name: Next.js build
         env:
           NEXTAUTH_SECRET: ci-secret-placeholder
           NEXTAUTH_URL: https://dxbmovie.online
@@ -40,22 +40,6 @@ jobs:
           CRON_SECRET: ci-cron-secret
         run: npm run build
 
-      # Bundle standalone output + static assets + public into a tarball
-      - name: Package standalone bundle
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          cp -r public .next/standalone/public
-          cp -r .next/static .next/standalone/.next/static
-          tar -czf deploy.tar.gz -C .next/standalone .
-
-      - name: Upload deploy bundle
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: deploy-bundle
-          path: deploy.tar.gz
-          retention-days: 1
-
   deploy:
     name: Deploy
     needs: build
@@ -63,43 +47,19 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Download deploy bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: deploy-bundle
-
-      - name: Checkout for ecosystem config
-        uses: actions/checkout@v4
-
-      - name: Copy bundle and config to Oracle
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.ORACLE_HOST }}
-          username: ubuntu
-          key: ${{ secrets.ORACLE_SSH_KEY }}
-          source: "deploy.tar.gz,ecosystem.config.js"
-          target: /home/ubuntu/
-
-      - name: Extract and restart
+      - name: Deploy to Oracle
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ORACLE_HOST }}
           username: ubuntu
           key: ${{ secrets.ORACLE_SSH_KEY }}
+          command_timeout: 30m
           script: |
             set -e
-            # Extract new build into a fresh directory, then swap atomically
-            rm -rf /home/ubuntu/app-next
-            mkdir -p /home/ubuntu/app-next
-            tar -xzf /home/ubuntu/deploy.tar.gz -C /home/ubuntu/app-next
-            # Copy .env.local from current deploy
-            cp /home/ubuntu/dxbmovies/.env.local /home/ubuntu/app-next/.env.local
-            # Swap directories
-            rm -rf /home/ubuntu/dxbmovies-old
-            mv /home/ubuntu/dxbmovies /home/ubuntu/dxbmovies-old 2>/dev/null || true
-            mv /home/ubuntu/app-next /home/ubuntu/dxbmovies
-            cp /home/ubuntu/ecosystem.config.js /home/ubuntu/dxbmovies/ecosystem.config.js
-            # Restart app using standalone server (no npm install needed)
-            pm2 restart dxbmovies || pm2 start /home/ubuntu/dxbmovies/ecosystem.config.js
+            cd /home/ubuntu/dxbmovies
+            git pull origin main
+            npm ci --omit=dev
+            npm run build
+            pm2 restart dxbmovies || pm2 start npm --name dxbmovies -- start
             pm2 save
             echo "Deploy complete"
