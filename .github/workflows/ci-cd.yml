@@ -1,0 +1,90 @@
+name: CI / CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # CI: type-check + lint + build
+  # Runs on every push and every PR targeting main.
+  # The deploy job only runs after this passes AND only on pushes to main.
+  # ─────────────────────────────────────────────────────────────────────────────
+  ci:
+    name: Type-check, Lint & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Writes a stub next-env.d.ts so tsc is happy
+      - name: TypeScript type-check
+        run: npx tsc --noEmit
+
+      - name: ESLint
+        run: npx eslint . --ext .ts,.tsx --max-warnings 0
+
+      - name: Next.js build
+        env:
+          # Provide dummy values so Next.js build doesn't error on missing env
+          NEXTAUTH_SECRET: ci-secret
+          NEXTAUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_EMAIL: ${{ secrets.VAPID_EMAIL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: npm run build
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # CD: SSH into Oracle Cloud and pull + rebuild + restart
+  # Only runs when CI passes AND the event is a push to main (not a PR).
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Oracle Cloud
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ubuntu
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          script: |
+            set -e
+            cd /home/ubuntu/dxbmovies
+
+            echo "── Pulling latest code ──"
+            git pull origin main
+
+            echo "── Installing dependencies ──"
+            npm ci --omit=dev
+
+            echo "── Building Next.js standalone ──"
+            npm run build
+
+            echo "── Restarting pm2 ──"
+            pm2 restart dxbmovies || pm2 start npm --name dxbmovies -- start
+
+            echo "── Done ──"
+            pm2 status dxbmovies

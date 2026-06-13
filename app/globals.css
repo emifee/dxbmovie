@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --color-primary: #8B5CF6;
+    --color-primary-rgb: 139, 92, 246;
+  }
+
+  html,
+  body {
+    background-color: #0a0a0a;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* ── Native feel ── */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+
+  /* Standalone PWA: account for notch/dynamic island */
+  @supports (padding-top: env(safe-area-inset-top)) {
+    body {
+      padding-top: env(safe-area-inset-top);
+    }
+  }
+
+  /* Instant tap response for all interactive elements */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* GPU-accelerated transitions on key interactive surfaces */
+  .card, .btn-gradient, [class*="rounded-full"] {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  /* Smooth momentum scrolling for scroll containers */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Prevent text selection on UI elements for native feel */
+  nav, header, footer, [role="navigation"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+
+@layer components {
+  /* Gradient text used for the logo / accents */
+  .text-gradient {
+    @apply bg-gradient-primary bg-clip-text text-transparent;
+  }
+
+  /* Primary pill button — gradient fill */
+  .btn-gradient {
+    @apply rounded-full bg-gradient-primary text-white font-medium
+           transition duration-200 hover:shadow-glow-lg active:scale-[0.98];
+  }
+
+  /* Standard card surface */
+  .card {
+    @apply rounded-2xl border border-border bg-surface transition duration-200;
+  }
+
+  /* Focus glow for inputs */
+  .input-glow:focus-within {
+    @apply shadow-glow border-primary/60;
+  }
+}
+
+/* =============================================================================
+   Animated gradient orb — pure CSS, no external library.
+   Layered radial gradients: a soft pulsing core + a slowly rotating
+   conic highlight ring, masked into a sphere. Reused on /login (large)
+   and the homepage chat entry card (small) via the --orb-size var.
+   ============================================================================= */
+.orb {
+  position: relative;
+  width: var(--orb-size, 64px);
+  height: var(--orb-size, 64px);
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle at 35% 30%, #ec4899 0%, transparent 55%),
+    radial-gradient(circle at 70% 70%, #8b5cf6 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, #a855f7 0%, #6d28d9 70%);
+  box-shadow:
+    inset 0 0 calc(var(--orb-size, 64px) * 0.35) rgba(236, 72, 153, 0.45);
+  animation: orb-pulse 4s ease-in-out infinite;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-mask-image: radial-gradient(circle, #000 100%, transparent 100%);
+  mask-image: radial-gradient(circle, #000 100%, transparent 100%);
+}
+
+/* Rotating conic highlight that sweeps across the sphere surface */
+.orb::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(236, 72, 153, 0.5) 90deg,
+    transparent 180deg,
+    rgba(139, 92, 246, 0.5) 270deg,
+    transparent 360deg
+  );
+  animation: orb-rotate 18s linear infinite;
+  mix-blend-mode: screen;
+}
+
+/* Glossy top highlight to read as a 3D sphere */
+.orb::after {
+  content: "";
+  position: absolute;
+  top: 12%;
+  left: 18%;
+  width: 35%;
+  height: 25%;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.7), transparent 70%);
+  filter: blur(2px);
+}
+
+@keyframes orb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes orb-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ping-once {
+  0% { transform: scale(0.6); opacity: 1; }
+  60% { transform: scale(1.1); opacity: 0.9; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.animate-ping-once {
+  animation: ping-once 0.55s ease-out forwards;
+}
+
+@keyframes nudge-in {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.88); }
+  60%  { opacity: 1; transform: translateX(-50%) translateY(-2px) scale(1.03); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.animate-nudge-in {
+  animation: nudge-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}

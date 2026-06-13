@@ -1,0 +1,452 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { ThumbsUp, ThumbsDown, Plus, Volume2, VolumeX, Check, Sparkles } from "lucide-react";
+import { BottomNav } from "@/components/bottom-nav";
+import { SideNav } from "@/components/side-nav";
+import { ChatDrawer } from "@/components/chat/chat-drawer";
+import { GoogleGate } from "@/components/auth/google-gate";
+import { useSession } from "next-auth/react";
+import { useUIStore } from "@/lib/store";
+import { PROVIDER_THEMES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
+
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady: () => void;
+    YT: any;
+  }
+}
+
+interface Reel {
+  key: string;
+  title: string;
+  backdrop: string | null;
+  movie?: any;
+}
+
+export default function ReelsPage() {
+  const [reels, setReels] = useState<Reel[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [reactions, setReactions] = useState<Record<number, string>>({});
+  const [watchlistIds, setWatchlistIds] = useState<Set<number>>(new Set());
+  const [globalMuted, setGlobalMuted] = useState(true);
+  const [isPWA, setIsPWA] = useState(false);
+
+  useEffect(() => {
+    // Robust PWA detection
+    const isStandalone = 
+      window.matchMedia('(display-mode: standalone)').matches || 
+      (window.navigator as any).standalone || 
+      document.referrer.includes('android-app://');
+    
+    if (isStandalone) {
+      setIsPWA(true);
+    }
+  }, []);
+  
+  // State for the single background player
+  const [playerReady, setPlayerReady] = useState(false);
+  const [ytPlayer, setYtPlayer] = useState<any>(null);
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { status } = useSession();
+  const openAuthGate = useUIStore((s) => s.openAuthGate);
+
+  // Initialize Official YouTube Iframe API
+  useEffect(() => {
+    if (reels.length === 0) return;
+    
+    // If API is already loaded but player isn't initialized
+    if (window.YT && window.YT.Player && !ytPlayer) {
+      initPlayer();
+      return;
+    }
+
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        initPlayer();
+      };
+    }
+
+    function initPlayer() {
+      const player = new window.YT.Player('yt-player-container', {
+        height: '100%',
+        width: '100%',
+        videoId: reels[0]?.key,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          rel: 0,
+          mute: 1,
+        },
+        events: {
+          onReady: (e: any) => {
+            setYtPlayer(e.target);
+            e.target.mute();
+            e.target.playVideo();
+          },
+          onStateChange: (e: any) => {
+            if (e.data === 1) { // 1 = PLAYING
+              setPlayerReady(true);
+            }
+          }
+        }
+      });
+    }
+  }, [reels.length]);
+
+  // When activeReel changes, switch video using loadVideoById
+  useEffect(() => {
+    if (ytPlayer && reels[activeIndex]) {
+      setPlayerReady(false); // Show thumbnail instantly
+      ytPlayer.loadVideoById(reels[activeIndex].key); // Seamlessly switch video
+      if (globalMuted) {
+        ytPlayer.mute();
+      } else {
+        ytPlayer.unMute();
+      }
+    }
+  }, [activeIndex, ytPlayer]);
+
+  // Failsafe: if something catastrophically breaks, hide thumbnail after 4s anyway
+  useEffect(() => {
+    const timer = setTimeout(() => setPlayerReady(true), 4000);
+    return () => clearTimeout(timer);
+  }, [reels[activeIndex]?.key]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--color-primary", PROVIDER_THEMES.all.hex);
+    document.documentElement.style.setProperty("--color-primary-rgb", PROVIDER_THEMES.all.rgb);
+    
+    const randomStartPage = Math.floor(Math.random() * 10) + 1;
+    setPage(randomStartPage);
+    
+    fetch(`/api/movies/reels?page=${randomStartPage}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d) && d.length > 0) setReels(d);
+      })
+      .catch(console.error);
+
+    fetch("/api/user/reactions")
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d)) {
+          const m: Record<number, string> = {};
+          d.forEach(x => m[x.movieId] = x.reaction);
+          setReactions(m);
+        }
+      }).catch(() => {});
+    
+    fetch("/api/user/watchlist")
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d)) {
+          setWatchlistIds(new Set(d.map(m => m.id)));
+        }
+      }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (activeIndex >= reels.length - 2 && !loadingMore && reels.length > 0) {
+      setLoadingMore(true);
+      const nextPage = page + 1;
+      fetch(`/api/movies/reels?page=${nextPage}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (Array.isArray(d)) {
+            setReels((prev) => {
+              const existing = new Set(prev.map(r => r.key));
+              const newItems = d.filter(item => !existing.has(item.key));
+              return [...prev, ...newItems];
+            });
+            setPage(nextPage);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setLoadingMore(false));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex, reels.length]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const items = container.querySelectorAll(".reel-snap-point");
+    const containerRect = container.getBoundingClientRect();
+    const containerCenter = containerRect.top + containerRect.height / 2;
+
+    let closestIdx = activeIndex;
+    let minDiff = Infinity;
+
+    items.forEach((item, i) => {
+      const rect = item.getBoundingClientRect();
+      const childCenter = rect.top + rect.height / 2;
+      const diff = Math.abs(containerCenter - childCenter);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIdx = i;
+      }
+    });
+
+    if (closestIdx !== activeIndex) {
+      setActiveIndex(closestIdx);
+    }
+  };
+
+  const handleReaction = async (movie: any, newReaction: 'like' | 'dislike') => {
+    if (status === "unauthenticated") {
+      openAuthGate();
+      return;
+    }
+    if (!movie || !movie.id) return;
+    const movieId = movie.id;
+    const current = reactions[movieId];
+    const finalReaction = current === newReaction ? 'none' : newReaction;
+    
+    setReactions(prev => ({ ...prev, [movieId]: finalReaction }));
+    try {
+      await fetch("/api/user/reactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ movieId, reaction: finalReaction })
+      });
+    } catch {
+      setReactions(prev => ({ ...prev, [movieId]: current || 'none' }));
+    }
+  };
+
+  const handleWatchlist = async (movie: any) => {
+    if (status === "unauthenticated") {
+      openAuthGate();
+      return;
+    }
+    if (!movie || !movie.id) return;
+    const movieId = movie.id;
+    const isAdded = watchlistIds.has(movieId);
+    
+    setWatchlistIds(prev => {
+      const next = new Set(prev);
+      if (isAdded) next.delete(movieId);
+      else next.add(movieId);
+      return next;
+    });
+
+    try {
+      if (isAdded) {
+        await fetch("/api/user/watchlist", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ movieId })
+        });
+      } else {
+        await fetch("/api/user/watchlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ movie })
+        });
+      }
+    } catch {
+      setWatchlistIds(prev => {
+        const next = new Set(prev);
+        if (isAdded) next.add(movieId);
+        else next.delete(movieId);
+        return next;
+      });
+    }
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newMuted = !globalMuted;
+    setGlobalMuted(newMuted);
+    
+    if (ytPlayer) {
+      if (newMuted) {
+        ytPlayer.mute();
+      } else {
+        ytPlayer.unMute();
+        // Force play just in case iOS paused it
+        ytPlayer.playVideo();
+      }
+    }
+  };
+
+  const activeReel = reels[activeIndex];
+
+  return (
+    <div className="flex min-h-screen bg-black overflow-hidden relative">
+      <SideNav />
+
+      {/* SINGLE FIXED BACKGROUND PLAYER */}
+      {/* Uses the official YT.Player API to perfectly bypass iOS autoplay restrictions and hide black frames */}
+      <div className="fixed inset-0 z-0 flex items-center justify-center bg-black lg:pl-20 xl:pl-64 pointer-events-none">
+        
+        {/* The target div that YT.Player will replace with an iframe */}
+        <div id="yt-player-container" className="w-full h-full border-0 pointer-events-none" />
+        
+        {/* Loading overlay perfectly masks the YouTube buffering state */}
+        {!playerReady && activeReel && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+            <img 
+              src={`https://i.ytimg.com/vi/${activeReel.key}/maxresdefault.jpg`}
+              alt="Loading"
+              className="absolute inset-0 w-full h-full object-cover opacity-60"
+              onError={(e) => {
+                e.currentTarget.src = `https://i.ytimg.com/vi/${activeReel.key}/hqdefault.jpg`;
+              }}
+            />
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-primary relative z-20" />
+          </div>
+        )}
+      </div>
+
+      {/* Top Bar for Safe Area & Mute Button */}
+      <div className="absolute top-0 inset-x-0 z-50 flex items-center justify-end bg-gradient-to-b from-black/80 via-black/40 to-transparent px-4 py-4 pt-[max(3rem,env(safe-area-inset-top))] pointer-events-none lg:pl-24 xl:pl-68">
+        <button 
+          onClick={toggleMute}
+          className="grid h-10 w-10 place-items-center bg-black/40 hover:bg-primary/80 backdrop-blur-md rounded-full text-white transition-all hover:scale-110 active:scale-95 border border-white/10 pointer-events-auto"
+        >
+          {globalMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+        </button>
+      </div>
+
+      <main className="flex-1 lg:pl-20 xl:pl-64 z-10">
+        {/* Full-screen vertical snapping container */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          className="h-[100dvh] w-full snap-y snap-mandatory overflow-y-auto no-scrollbar scroll-smooth"
+        >
+          {reels.length === 0 ? null : (
+            <>
+              {reels.map((reel, idx) => {
+                const isActive = idx === activeIndex;
+                const reaction = reel.movie ? reactions[reel.movie.id] : 'none';
+                const isWatchlisted = reel.movie ? watchlistIds.has(reel.movie.id) : false;
+
+                return (
+                  <div
+                    key={`${reel.key}-${idx}`}
+                    className="reel-snap-point relative w-full h-[100dvh] shrink-0 snap-center flex flex-col justify-end"
+                  >
+                    {/* Gradient to make text readable */}
+                    <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
+
+                    {/* Reel Overlay Content */}
+                    <div 
+                      className={cn(
+                        "relative z-20 flex items-end justify-between p-4 lg:p-12 lg:pb-12 h-full",
+                        isPWA ? "pb-[150px]" : "pb-[80px]"
+                      )}
+                      onClick={() => {
+                        if (ytPlayer) {
+                          if (ytPlayer.getPlayerState() !== 1) {
+                            ytPlayer.playVideo();
+                          } else {
+                            const newMuted = !globalMuted;
+                            setGlobalMuted(newMuted);
+                            if (newMuted) ytPlayer.mute();
+                            else ytPlayer.unMute();
+                          }
+                        }
+                      }}
+                    >
+                      
+                      {/* Left: Info */}
+                      <div className="flex flex-col items-start gap-2 max-w-[70%]">
+                        <h2 className="text-2xl lg:text-4xl font-bold text-white shadow-sm leading-tight">
+                          {reel.title}
+                        </h2>
+                        {reel.movie?.overview && (
+                          <p className="text-white/80 text-sm lg:text-base line-clamp-2 shadow-sm">
+                            {reel.movie.overview}
+                          </p>
+                        )}
+                        <span className="inline-block mt-2 rounded-md bg-primary/20 border border-primary/40 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-md shadow-glow">
+                          Trailer
+                        </span>
+                      </div>
+
+                      {/* Right: Actions */}
+                      <div className="flex flex-col items-center gap-6 pb-4">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleReaction(reel.movie, 'like'); }}
+                          aria-label="Like trailer"
+                          className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
+                        >
+                          <div className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border ${reaction === 'like' ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]' : 'bg-black/40 border-white/20 text-white group-hover:bg-black/60'}`}>
+                            <ThumbsUp className={`h-6 w-6 ${reaction === 'like' ? 'fill-primary' : ''}`} />
+                          </div>
+                        </button>
+                        
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleReaction(reel.movie, 'dislike'); }}
+                          aria-label="Dislike trailer"
+                          className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
+                        >
+                          <div className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border ${reaction === 'dislike' ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]' : 'bg-black/40 border-white/20 text-white group-hover:bg-black/60'}`}>
+                            <ThumbsDown className={`h-6 w-6 ${reaction === 'dislike' ? 'fill-primary' : ''}`} />
+                          </div>
+                        </button>
+
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); handleWatchlist(reel.movie); }}
+                          aria-label={isWatchlisted ? "Remove from watchlist" : "Add to watchlist"}
+                          className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
+                        >
+                          <div className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border ${isWatchlisted ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]' : 'bg-black/40 border-white/20 text-white group-hover:bg-black/60'}`}>
+                            {isWatchlisted ? (
+                              <Check className="h-6 w-6" />
+                            ) : (
+                              <Plus className="h-6 w-6" />
+                            )}
+                          </div>
+                        </button>
+                        
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            if (reel.movie) useUIStore.getState().openChat(reel.movie); 
+                          }}
+                          aria-label="Ask AI about this title"
+                          className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
+                        >
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border bg-black/40 border-white/20 text-white group-hover:bg-black/60">
+                            <Sparkles className="h-6 w-6" />
+                          </div>
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {loadingMore && (
+                <div className="h-32 w-full flex items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-primary" />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </main>
+
+      <BottomNav />
+      <ChatDrawer />
+      <GoogleGate />
+    </div>
+  );
+}

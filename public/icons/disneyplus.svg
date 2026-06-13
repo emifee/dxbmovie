@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <rect width="24" height="24" rx="5" fill="#002E8A"/>
+  <!-- D+ wordmark approximation -->
+  <!-- "D" letter -->
+  <path d="M5 7h3.5c2.5 0 4 1.5 4 5s-1.5 5-4 5H5V7z" stroke="white" stroke-width="1.4" fill="none" stroke-linejoin="round"/>
+  <!-- "+" -->
+  <path d="M16 9.5v5M13.5 12h5" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+</svg>
