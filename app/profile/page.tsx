@@ -267,9 +267,6 @@ export default function ProfilePage() {
               </div>
               <h1 className="mt-3 text-xl font-bold text-white">{fullName}</h1>
               <p className="text-sm text-text-secondary">Joined {joinedDisplay}</p>
-              <span className="mt-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-secondary">
-                Free Forever ✨
-              </span>
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-12">

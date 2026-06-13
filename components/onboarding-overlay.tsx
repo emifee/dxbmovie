@@ -31,7 +31,6 @@ export function OnboardingOverlay() {
   const sessionUser = session?.user as any;
 
   const shouldShow =
-    hasParam &&
     status === "authenticated" &&
     sessionUser &&
     !sessionUser.onboardingDone;
