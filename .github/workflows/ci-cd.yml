@@ -1,4 +1,4 @@
-name: CI / CD
+name: CI
 
 on:
   push:
@@ -39,27 +39,3 @@ jobs:
           VAPID_EMAIL: mailto:hello@dxbmovies.com
           CRON_SECRET: ci-cron-secret
         run: npm run build
-
-  deploy:
-    name: Deploy
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Deploy to Oracle
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.ORACLE_HOST }}
-          username: ubuntu
-          key: ${{ secrets.ORACLE_SSH_KEY }}
-          command_timeout: 30m
-          script: |
-            set -e
-            cd /home/ubuntu/dxbmovies
-            git pull origin main
-            npm ci
-            npm run build
-            pm2 restart dxbmovies || pm2 start npm --name dxbmovies -- start
-            pm2 save
-            echo "Deploy complete"
