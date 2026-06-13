@@ -563,7 +563,7 @@ export default function ProfilePage() {
             <div className="flex flex-col items-center rounded-2xl border border-border bg-surface px-6 py-10 text-center">
               <Sparkle size={44} />
               <p className="mt-3 text-sm text-text-secondary">
-                Your watchlist is empty — browse movies and tap Watchlist to add
+                Your watchlist is empty. Browse movies and tap Watchlist to add.
               </p>
             </div>
           )}
@@ -612,7 +612,7 @@ export default function ProfilePage() {
           ) : (
             <div className="rounded-2xl border border-border bg-surface px-6 py-8 text-center">
               <p className="text-sm text-text-secondary">
-                {session?.user ? "No conversations yet — start chatting!" : "Sign in to see your chat history"}
+                {session?.user ? "No conversations yet. Start chatting!" : "Sign in to see your chat history"}
               </p>
             </div>
           )}
@@ -716,7 +716,7 @@ function PWAModal({ onClose }: { onClose: () => void }) {
           <h2 className="text-lg font-bold text-white">Download DXBmovies</h2>
         </div>
         <p className="mb-5 text-sm text-text-secondary">
-          Install the app on your phone — no App Store needed. Works just like a native app.
+          Install the app on your phone. No App Store needed. Works just like a native app.
         </p>
 
         {/* Tab switcher */}
@@ -729,7 +729,7 @@ function PWAModal({ onClose }: { onClose: () => void }) {
                 tab === t ? "bg-gradient-primary text-white" : "text-text-secondary hover:text-white"
               }`}
             >
-              {t === "ios" ? "🍎 iPhone / iPad" : "🤖 Android"}
+              {t === "ios" ? "iPhone / iPad" : "Android"}
             </button>
           ))}
         </div>

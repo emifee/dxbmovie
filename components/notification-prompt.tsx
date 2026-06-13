@@ -38,7 +38,7 @@ export function NotificationPrompt({ onDismiss }: Props) {
 
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white leading-snug">
-              Get Sonia&apos;s picks even when you&apos;re away 🎬
+              Get Sonia&apos;s picks even when you&apos;re away
             </p>
             <p className="mt-0.5 text-xs text-text-secondary">
               Daily recommendations straight to your phone

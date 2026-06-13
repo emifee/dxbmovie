@@ -155,12 +155,12 @@ export function FilterDrawer() {
                 onChange={(v) => setFilter("rating", v)}
                 options={[
                   { label: "Any Rating", value: "" },
-                  { label: "9+ ⭐", value: "9" },
-                  { label: "8+ ⭐", value: "8" },
-                  { label: "7+ ⭐", value: "7" },
-                  { label: "6+ ⭐", value: "6" },
-                  { label: "5+ ⭐", value: "5" },
-                  { label: "4+ ⭐", value: "4" },
+                  { label: "9+", value: "9" },
+                  { label: "8+", value: "8" },
+                  { label: "7+", value: "7" },
+                  { label: "6+", value: "6" },
+                  { label: "5+", value: "5" },
+                  { label: "4+", value: "4" },
                 ]}
               />
               <button

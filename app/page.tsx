@@ -418,7 +418,7 @@ export default function HomePage() {
                 </div>
               ) : (
                 <p className="py-10 text-center text-sm text-text-secondary">
-                  Nothing here yet — try another genre.
+                  Nothing here yet. Try another genre.
                 </p>
               )}
             </div>

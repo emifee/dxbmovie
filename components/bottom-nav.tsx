@@ -7,16 +7,16 @@ import { cn } from "@/lib/utils";
 import { useUIStore } from "@/lib/store";
 
 const NUDGES = [
-  "Wanna talk movies? 🎬",
-  "I can recommend something 🍿",
+  "Wanna talk movies?",
+  "I can recommend something",
   "Looking for something great?",
-  "Ask me anything about films ✨",
-  "I have a pick for you tonight 🌙",
-  "Let's find your next binge 📺",
-  "Feeling like a movie night? 🎥",
-  "I know exactly what you'd love 💜",
-  "Tell me your mood — I'll find it",
-  "Something new dropped on Netflix 👀",
+  "Ask me anything about films",
+  "I have a pick for you tonight",
+  "Let's find your next binge",
+  "Feeling like a movie night?",
+  "I know exactly what you'd love",
+  "Tell me your mood, I'll find it",
+  "Something new dropped on Netflix",
 ];
 
 /**

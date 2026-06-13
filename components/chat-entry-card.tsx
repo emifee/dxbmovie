@@ -17,7 +17,7 @@ const PROMPTS = [
   "Feeling happy, sad, or thrilled today?",
   "Looking for a hidden gem to watch?",
   "Who are you watching with tonight?",
-  "Tell me what you feel like watching ✨",
+  "Tell me what you feel like watching",
   "Should we find your next favorite movie?",
 ];
 

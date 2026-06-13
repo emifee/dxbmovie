@@ -4,7 +4,7 @@ import { AccountHydrator } from "@/components/account-hydrator";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "DXBmovies.Ai — Your AI movie companion",
+  title: "DXBmovies.Ai",
   description:
     "Talk to your AI, discover what to watch, and remember everything you love.",
   appleWebApp: {

@@ -74,9 +74,7 @@ export function GoogleGate() {
           Continue with Google
         </button>
 
-        <p className="mt-3 text-[11px] text-text-secondary">
-          Gmail accounts only · 5 free messages every 24h
-        </p>
+
       </div>
     </div>
   );

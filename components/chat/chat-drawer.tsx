@@ -30,7 +30,7 @@ function makeGreeting(assistantName: string): ChatMessage {
   return {
     id: "greeting",
     role: "assistant",
-    content: `Hey there! 🎬 I'm ${assistantName}, your movie companion. What are you in the mood to watch tonight?`,
+    content: `Hey, I'm ${assistantName}, your movie companion. What are you in the mood to watch tonight?`,
   };
 }
 
@@ -249,7 +249,7 @@ export function ChatDrawer() {
   if (!open) return null;
 
   const SUGGESTIONS = [
-    "Recommend something for tonight 🎬",
+    "Recommend something for tonight",
     "I'm in the mood for action",
     "Something emotional and deep",
     "Surprise me 🎲",
@@ -416,7 +416,7 @@ export function ChatDrawer() {
     })
       .then((r) => r.json())
       .then((data: { content?: string; error?: string; recommendations?: import("@/lib/types").Movie[]; provider?: "groq" | "openai" }) => {
-        const content = data.content ?? "Sorry, I hit a snag. Try asking again! 🎬";
+        const content = data.content ?? "Sorry, I hit a snag. Try asking again.";
         const recommendations = data.recommendations && data.recommendations.length > 0
           ? data.recommendations
           : undefined;
@@ -439,7 +439,7 @@ export function ChatDrawer() {
         setMessages((prev) =>
           prev.map((m) =>
             m.id === loadingId
-              ? { ...m, content: "Network error — please try again." }
+              ? { ...m, content: "Network error. Please try again." }
               : m,
           ),
         );

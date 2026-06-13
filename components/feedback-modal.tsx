@@ -34,14 +34,14 @@ export function markFeedbackPrompted() {
 }
 
 const FEATURE_OPTIONS = [
-  "🎭 Better genre discovery",
-  "📺 TV show tracking",
-  "👥 Watch parties with friends",
-  "🌍 More regional content (Arabic, Bollywood…)",
-  "🔔 New release notifications",
-  "📊 My watch stats & insights",
-  "🎯 Mood-based recommendations",
-  "🗓️ Watch calendar / scheduler",
+  "Better genre discovery",
+  "TV show tracking",
+  "Watch parties with friends",
+  "More regional content (Arabic, Bollywood)",
+  "New release notifications",
+  "My watch stats & insights",
+  "Mood-based recommendations",
+  "Watch calendar / scheduler",
 ];
 
 interface Props {
@@ -94,7 +94,7 @@ export function FeedbackModal({ onClose }: Props) {
     setTimeout(onClose, 1600);
   }
 
-  const starLabels = ["", "Terrible", "Not great", "It's okay", "Really good", "Love it! 🔥"];
+  const starLabels = ["", "Terrible", "Not great", "It's okay", "Really good", "Love it"];
 
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center sm:items-center">
@@ -116,10 +116,9 @@ export function FeedbackModal({ onClose }: Props) {
         {step === "review" && (
           <>
             <div className="mb-4 flex items-center gap-2">
-              <span className="text-2xl">🎬</span>
               <h2 className="text-lg font-bold text-white">How are you finding DXBmovies?</h2>
             </div>
-            <p className="mb-6 text-sm text-text-secondary">Takes 10 seconds — helps us improve for you.</p>
+            <p className="mb-6 text-sm text-text-secondary">Takes 10 seconds, helps us improve for you.</p>
 
             {/* Stars */}
             <div className="mb-2 flex justify-center gap-2">
@@ -171,7 +170,7 @@ export function FeedbackModal({ onClose }: Props) {
               <Sparkles size={20} className="text-primary" />
               <h2 className="text-lg font-bold text-white">What would you love to see?</h2>
             </div>
-            <p className="mb-4 text-sm text-text-secondary">Pick as many as you like — we read every one.</p>
+            <p className="mb-4 text-sm text-text-secondary">Pick as many as you like, we read every one.</p>
 
             <div className="mb-4 grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-1">
               {FEATURE_OPTIONS.map((f) => {

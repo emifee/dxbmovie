@@ -5,7 +5,7 @@ import { GradientOrb } from "@/components/ui/gradient-orb";
 import { GoogleButton } from "@/components/login/google-button";
 
 // Feature pills shown under the headline.
-const FEATURES = ["🎬 AI Recommendations", "💬 Movie Talks", "❤️ Remembers You"];
+const FEATURES = ["AI Recommendations", "Movie Talks", "Remembers You"];
 
 export default function LoginPage() {
   return (
