@@ -28,9 +28,7 @@ export function OnboardingOverlay() {
   // Determine if onboarding should show:
   // - URL has ?onboarding=1
   // - Session is loaded and user has NOT completed onboarding
-  const sessionUser = session?.user as (typeof session)["user"] & {
-    onboardingDone?: boolean;
-  } | undefined;
+  const sessionUser = session?.user as any;
 
   const shouldShow =
     hasParam &&
