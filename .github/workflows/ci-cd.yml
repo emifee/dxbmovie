@@ -47,8 +47,8 @@ jobs:
           ANTHROPIC_API_KEY: ci-anthropic-key
           ELEVENLABS_API_KEY: ci-elevenlabs-key
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: BHk6yCQG5NPN_naid9aD76QrW_mp8fubC5l6vRhvoGLSTPfXH-PymD1pz2fxyzPTy28DRh5cN-zrW6-B_zfGa-Y
-          VAPID_PRIVATE_KEY: ci-vapid-private
-          VAPID_EMAIL: mailto:ci@example.com
+          VAPID_PRIVATE_KEY: kkmrq70vuaQHZnCkj_KtIBfYyfa6NqV-yVUESzb4L_w
+          VAPID_EMAIL: mailto:hello@dxbmovies.com
           CRON_SECRET: ci-cron-secret
         run: npm run build
 
