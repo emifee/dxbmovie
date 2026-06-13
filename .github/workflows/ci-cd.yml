@@ -34,19 +34,22 @@ jobs:
 
       - name: Next.js build
         env:
-          # Provide dummy values so Next.js build doesn't error on missing env
-          NEXTAUTH_SECRET: ci-secret
+          # Hard-coded stubs — safe placeholder values for CI build
+          # Real values are only needed at runtime on the server
+          NEXTAUTH_SECRET: ci-secret-placeholder
           NEXTAUTH_URL: http://localhost:3000
-          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
-          VAPID_EMAIL: ${{ secrets.VAPID_EMAIL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MONGODB_URI: mongodb://localhost:27017/ci
+          GOOGLE_CLIENT_ID: ci-google-client-id
+          GOOGLE_CLIENT_SECRET: ci-google-client-secret
+          TMDB_API_KEY: ci-tmdb-key
+          GROQ_API_KEY: ci-groq-key
+          OPENAI_API_KEY: ci-openai-key
+          ANTHROPIC_API_KEY: ci-anthropic-key
+          ELEVENLABS_API_KEY: ci-elevenlabs-key
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: BHk6yCQG5NPN_naid9aD76QrW_mp8fubC5l6vRhvoGLSTPfXH-PymD1pz2fxyzPTy28DRh5cN-zrW6-B_zfGa-Y
+          VAPID_PRIVATE_KEY: ci-vapid-private
+          VAPID_EMAIL: mailto:ci@example.com
+          CRON_SECRET: ci-cron-secret
         run: npm run build
 
   # ─────────────────────────────────────────────────────────────────────────────
