@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Sparkles, User, Settings, LogOut, X } from "lucide-react";
 import { useUIStore } from "@/lib/store";
+import { useAccountStore } from "@/lib/account-store";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -16,6 +18,7 @@ export function MenuDrawer() {
   const open = useUIStore((s) => s.menuOpen);
   const close = useUIStore((s) => s.closeMenu);
   const openChat = useUIStore((s) => s.openChat);
+  const signedIn = useAccountStore((s) => s.signedIn);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -70,10 +73,15 @@ export function MenuDrawer() {
 
         <div className="mt-auto space-y-1 border-t border-border pt-4">
           <MenuLink href="/profile" active={false} icon={<Settings size={20} />} label="Settings" onClick={close} />
-          <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-red-500 transition hover:bg-surface-raised">
-            <LogOut size={20} />
-            <span className="text-sm font-medium">Sign out</span>
-          </button>
+          {signedIn && (
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-red-500 transition hover:bg-surface-raised"
+            >
+              <LogOut size={20} />
+              <span className="text-sm font-medium">Sign out</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

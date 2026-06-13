@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Check } from "lucide-react";
 import { GradientOrb } from "@/components/ui/gradient-orb";
@@ -24,6 +24,15 @@ export function OnboardingOverlay() {
   const [genres, setGenres] = useState<(number | "all")[]>([]);
   const [name, setName] = useState("Emi");
 
+  useEffect(() => {
+    if (active) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [active]);
+
   if (!active) return null;
 
   function finish() {
@@ -40,7 +49,7 @@ export function OnboardingOverlay() {
     (step === 2 && name.trim().length > 0);
 
   return (
-    <div className="fixed inset-0 z-[70] mx-auto flex max-w-app flex-col bg-background px-6 py-10">
+    <div className="fixed inset-0 z-[70] mx-auto flex max-w-app flex-col bg-background px-6 py-10 overflow-y-auto">
       {/* Progress dots */}
       <div className="flex items-center justify-center gap-2">
         {[0, 1, 2].map((i) => (

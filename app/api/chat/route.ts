@@ -86,27 +86,56 @@ export async function POST(request: Request) {
     }
   }
 
-  // Build user context string from MongoDB prefs + watchlist
+  // Build user context string from MongoDB prefs + watchlist + reactions
   let userContextStr = "";
   if (userId) {
     try {
       const client = await clientPromise;
       const db = client.db("dxbmovies");
-      const [prefs, watchlistItems] = await Promise.all([
+      const [prefs, watchlistItems, reactions] = await Promise.all([
         db.collection("userPreferences").findOne({ userId }),
-        db.collection("watchlists").find({ userId }).limit(10).toArray(),
+        db.collection("watchlists").find({ userId }).limit(20).toArray(),
+        db.collection("reactions").find({ userId, reaction: { $in: ["like", "dislike"] } }).limit(50).toArray(),
       ]);
 
       const genres = prefs?.genres || [];
       const memories = prefs?.memories || [];
       const watchlistTitles = watchlistItems.map((m: any) => m.movie?.title).filter(Boolean);
 
-      userContextStr = "\n\nUSER CONTEXT:\n";
-      if (userName) userContextStr += `- User's Name: ${userName}\n`;
-      if (genres.length > 0) userContextStr += `- Favorite Genres: ${genres.join(", ")}\n`;
-      if (memories.length > 0) userContextStr += `- Known Preferences: ${memories.join(" | ")}\n`;
-      if (watchlistTitles.length > 0) userContextStr += `- Watchlist: ${watchlistTitles.join(", ")}\n`;
-      userContextStr += "Use this context naturally in conversation.";
+      const likedTitles = reactions
+        .filter((r: any) => r.reaction === "like" && r.movieTitle)
+        .map((r: any) => r.movieTitle);
+      const dislikedTitles = reactions
+        .filter((r: any) => r.reaction === "dislike" && r.movieTitle)
+        .map((r: any) => r.movieTitle);
+
+      // Build genre preference score from DNA + liked movie genres
+      const likedGenres: string[] = reactions
+        .filter((r: any) => r.reaction === "like" && Array.isArray(r.movieGenres))
+        .flatMap((r: any) => r.movieGenres as string[]);
+      const dislikedGenres: string[] = reactions
+        .filter((r: any) => r.reaction === "dislike" && Array.isArray(r.movieGenres))
+        .flatMap((r: any) => r.movieGenres as string[]);
+
+      userContextStr = "\n\nUSER PROFILE:\n";
+      if (userName) userContextStr += `- Name: ${userName}\n`;
+      if (genres.length > 0) userContextStr += `- Favourite Genres (DNA): ${genres.join(", ")}\n`;
+      if (likedGenres.length > 0) {
+        // Deduplicate and count genre frequency for ranking
+        const freq = likedGenres.reduce<Record<string, number>>((acc, g) => { acc[g] = (acc[g] || 0) + 1; return acc; }, {});
+        const ranked = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g]) => g);
+        userContextStr += `- Genres they enjoy (from likes): ${ranked.join(", ")}\n`;
+      }
+      if (dislikedGenres.length > 0) {
+        const freq = dislikedGenres.reduce<Record<string, number>>((acc, g) => { acc[g] = (acc[g] || 0) + 1; return acc; }, {});
+        const ranked = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([g]) => g);
+        userContextStr += `- Genres to AVOID (from dislikes): ${ranked.join(", ")}\n`;
+      }
+      if (memories.length > 0) userContextStr += `- Known Taste Notes: ${memories.join(" | ")}\n`;
+      if (likedTitles.length > 0) userContextStr += `- Movies/Shows they LIKED: ${likedTitles.slice(0, 10).join(", ")}\n`;
+      if (dislikedTitles.length > 0) userContextStr += `- Movies/Shows they DISLIKED (do NOT recommend these or similar): ${dislikedTitles.slice(0, 10).join(", ")}\n`;
+      if (watchlistTitles.length > 0) userContextStr += `- Watchlist (already saved, avoid re-recommending): ${watchlistTitles.join(", ")}\n`;
+      userContextStr += "Use this profile to give highly personalised recommendations. Never suggest disliked titles or genres.";
     } catch (e) {
       console.error("Failed to fetch user context", e);
     }

@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AccountHydrator } from "@/components/account-hydrator";
+import { PWAAutoPrompt } from "@/components/pwa-auto-prompt";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "DXBmovies.Ai",
+  title: "DXBmovies",
   description:
     "Talk to your AI, discover what to watch, and remember everything you love.",
   appleWebApp: {
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="bg-background font-sans text-text-primary antialiased">
         <Providers>
           <AccountHydrator />
+          <PWAAutoPrompt />
           {children}
         </Providers>
       </body>

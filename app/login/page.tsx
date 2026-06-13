@@ -17,7 +17,6 @@ export default function LoginPage() {
       <div className="z-10 text-center">
         <h1 className="text-2xl font-bold">
           <span className="text-gradient">DXBmovies</span>
-          <span className="text-white">.Ai</span>
         </h1>
         <p className="mt-1 text-sm text-text-secondary">Your AI movie companion</p>
       </div>
@@ -50,8 +49,12 @@ export default function LoginPage() {
         <GoogleButton />
         <p className="mt-4 text-center text-[11px] text-text-secondary">
           By continuing you agree to our{" "}
-          <Link href="#" className="underline underline-offset-2">
+          <Link href="/terms" className="underline underline-offset-2">
             Terms
+          </Link>
+          {" "}and{" "}
+          <Link href="/privacy" className="underline underline-offset-2">
+            Privacy Policy
           </Link>
         </p>
       </div>

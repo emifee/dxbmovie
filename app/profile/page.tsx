@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { ChevronRight, Plus, X, Sparkles, LogOut, Pencil, Check, Trash2, Smartphone } from "lucide-react";
+import { ChevronRight, Plus, X, Sparkles, LogOut, Pencil, Check, Trash2, Smartphone, User } from "lucide-react";
 import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { SideNav } from "@/components/side-nav";
@@ -24,6 +24,7 @@ import { CompanionAvatar } from "@/components/ui/companion-avatar";
 export default function ProfilePage() {
   const openDetail = useUIStore((s) => s.openDetail);
   const openChat = useUIStore((s) => s.openChat);
+  const openAuthGate = useUIStore((s) => s.openAuthGate);
 
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const chatOpen = useUIStore((s) => s.chatOpen);
@@ -253,42 +254,42 @@ export default function ProfilePage() {
       <div className={cn("relative mx-auto w-full max-w-app px-5 pb-24 pt-10 lg:max-w-3xl lg:px-10 lg:pb-12", chatOpen && "invisible lg:visible")}>
         {/* Header */}
         <div className="flex flex-col items-center text-center">
-          <div className="rounded-full bg-gradient-primary p-[3px] shadow-glow">
-            <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-surface">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt={fullName}
-                  width={80}
-                  height={80}
-                  className="object-cover"
-                />
-              ) : (
-                <span className="text-2xl font-bold text-gradient">
-                  {displayName.charAt(0)}
-                </span>
-              )}
+          {signedIn ? (
+            <>
+              <div className="rounded-full bg-gradient-primary p-[3px] shadow-glow">
+                <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-surface">
+                  {avatarUrl ? (
+                    <Image src={avatarUrl} alt={fullName} width={80} height={80} className="object-cover" />
+                  ) : (
+                    <span className="text-2xl font-bold text-gradient">{displayName.charAt(0)}</span>
+                  )}
+                </div>
+              </div>
+              <h1 className="mt-3 text-xl font-bold text-white">{fullName}</h1>
+              <p className="text-sm text-text-secondary">Joined {joinedDisplay}</p>
+              <span className="mt-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-text-secondary">
+                Free Forever ✨
+              </span>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="grid h-20 w-20 place-items-center rounded-full bg-surface mb-4">
+                <User size={32} className="text-text-secondary" />
+              </div>
+              <h1 className="text-xl font-bold text-white">Sign in to DXBmovies.Ai</h1>
+              <p className="mt-2 text-sm text-text-secondary max-w-sm">Create your AI companion, save movies to your watchlist, and sync your chat history across devices.</p>
+              <button onClick={openAuthGate} className="mt-6 rounded-xl bg-white px-6 py-3 font-semibold text-black transition hover:bg-white/90">
+                Continue with Google
+              </button>
             </div>
-          </div>
-          <h1 className="mt-3 text-xl font-bold text-white">{fullName}</h1>
-          <p className="text-sm text-text-secondary">Joined {joinedDisplay}</p>
-
-
+          )}
         </div>
 
-        {/* AI companion setup */}
-        {!signedIn && (
-          <section className="mt-6 rounded-2xl border border-border bg-surface p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-text-secondary">AI Companion</p>
-            <div className="mt-3 flex items-center gap-3">
-              <CompanionAvatar companion={null} size={44} />
-              <div>
-                <p className="text-sm font-semibold text-white">DXBmovies AI</p>
-                <p className="text-xs text-text-secondary">Default assistant for guests</p>
-              </div>
-            </div>
-          </section>
-        )}
+        {/* The rest of the content should only be accessible if signed in */}
+        {signedIn && (
+          <>
+            {/* AI companion setup */}
+
 
         {signedIn && !aiCompanion && (
           <section className="mt-6 rounded-2xl border border-border bg-surface p-5">
@@ -682,6 +683,8 @@ export default function ProfilePage() {
             Sign out
           </button>
         </section>
+          </>
+        )}
       </div>
 
       <BottomNav />

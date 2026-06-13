@@ -2,8 +2,8 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "DXBmovies AI",
-    short_name: "DXBmovies",
+    name: "DXBmovies",
+    short_name: "DXB",
     description: "Your AI movie companion — discover what to watch tonight",
     start_url: "/",
     display: "standalone",
