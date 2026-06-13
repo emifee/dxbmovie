@@ -29,12 +29,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Writes a stub next-env.d.ts so tsc is happy
       - name: TypeScript type-check
         run: npx tsc --noEmit
 
-      - name: ESLint
-        run: npx eslint . --ext .ts,.tsx --max-warnings 0
+      - name: Lint
+        run: npm run lint
 
       - name: Next.js build
         env:

@@ -265,19 +265,16 @@ export function ChatDrawer() {
       alert("Voice input needs a secure (HTTPS) connection in this browser.");
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SpeechRecognition = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Voice recognition is not supported on this device/browser.");
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const recognition = new SpeechRecognition() as any;
     recognition.lang = "en-US";
     recognition.interimResults = false;
     recognition.continuous = false;
     setIsListening(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (e: any) => {
       const transcript = e.results[0][0].transcript as string;
       setDraft(transcript);
