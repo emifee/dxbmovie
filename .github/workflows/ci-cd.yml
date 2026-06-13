@@ -40,54 +40,31 @@ jobs:
           CRON_SECRET: ci-cron-secret
         run: npm run build
 
-      # Upload built .next (exclude cache + standalone — not needed at runtime)
-      - name: Upload build artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          retention-days: 1
-          path: |
-            .next
-            !.next/cache
-            !.next/standalone
-
-  deploy:
-    name: Deploy to Oracle Cloud
-    runs-on: ubuntu-latest
-    needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Check deploy secrets
-        id: secrets
-        run: |
-          if [ -z "${{ secrets.ORACLE_HOST }}" ] || [ -z "${{ secrets.ORACLE_SSH_KEY }}" ]; then
-            echo "configured=false" >> $GITHUB_OUTPUT
-            echo "ORACLE secrets not set — skipping deploy"
-          else
-            echo "configured=true" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Download build artifact
-        if: steps.secrets.outputs.configured == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: .next
-
-      - name: Rsync .next to Oracle
-        if: steps.secrets.outputs.configured == 'true'
+      # Rsync built output + source directly to Oracle — no rebuild on server
+      - name: Deploy to Oracle Cloud
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ORACLE_HOST != ''
         run: |
           mkdir -p ~/.ssh
           printf '%s' "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/oracle.pem
           chmod 600 ~/.ssh/oracle.pem
+
+          # Sync source files (excl. node_modules/.next)
           rsync -az --delete \
+            --exclude='.next' \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='.env*' \
+            -e "ssh -i ~/.ssh/oracle.pem -o StrictHostKeyChecking=no" \
+            ./ ubuntu@${{ secrets.ORACLE_HOST }}:/home/ubuntu/dxbmovies/
+
+          # Sync built .next output (excluding cache)
+          rsync -az --delete \
+            --exclude='cache' \
             -e "ssh -i ~/.ssh/oracle.pem -o StrictHostKeyChecking=no" \
             .next/ ubuntu@${{ secrets.ORACLE_HOST }}:/home/ubuntu/dxbmovies/.next/
 
       - name: Restart app
-        if: steps.secrets.outputs.configured == 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.ORACLE_HOST != ''
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ORACLE_HOST }}
@@ -96,7 +73,6 @@ jobs:
           script: |
             set -e
             cd /home/ubuntu/dxbmovies
-            git pull origin main
-            sed -i 's|NEXTAUTH_URL=.*|NEXTAUTH_URL=https://dxbmovie.online|' .env.local
+            npm ci --omit=dev --prefer-offline 2>&1 | tail -3
             pm2 restart dxbmovies || pm2 start npm --name dxbmovies -- start
             pm2 status dxbmovies
