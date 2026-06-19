@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     title: "DXB",
   },
   icons: {
-    apple: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
   },
 };
 
