@@ -258,28 +258,44 @@ export function ChatDrawer() {
   }
 
   function handleVoice() {
-    if (typeof window !== "undefined" && !window.isSecureContext) {
-      alert("Voice input needs a secure (HTTPS) connection in this browser.");
-      return;
-    }
-    const SpeechRecognition = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
+    if (typeof window === "undefined") return;
+    
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
     if (!SpeechRecognition) {
       alert("Voice recognition is not supported on this device/browser.");
       return;
     }
-    const recognition = new SpeechRecognition() as any;
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.continuous = false;
-    setIsListening(true);
-    recognition.onresult = (e: any) => {
-      const transcript = e.results[0][0].transcript as string;
-      setDraft(transcript);
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = true; // Show results as they speak
+      recognition.continuous = false;
+      
+      setIsListening(true);
+      
+      recognition.onresult = (e: any) => {
+        const transcript = Array.from(e.results)
+          .map((result: any) => result[0].transcript)
+          .join("");
+        setDraft(transcript);
+      };
+      
+      recognition.onerror = (e: any) => {
+        console.error("Speech recognition error:", e.error);
+        setIsListening(false);
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      
+      recognition.start();
+    } catch (err) {
+      console.error("Failed to start speech recognition:", err);
       setIsListening(false);
-    };
-    recognition.onerror = () => setIsListening(false);
-    recognition.onend = () => setIsListening(false);
-    recognition.start();
+    }
   }
 
   function pickImage() {
@@ -466,9 +482,9 @@ export function ChatDrawer() {
 
         {/* ─── Animated gradient background ─── */}
         <div
-          className="absolute inset-0 animate-gemini-bg opacity-60"
+          className="absolute inset-0 animate-gemini-bg opacity-70"
           style={{
-            background: "linear-gradient(135deg, #1a0533 0%, #0a1628 20%, #081520 40%, #0d0d0d 60%, #1a0a00 80%, #1a0533 100%)",
+            background: "linear-gradient(135deg, rgba(76,29,149,0.4) 0%, rgba(30,58,138,0.4) 25%, rgba(15,118,110,0.4) 50%, rgba(180,83,9,0.4) 75%, rgba(76,29,149,0.4) 100%)",
             backgroundSize: "400% 400%",
           }}
         />
@@ -491,7 +507,6 @@ export function ChatDrawer() {
             <CompanionAvatar companion={signedIn ? aiCompanion : null} size={34} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-white">{assistantName}</p>
-              <p className="truncate text-xs text-white/40">{topic}</p>
             </div>
             <div className="relative" ref={menuRef}>
               <button
@@ -581,41 +596,8 @@ export function ChatDrawer() {
                 <p className="mt-2 text-center text-sm text-white/40">
                   Your AI movie companion
                 </p>
-
-                {/* Quick suggestion chips — shown in empty state */}
-                <div className="mt-8 flex flex-wrap justify-center gap-2">
-                  {SUGGESTIONS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => handleSuggestion(s)}
-                      className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
               </div>
             )}
-          </div>
-
-          {/* ─── Model indicator ─── */}
-          <div className="flex items-center justify-center gap-2 px-4 pb-1 pt-2 text-xs">
-            <span className="flex items-center gap-1.5 font-medium text-white/30">
-              <span
-                className={cn(
-                  "grid h-4 w-4 place-items-center rounded-full",
-                  usage.tier === "advanced" ? "bg-gradient-primary" : "bg-white/10",
-                )}
-              >
-                {usage.tier === "advanced" ? (
-                  <Sparkles size={9} className="text-white" />
-                ) : (
-                  <Zap size={9} className="text-white/50" />
-                )}
-              </span>
-              {modelInfo.label}
-            </span>
           </div>
 
           {/* ─── Input bar ─── */}
@@ -654,8 +636,8 @@ export function ChatDrawer() {
               </div>
             )}
 
-            {/* Quick suggestion chips — shown on toggle when messages exist */}
-            {showSuggestions && hasMessages && (
+            {/* Quick suggestion chips — shown on toggle */}
+            {showSuggestions && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {SUGGESTIONS.map((s) => (
                   <button
