@@ -465,7 +465,7 @@ export function ChatDrawer() {
 
   return (
     <>
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-[90]">
       {/* Overscroll/Keyboard background guard for iOS PWA */}
       <div className="absolute -inset-y-[100vh] inset-x-0 bg-[#050510] lg:hidden" />
 
