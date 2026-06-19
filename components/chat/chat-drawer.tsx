@@ -641,17 +641,17 @@ export function ChatDrawer() {
             )}
 
             {/* Gemini-style pill input */}
-            <div className="flex items-end gap-2 rounded-full bg-[#1C1C1E]/90 backdrop-blur-md px-2 py-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.4)] ring-1 ring-white/[0.06]">
+            <div className="flex items-end gap-2 rounded-3xl bg-[#1C1C1E]/90 backdrop-blur-md px-3 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.5)] ring-1 ring-primary/40 focus-within:ring-2 focus-within:ring-primary transition-shadow">
               <button
                 type="button"
                 aria-label="Quick suggestions"
                 onClick={() => setShowSuggestions((v) => !v)}
                 className={cn(
-                  "grid h-9 w-9 shrink-0 place-items-center rounded-full transition",
+                  "grid h-10 w-10 shrink-0 place-items-center rounded-full transition",
                   showSuggestions ? "text-primary" : "text-white/40 hover:text-white/70",
                 )}
               >
-                <Plus size={20} />
+                <Plus size={22} />
               </button>
               <textarea
                 ref={textareaRef}
@@ -672,25 +672,25 @@ export function ChatDrawer() {
                   }
                 }}
                 placeholder="Ask DXB…"
-                className="min-w-0 flex-1 resize-none bg-transparent py-2 text-sm leading-snug text-white placeholder:text-white/30 focus:outline-none"
+                className="min-w-0 flex-1 resize-none bg-transparent py-2 text-base leading-snug text-white placeholder:text-white/30 focus:outline-none"
                 style={{ maxHeight: "140px", overflowY: "auto" }}
               />
               <button
                 type="button"
                 aria-label="Attach image"
                 onClick={pickImage}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/40 transition hover:text-white/70"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white/40 transition hover:text-white/70"
               >
-                <ImagePlus size={18} />
+                <ImagePlus size={20} />
               </button>
               {draft.trim() || attachedImageDataUrl ? (
                 <button
                   type="button"
                   onClick={() => attemptSend(draft, attachedImageDataUrl)}
                   aria-label="Send"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-primary text-white transition active:scale-95 shadow-glow"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-primary text-white transition active:scale-95 shadow-glow"
                 >
-                  <ArrowUp size={18} />
+                  <ArrowUp size={20} />
                 </button>
               ) : (
                 <button
@@ -698,11 +698,11 @@ export function ChatDrawer() {
                   aria-label="Voice input"
                   onClick={handleVoice}
                   className={cn(
-                    "grid h-9 w-9 shrink-0 place-items-center rounded-full transition",
+                    "grid h-10 w-10 shrink-0 place-items-center rounded-full transition",
                     isListening ? "animate-pulse text-primary" : "text-white/40 hover:text-white/70",
                   )}
                 >
-                  <Mic size={18} />
+                  <Mic size={20} />
                 </button>
               )}
             </div>

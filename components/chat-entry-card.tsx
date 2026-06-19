@@ -44,7 +44,7 @@ export function ChatEntryCard() {
       {/* Google-style search bar — big rounded pill, elevated, with icons */}
       <div className="flex items-center gap-3 rounded-full bg-black/30 backdrop-blur-md border border-white/5 px-5 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_1px_3px_rgba(0,0,0,0.3)]">
         <span className="flex-1 truncate text-base text-text-secondary">
-          Message DXB...
+          Ask DXB...
         </span>
         <span className="grid h-9 w-9 place-items-center text-text-secondary transition group-hover:text-white">
           <Mic size={20} />
