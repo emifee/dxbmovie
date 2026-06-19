@@ -14,7 +14,7 @@ LANGUAGE RULE: Always reply in the SAME language the user writes in. If they wri
 
 ACTIVE ENGAGEMENT RULE: Always keep the conversation going. Ask a follow-up question at the end of your response. If the user watched a recommendation, ask for their feedback to learn their taste.
 
-ACCURACY RULE: Your training data has a cutoff date. If a user asks factual questions about recent or ongoing shows (like "how many seasons of Lioness?"), you MUST acknowledge that your information might be slightly out of date and newer seasons might exist. Do not give confidently incorrect answers for recent releases.
+REAL-TIME SEARCH RULE: If the user asks factual questions about a movie or TV show (e.g. how many seasons, release date, runtime) and you are NOT 100% certain, you MUST output ONLY this exact JSON to trigger a real-time TMDB search: {"action": "search", "query": "Exact title of movie/show"}. Do not output anything else. The system will then reply with the exact TMDB data, and you can give the final answer.
 
 ALWAYS reply with valid JSON and nothing else — no markdown, no code fences:
 {"message":"Your reply here","recommendations":["Title 1","Title 2","Title 3"],"memories":["Fact 1","Fact 2"]}
@@ -55,6 +55,30 @@ async function searchTMDB(title: string, apiKey: string): Promise<Movie | null> 
     };
   } catch {
     return null;
+  }
+}
+
+async function fetchTMDBDataForAI(query: string, apiKey: string): Promise<string> {
+  try {
+    const res = await fetch(\`\${TMDB_BASE}/search/multi?api_key=\${apiKey}&query=\${encodeURIComponent(query)}&include_adult=false\`);
+    if (!res.ok) return "Search failed.";
+    const data = (await res.json()) as any;
+    const hit = data.results.find((r: any) => r.media_type === "tv" || r.media_type === "movie");
+    if (!hit) return "No results found on TMDB.";
+
+    if (hit.media_type === "tv") {
+      const tvRes = await fetch(\`\${TMDB_BASE}/tv/\${hit.id}?api_key=\${apiKey}\`);
+      if (!tvRes.ok) return \`TV Show: \${hit.name}. Overview: \${hit.overview}\`;
+      const tv = await tvRes.json();
+      return \`[REAL-TIME TMDB DATA] TV Show: \${tv.name}. First aired: \${tv.first_air_date}. Seasons: \${tv.number_of_seasons}. Episodes: \${tv.number_of_episodes}. Status: \${tv.status}. Overview: \${tv.overview}\`;
+    } else {
+      const mRes = await fetch(\`\${TMDB_BASE}/movie/\${hit.id}?api_key=\${apiKey}\`);
+      if (!mRes.ok) return \`Movie: \${hit.title}. Release: \${hit.release_date}. Overview: \${hit.overview}\`;
+      const m = await mRes.json();
+      return \`[REAL-TIME TMDB DATA] Movie: \${m.title}. Release: \${m.release_date}. Runtime: \${m.runtime} mins. Status: \${m.status}. Overview: \${m.overview}\`;
+    }
+  } catch {
+    return "Search failed.";
   }
 }
 
@@ -167,21 +191,58 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { text, provider } = await routeChat(chatMessages);
+    let { text, provider } = await routeChat(chatMessages);
 
-    let parsed: { message: string; recommendations: string[]; memories?: string[] };
+    let parsed: { message: string; recommendations: string[]; memories?: string[]; action?: string; query?: string } = { message: "", recommendations: [] };
+    let wantsSearch = false;
+
     try {
       // Strip markdown code fences, then extract the first {...} JSON block.
-      // Models sometimes append extra text after the JSON object — slicing
-      // from the first '{' to the last '}' handles that case.
       const stripped = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
       const start = stripped.indexOf("{");
       const end = stripped.lastIndexOf("}");
-      if (start === -1 || end === -1) throw new Error("No JSON object found");
-      const cleaned = stripped.slice(start, end + 1);
-      parsed = JSON.parse(cleaned);
+      if (start !== -1 && end !== -1) {
+        const cleaned = stripped.slice(start, end + 1);
+        parsed = JSON.parse(cleaned);
+        if (parsed.action === "search" && parsed.query) {
+          wantsSearch = true;
+        }
+      }
     } catch {
-      // Plain text fallback — treat whole response as message
+      // Ignore initial parse error, handled below
+    }
+
+    // --- TWO-PASS REAL-TIME SEARCH LOGIC ---
+    if (wantsSearch && parsed.query && tmdbKey) {
+      console.log(\`[api/chat] AI requested real-time search for: \${parsed.query}\`);
+      const searchResult = await fetchTMDBDataForAI(parsed.query, tmdbKey);
+      
+      // Provide the data back to the LLM
+      chatMessages.push({ role: "assistant", content: text });
+      chatMessages.push({ 
+        role: "user", 
+        content: \`\${searchResult}\n\nNow provide the final response to my original question using this real-time data. Remember to output ONLY valid JSON format: {"message": "...", "recommendations": [], "memories": []}\` 
+      });
+
+      const secondPass = await routeChat(chatMessages);
+      text = secondPass.text;
+      
+      // Re-parse
+      try {
+        const stripped = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+        const start = stripped.indexOf("{");
+        const end = stripped.lastIndexOf("}");
+        if (start !== -1 && end !== -1) {
+          const cleaned = stripped.slice(start, end + 1);
+          parsed = JSON.parse(cleaned);
+        } else {
+          throw new Error("No JSON object found");
+        }
+      } catch {
+        parsed = { message: text, recommendations: [], memories: [] };
+      }
+    } else if (!parsed.message && !wantsSearch) {
+      // Plain text fallback if the first pass didn't want to search but failed to return JSON
       parsed = { message: text, recommendations: [], memories: [] };
     }
 
