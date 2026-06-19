@@ -16,7 +16,7 @@ import { useUIStore } from "@/lib/store";
 import { useAccountStore } from "@/lib/account-store";
 import type { CompanionGender, CompanionRace, Movie, ChatSessionSummary } from "@/lib/types";
 import { tmdbImage, cn } from "@/lib/utils";
-import { STREAMING_SERVICES } from "@/lib/constants";
+import { STREAMING_SERVICES, GENRES } from "@/lib/constants";
 import { COMPANION_RACE_OPTIONS } from "@/lib/ai-companion";
 import { GENRE_LIST } from "@/lib/genre-list";
 import { CompanionAvatar } from "@/components/ui/companion-avatar";
@@ -131,9 +131,17 @@ export default function ProfilePage() {
 
   // ── DNA editing ──
   function toggleDnaGenre(genre: string) {
-    setDnaGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre].slice(0, 10),
-    );
+    const genreId = GENRES.find((x) => x.label === genre)?.id;
+    setDnaGenres((prev) => {
+      // Remove if string exists
+      if (prev.includes(genre)) return prev.filter((g) => g !== genre);
+      // Remove if ID exists (number or string representation)
+      if (genreId && (prev.includes(genreId as any) || prev.includes(genreId.toString()))) {
+        return prev.filter((g) => g !== genreId && g !== genreId.toString());
+      }
+      // Add new string
+      return [...prev, genre].slice(0, 10);
+    });
   }
 
   async function saveDna() {
@@ -474,7 +482,8 @@ export default function ProfilePage() {
           {dnaEditing ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {GENRE_LIST.map((g) => {
-                const active = dnaGenres.includes(g);
+                const genreId = GENRES.find(x => x.label === g)?.id;
+                const active = dnaGenres.includes(g) || (genreId && (dnaGenres.includes(genreId as any) || dnaGenres.includes(genreId.toString())));
                 return (
                   <button
                     key={g}
@@ -495,16 +504,19 @@ export default function ProfilePage() {
           ) : dnaGenres.length > 0 ? (
             <>
               <div className="mt-3 flex flex-wrap gap-2">
-                {dnaGenres.map((g) => (
-                  <span
-                    key={g}
-                    className="rounded-full bg-gradient-primary p-[1.5px]"
-                  >
-                    <span className="block rounded-full bg-surface px-3 py-1 text-xs font-medium text-white">
-                      {g}
+                {dnaGenres.map((g) => {
+                  const label = GENRES.find(x => x.id === g || x.id.toString() === g.toString())?.label || g;
+                  return (
+                    <span
+                      key={g}
+                      className="rounded-full bg-gradient-primary p-[1.5px]"
+                    >
+                      <span className="block rounded-full bg-surface px-3 py-1 text-xs font-medium text-white">
+                        {label}
+                      </span>
                     </span>
-                  </span>
-                ))}
+                  );
+                })}
               </div>
               <p className="mt-3 text-xs text-text-secondary">
                 Your favorite genres · tap Edit to change

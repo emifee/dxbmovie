@@ -583,20 +583,8 @@ export function ChatDrawer() {
                 ))}
               </div>
             ) : (
-              /* ─── Empty state: Gemini-style greeting ─── */
-              <div className="flex h-full flex-col items-center justify-center px-6">
-                <div className="mb-6 grid h-14 w-14 place-items-center rounded-full bg-gradient-primary shadow-glow">
-                  <Sparkles size={28} className="text-white" />
-                </div>
-                <h2 className="text-center text-2xl font-bold text-white leading-snug">
-                  {userName
-                    ? `What can I help with, ${userName.split(" ")[0]}?`
-                    : "What can I help with?"}
-                </h2>
-                <p className="mt-2 text-center text-sm text-white/40">
-                  Your AI movie companion
-                </p>
-              </div>
+              /* ─── Empty state ─── */
+              <div className="flex h-full flex-col items-center justify-center px-6" />
             )}
           </div>
 
