@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { GradientOrb } from "@/components/ui/gradient-orb";
 import { STREAMING_SERVICES, GENRES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ export function OnboardingOverlay() {
   const [services, setServices] = useState<string[]>([]);
   const [genres, setGenres] = useState<(number | "all")[]>([]);
   const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Determine if onboarding should show:
   // - URL has ?onboarding=1
@@ -66,6 +67,7 @@ export function OnboardingOverlay() {
   if (!shouldShow) return null;
 
   async function finish() {
+    setIsLoading(true);
     try {
       await fetch("/api/user/dna", {
         method: "POST",
@@ -77,10 +79,11 @@ export function OnboardingOverlay() {
           onboardingDone: true,
         }),
       });
+      window.location.href = "/";
     } catch (e) {
       console.error("Failed to save onboarding:", e);
+      setIsLoading(false);
     }
-    router.replace("/");
   }
 
   const next = () => (step < 2 ? setStep(step + 1) : finish());
@@ -207,16 +210,25 @@ export function OnboardingOverlay() {
       {/* CTA */}
       <button
         onClick={next}
-        disabled={!canAdvance}
+        disabled={!canAdvance || isLoading}
         className={cn(
           "flex items-center justify-center gap-2 rounded-full py-3.5 text-sm font-medium transition",
-          canAdvance
+          canAdvance && !isLoading
             ? "bg-gradient-primary text-white active:scale-[0.99]"
             : "cursor-not-allowed bg-surface text-text-secondary",
         )}
       >
-        {step < 2 ? "Continue" : "Start watching"}
-        <ArrowRight size={16} />
+        {isLoading ? (
+          <>
+            <Loader2 size={16} className="animate-spin" />
+            Saving...
+          </>
+        ) : (
+          <>
+            {step < 2 ? "Continue" : "Start watching"}
+            <ArrowRight size={16} />
+          </>
+        )}
       </button>
     </div>
   );
