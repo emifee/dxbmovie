@@ -17,6 +17,7 @@ import { MovieDetailDrawer } from "@/components/movie-detail-drawer";
 import { FilterDrawer } from "@/components/filter-drawer";
 import { TrailerModal } from "@/components/trailer-modal";
 import { GoogleGate } from "@/components/auth/google-gate";
+import { EngagementNudge } from "@/components/engagement-nudge";
 import { FeedbackModal, loadFeedbackState, markFeedbackPrompted } from "@/components/feedback-modal";
 import { useAccountStore } from "@/lib/account-store";
 import { useUIStore, useFilterStore } from "@/lib/store";
@@ -444,6 +445,7 @@ export default function HomePage() {
       <MovieDetailDrawer />
       <TrailerModal />
       <GoogleGate />
+      <EngagementNudge />
       <OnboardingOverlay />
       {feedbackOpen && <FeedbackModal onClose={() => setFeedbackOpen(false)} />}
     </div>

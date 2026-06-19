@@ -101,12 +101,12 @@ export async function POST(request: Request) {
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   const userName = session?.user?.name ?? null;
 
-  // Guest limit: allow only 1 message without an account
+  // Guest limit: allow 3 messages without an account so they experience the AI value
   if (!userId) {
     const userMessageCount = messages.filter((m) => m.role === "user").length;
-    if (userMessageCount > 1) {
+    if (userMessageCount > 3) {
       return NextResponse.json({
-        content: "Please sign in to continue chatting — I'd love to get to know your taste! 😊",
+        content: "You've used your 3 free messages! Sign in to unlock unlimited AI chats, personalized picks, and your watchlist — it takes 2 seconds 🎬",
         recommendations: [],
       });
     }
