@@ -103,6 +103,16 @@ const config: Config = {
             borderColor: "rgba(var(--color-primary-rgb), 0.6)",
           },
         },
+        "gemini-bg": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "25%": { backgroundPosition: "50% 100%" },
+          "50%": { backgroundPosition: "100% 50%" },
+          "75%": { backgroundPosition: "50% 0%" },
+        },
+        "gemini-dot": {
+          "0%, 80%, 100%": { opacity: "0.3", transform: "scale(0.8)" },
+          "40%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         "orb-pulse": "orb-pulse 4s ease-in-out infinite",
@@ -116,6 +126,8 @@ const config: Config = {
         "ball-pulse": "ball-pulse 1s ease-in-out infinite",
         "text-vibrate": "text-vibrate 0.3s linear infinite",
         "pulse-glow": "pulse-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "gemini-bg": "gemini-bg 12s ease infinite",
+        "gemini-dot": "gemini-dot 1.4s ease-in-out infinite",
       },
     },
   },

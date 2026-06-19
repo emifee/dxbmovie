@@ -70,11 +70,8 @@ function getSessionTitle(messages: ChatMessage[], movieContextTitle?: string | n
 }
 
 /**
- * Chat drawer with sign-in gating and lightweight usage tracking. Flow:
- *   1. Anonymous user gets 1 message + reply free (advanced model).
- *   2. Sending the 2nd message opens the Gmail sign-in gate; on success the
- *      preserved message auto-sends.
- *   3. Messages continue on the free platform model mix after sign-in.
+ * Gemini-style chat drawer with animated gradient background, pill input bar,
+ * and a centred empty state greeting.
  */
 export function ChatDrawer() {
   const open = useUIStore((s) => s.chatOpen);
@@ -447,12 +444,14 @@ export function ChatDrawer() {
   }
 
   const modelInfo = MODELS[usage.tier];
+  const hasMessages = messages.length > 0;
+  const userName = signedIn ? useAccountStore.getState().email : null;
 
   return (
     <>
     <div className="fixed inset-0 z-50">
       {/* Overscroll/Keyboard background guard for iOS PWA */}
-      <div className="absolute -inset-y-[100vh] inset-x-0 bg-background lg:hidden" />
+      <div className="absolute -inset-y-[100vh] inset-x-0 bg-[#050510] lg:hidden" />
 
       {/* Desktop scrim — clicking outside the docked panel closes it */}
       <button
@@ -463,233 +462,280 @@ export function ChatDrawer() {
       />
 
       {/* Panel: full-screen slide-up on mobile, right-docked on desktop */}
-      <div className="absolute inset-0 mx-auto flex max-w-app animate-slide-up flex-col bg-background lg:inset-y-0 lg:left-auto lg:right-0 lg:mx-0 lg:w-[440px] lg:animate-slide-in-right lg:border-l lg:border-border">
-        {/* Header */}
-        <header className="flex items-center gap-3 border-b border-border px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Back"
-            className="grid h-9 w-9 place-items-center rounded-full text-text-secondary transition hover:bg-surface hover:text-white"
-          >
-            <ChevronLeft size={22} />
-          </button>
-          <CompanionAvatar companion={signedIn ? aiCompanion : null} size={34} />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-white">{assistantName}</p>
-            <p className="truncate text-xs text-text-secondary">{topic}</p>
-          </div>
-          <div className="relative" ref={menuRef}>
+      <div className="absolute inset-0 mx-auto flex max-w-app animate-slide-up flex-col lg:inset-y-0 lg:left-auto lg:right-0 lg:mx-0 lg:w-[440px] lg:animate-slide-in-right lg:border-l lg:border-white/[0.06]">
+
+        {/* ─── Animated gradient background ─── */}
+        <div
+          className="absolute inset-0 animate-gemini-bg opacity-60"
+          style={{
+            background: "linear-gradient(135deg, #1a0533 0%, #0a1628 20%, #081520 40%, #0d0d0d 60%, #1a0a00 80%, #1a0533 100%)",
+            backgroundSize: "400% 400%",
+          }}
+        />
+        {/* Radial overlay to deepen the center */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
+
+        {/* All content sits above the gradient */}
+        <div className="relative z-10 flex h-full flex-col">
+
+          {/* ─── Header ─── */}
+          <header className="flex items-center gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
             <button
               type="button"
-              aria-label="Menu"
-              onClick={() => setMenuOpen((value) => !value)}
-              className="grid h-9 w-9 place-items-center rounded-full text-text-secondary transition hover:bg-surface hover:text-white"
+              onClick={close}
+              aria-label="Back"
+              className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-white/70 transition hover:bg-white/5 hover:text-white"
             >
-              <MoreVertical size={20} />
+              <ChevronLeft size={20} />
             </button>
+            <CompanionAvatar companion={signedIn ? aiCompanion : null} size={34} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-white">{assistantName}</p>
+              <p className="truncate text-xs text-white/40">{topic}</p>
+            </div>
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                aria-label="Menu"
+                onClick={() => setMenuOpen((value) => !value)}
+                className="grid h-10 w-10 place-items-center rounded-full text-white/50 transition hover:bg-white/5 hover:text-white"
+              >
+                <MoreVertical size={20} />
+              </button>
 
-            {menuOpen && (
-              <div className="absolute right-0 top-11 z-10 w-72 rounded-2xl border border-border bg-surface p-2 shadow-2xl">
-                <button
-                  type="button"
-                  onClick={startNewChat}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-white transition hover:bg-surface-raised"
-                >
-                  <SquarePen size={16} className="text-text-secondary" />
-                  New chat
-                </button>
-                <button
-                  type="button"
-                  onClick={clearCurrentChat}
-                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-surface-raised"
-                >
-                  <Trash2 size={16} className="text-rose-300" />
-                  Clear current chat
-                </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-12 z-10 w-72 rounded-2xl border border-white/10 bg-black/80 backdrop-blur-xl p-2 shadow-2xl">
+                  <button
+                    type="button"
+                    onClick={startNewChat}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-white transition hover:bg-white/10"
+                  >
+                    <SquarePen size={16} className="text-white/50" />
+                    New chat
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearCurrentChat}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-rose-300 transition hover:bg-white/10"
+                  >
+                    <Trash2 size={16} className="text-rose-300" />
+                    Clear current chat
+                  </button>
 
-                <div className="mt-2 border-t border-border pt-2">
-                  <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-text-secondary">
-                    Previous chats
-                  </p>
+                  <div className="mt-2 border-t border-white/10 pt-2">
+                    <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/30">
+                      Previous chats
+                    </p>
 
-                  {previousChats.length > 0 ? (
-                    <div className="space-y-1">
-                      {previousChats.map((session) => (
-                        <div key={session.id} className="flex items-center gap-2 rounded-xl px-1 py-1 hover:bg-surface-raised">
-                          <button
-                            type="button"
-                            onClick={() => openSession(session.id)}
-                            className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-left"
-                          >
-                            <p className="truncate text-sm text-white">{session.title}</p>
-                            <p className="text-xs text-text-secondary">{session.timeAgo}</p>
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`Delete ${session.title}`}
-                            onClick={() => deleteSession(session.id)}
-                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-text-secondary transition hover:bg-background hover:text-rose-300"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="px-3 py-2 text-sm text-text-secondary">No previous chats yet.</p>
-                  )}
+                    {previousChats.length > 0 ? (
+                      <div className="space-y-1">
+                        {previousChats.map((session) => (
+                          <div key={session.id} className="flex items-center gap-2 rounded-xl px-1 py-1 hover:bg-white/10">
+                            <button
+                              type="button"
+                              onClick={() => openSession(session.id)}
+                              className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-left"
+                            >
+                              <p className="truncate text-sm text-white">{session.title}</p>
+                              <p className="text-xs text-white/30">{session.timeAgo}</p>
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={`Delete ${session.title}`}
+                              onClick={() => deleteSession(session.id)}
+                              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/30 transition hover:bg-white/10 hover:text-rose-300"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="px-3 py-2 text-sm text-white/30">No previous chats yet.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </header>
+
+          {/* ─── Messages area ─── */}
+          <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-5">
+            {hasMessages ? (
+              <div className="space-y-5">
+                {messages.map((m) => (
+                  <MessageBubble key={m.id} message={m} />
+                ))}
+              </div>
+            ) : (
+              /* ─── Empty state: Gemini-style greeting ─── */
+              <div className="flex h-full flex-col items-center justify-center px-6">
+                <div className="mb-6 grid h-14 w-14 place-items-center rounded-full bg-gradient-primary shadow-glow">
+                  <Sparkles size={28} className="text-white" />
+                </div>
+                <h2 className="text-center text-2xl font-bold text-white leading-snug">
+                  {userName
+                    ? `What can I help with, ${userName.split(" ")[0]}?`
+                    : "What can I help with?"}
+                </h2>
+                <p className="mt-2 text-center text-sm text-white/40">
+                  Your AI movie companion
+                </p>
+
+                {/* Quick suggestion chips — shown in empty state */}
+                <div className="mt-8 flex flex-wrap justify-center gap-2">
+                  {SUGGESTIONS.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => handleSuggestion(s)}
+                      className="rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+                    >
+                      {s}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
           </div>
-        </header>
 
-        {/* History */}
-        <div ref={scrollRef} className="flex-1 space-y-4 overflow-x-hidden overflow-y-auto px-4 py-5">
-          {messages.map((m) => (
-            <MessageBubble key={m.id} message={m} />
-          ))}
-        </div>
-
-        {/* Usage / model indicator */}
-        <div className="flex items-center justify-between gap-2 border-t border-border px-4 pt-2.5 text-xs">
-          <span className="flex items-center gap-1.5 font-medium text-text-secondary">
-            <span
-              className={cn(
-                "grid h-4 w-4 place-items-center rounded-full",
-                usage.tier === "advanced" ? "bg-gradient-primary" : "bg-surface-raised",
-              )}
-            >
-              {usage.tier === "advanced" ? (
-                <Sparkles size={10} className="text-white" />
-              ) : (
-                <Zap size={10} className="text-text-secondary" />
-              )}
-            </span>
-            {modelInfo.label}
-          </span>
-
-
-        </div>
-
-        {/* Input bar */}
-        <div className="relative bg-background px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          {/* iOS keyboard gap fill: extends 100vh downwards to hide any movies showing underneath */}
-          <div className="absolute inset-x-0 top-0 -z-10 h-[100vh] bg-background lg:hidden" />
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            aria-label="Attach an image"
-            className="hidden"
-            onChange={onImageSelected}
-          />
-
-          {attachedImageDataUrl && (
-            <div className="mb-3 relative inline-block">
-              <div className="relative h-20 w-20 overflow-hidden rounded-xl border border-primary/40 bg-surface-raised shadow-sm">
-                <Image
-                  src={attachedImageDataUrl}
-                  alt="Attached preview"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setAttachedImageDataUrl(null);
-                  setAttachedImageName(null);
-                }}
-                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-surface-raised border border-border text-text-secondary hover:text-white shadow-md transition-colors"
-                aria-label="Remove image"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          )}
-
-          {/* Quick suggestion chips */}
-          {showSuggestions && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => handleSuggestion(s)}
-                  className="rounded-full border border-primary/40 bg-surface-raised px-3 py-1.5 text-xs text-primary transition hover:bg-primary/10"
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="input-glow flex items-end gap-2 rounded-2xl border border-border bg-surface px-2 py-1.5 transition duration-200">
-            <button
-              type="button"
-              aria-label="Quick suggestions"
-              onClick={() => setShowSuggestions((v) => !v)}
-              className={cn(
-                "grid h-9 w-9 shrink-0 place-items-center rounded-full transition",
-                showSuggestions ? "text-primary" : "text-text-secondary hover:text-white",
-              )}
-            >
-              <Plus size={20} />
-            </button>
-            <textarea
-              ref={textareaRef}
-              value={draft}
-              rows={1}
-              onChange={(e) => {
-                setDraft(e.target.value);
-                // Auto-grow: reset height then set to scrollHeight, capped at ~5 lines
-                e.target.style.height = "auto";
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`;
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  attemptSend(draft, attachedImageDataUrl);
-                  // Reset height after send
-                  e.currentTarget.style.height = "auto";
-                }
-              }}
-              placeholder="Ask DXB…"
-              className="min-w-0 flex-1 resize-none bg-transparent py-2 text-sm leading-snug text-white placeholder:text-text-secondary focus:outline-none"
-              style={{ maxHeight: "140px", overflowY: "auto" }}
-            />
-            <button
-              type="button"
-              aria-label="Attach image"
-              onClick={pickImage}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-text-secondary transition hover:text-white"
-            >
-              <ImagePlus size={20} />
-            </button>
-            {draft.trim() || attachedImageDataUrl ? (
-              <button
-                type="button"
-                onClick={() => attemptSend(draft, attachedImageDataUrl)}
-                aria-label="Send"
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-primary text-white transition active:scale-95"
-              >
-                <ArrowUp size={18} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                aria-label="Voice input"
-                onClick={handleVoice}
+          {/* ─── Model indicator ─── */}
+          <div className="flex items-center justify-center gap-2 px-4 pb-1 pt-2 text-xs">
+            <span className="flex items-center gap-1.5 font-medium text-white/30">
+              <span
                 className={cn(
-                  "grid h-9 w-9 shrink-0 place-items-center rounded-full transition",
-                  isListening ? "animate-pulse text-primary" : "text-text-secondary hover:text-white",
+                  "grid h-4 w-4 place-items-center rounded-full",
+                  usage.tier === "advanced" ? "bg-gradient-primary" : "bg-white/10",
                 )}
               >
-                <Mic size={20} />
-              </button>
+                {usage.tier === "advanced" ? (
+                  <Sparkles size={9} className="text-white" />
+                ) : (
+                  <Zap size={9} className="text-white/50" />
+                )}
+              </span>
+              {modelInfo.label}
+            </span>
+          </div>
+
+          {/* ─── Input bar ─── */}
+          <div className="relative px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              aria-label="Attach an image"
+              className="hidden"
+              onChange={onImageSelected}
+            />
+
+            {attachedImageDataUrl && (
+              <div className="mb-3 relative inline-block">
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm">
+                  <Image
+                    src={attachedImageDataUrl}
+                    alt="Attached preview"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAttachedImageDataUrl(null);
+                    setAttachedImageName(null);
+                  }}
+                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/80 border border-white/10 text-white/50 hover:text-white shadow-md transition-colors"
+                  aria-label="Remove image"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             )}
+
+            {/* Quick suggestion chips — shown on toggle when messages exist */}
+            {showSuggestions && hasMessages && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => handleSuggestion(s)}
+                    className="rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-1.5 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Gemini-style pill input */}
+            <div className="flex items-end gap-2 rounded-full bg-[#1C1C1E]/90 backdrop-blur-md px-2 py-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.4)] ring-1 ring-white/[0.06]">
+              <button
+                type="button"
+                aria-label="Quick suggestions"
+                onClick={() => setShowSuggestions((v) => !v)}
+                className={cn(
+                  "grid h-9 w-9 shrink-0 place-items-center rounded-full transition",
+                  showSuggestions ? "text-primary" : "text-white/40 hover:text-white/70",
+                )}
+              >
+                <Plus size={20} />
+              </button>
+              <textarea
+                ref={textareaRef}
+                value={draft}
+                rows={1}
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  // Auto-grow: reset height then set to scrollHeight, capped at ~5 lines
+                  e.target.style.height = "auto";
+                  e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    attemptSend(draft, attachedImageDataUrl);
+                    // Reset height after send
+                    e.currentTarget.style.height = "auto";
+                  }
+                }}
+                placeholder="Ask DXB…"
+                className="min-w-0 flex-1 resize-none bg-transparent py-2 text-sm leading-snug text-white placeholder:text-white/30 focus:outline-none"
+                style={{ maxHeight: "140px", overflowY: "auto" }}
+              />
+              <button
+                type="button"
+                aria-label="Attach image"
+                onClick={pickImage}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/40 transition hover:text-white/70"
+              >
+                <ImagePlus size={18} />
+              </button>
+              {draft.trim() || attachedImageDataUrl ? (
+                <button
+                  type="button"
+                  onClick={() => attemptSend(draft, attachedImageDataUrl)}
+                  aria-label="Send"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-primary text-white transition active:scale-95 shadow-glow"
+                >
+                  <ArrowUp size={18} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  aria-label="Voice input"
+                  onClick={handleVoice}
+                  className={cn(
+                    "grid h-9 w-9 shrink-0 place-items-center rounded-full transition",
+                    isListening ? "animate-pulse text-primary" : "text-white/40 hover:text-white/70",
+                  )}
+                >
+                  <Mic size={18} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
