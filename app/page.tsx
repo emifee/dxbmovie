@@ -289,39 +289,18 @@ export default function HomePage() {
       <div className={cn("relative mx-auto w-full max-w-app pb-24 lg:max-w-6xl lg:pb-12 xl:max-w-7xl", chatOpen && "invisible lg:visible")}>
         
         {isDefaultHome ? (
-          <>
-            <HeroBackground movies={movies}>
-              <div className="mx-auto max-w-2xl px-5">
-                <ChatEntryCard />
-              </div>
-            </HeroBackground>
-            <div className="mt-[-2rem] relative z-20">
-              <MovieCarousel 
-                title="Trending Now" 
-                movies={movies} 
-                size="large" 
-                action={
-                  !searchOpen && (
-                    <button
-                      type="button"
-                      onClick={() => openSearch()}
-                      aria-label="Open search"
-                      className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface text-text-secondary transition hover:text-white"
-                    >
-                      <Search size={18} />
-                    </button>
-                  )
-                }
-              />
+          <HeroBackground movies={movies}>
+            <div className="mx-auto max-w-2xl px-5">
+              <ChatEntryCard />
             </div>
-          </>
+          </HeroBackground>
         ) : (
           <div className="px-5 pt-16 lg:px-10 lg:pt-20 mb-8 lg:mb-12">
             <ChatEntryCard />
           </div>
         )}
 
-        <section className={cn(isDefaultHome ? "mt-2 lg:mt-4" : "mt-8 lg:mt-12", "px-5 lg:px-10")}>
+        <section className={cn(isDefaultHome ? "mt-[-2rem] relative z-20" : "mt-8 lg:mt-12", "px-5 lg:px-10")}>
           {searchOpen && (
             <div className="mb-5 flex items-center gap-3">
               <div className="relative flex-1">
@@ -381,7 +360,6 @@ export default function HomePage() {
                         className="object-cover"
                         unoptimized
                       />
-                      {/* Subtle dark overlay for readability */}
                       <div className="absolute inset-0 bg-black/15" />
                     </button>
                   );
@@ -391,7 +369,31 @@ export default function HomePage() {
           )}
 
           {!searchQuery && <GenrePills selected={genre} onSelect={setGenre} />}
+        </section>
 
+        {isDefaultHome && (
+          <div className="relative z-20 mt-6 lg:mt-8">
+            <MovieCarousel 
+              title="Trending Now" 
+              movies={movies} 
+              size="large" 
+              action={
+                !searchOpen && (
+                  <button
+                    type="button"
+                    onClick={() => openSearch()}
+                    aria-label="Open search"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-surface text-text-secondary transition hover:text-white"
+                  >
+                    <Search size={18} />
+                  </button>
+                )
+              }
+            />
+          </div>
+        )}
+
+        <section className="px-5 lg:px-10">
           <div className="-mx-5 mt-4 grid grid-cols-2 gap-2 sm:mx-0 sm:gap-3 lg:mt-6 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5">
             {displayLoading
               ? Array.from({ length: 10 }).map((_, i) => (

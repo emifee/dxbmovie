@@ -25,9 +25,7 @@ export default function AppleIcon() {
             fontFamily: "sans-serif",
             fontWeight: 800,
             letterSpacing: "-0.05em",
-            backgroundImage: "linear-gradient(to bottom right, #A855F7, #EC4899)",
-            backgroundClip: "text",
-            color: "transparent",
+            color: "white",
             display: "flex",
           }}
         >
