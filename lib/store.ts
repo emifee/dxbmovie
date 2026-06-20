@@ -33,6 +33,11 @@ interface UIState {
   openTrailer: (key: string, title: string, movieId?: number, mediaType?: "movie" | "tv") => void;
   closeTrailer: () => void;
 
+  // In-chat floating trailer player
+  chatTrailer: { key: string; title: string; movieId?: number; mediaType?: "movie" | "tv" } | null;
+  openChatTrailer: (key: string, title: string, movieId?: number, mediaType?: "movie" | "tv") => void;
+  closeChatTrailer: () => void;
+
   // Gmail-only sign-in gate (shown after the anonymous user's first reply).
   authGateOpen: boolean;
   openAuthGate: () => void;
@@ -77,6 +82,10 @@ export const useUIStore = create<UIState>((set) => ({
   trailer: null,
   openTrailer: (key, title, movieId, mediaType) => set({ trailer: { key, title, movieId, mediaType } }),
   closeTrailer: () => set({ trailer: null }),
+
+  chatTrailer: null,
+  openChatTrailer: (key, title, movieId, mediaType) => set({ chatTrailer: { key, title, movieId, mediaType } }),
+  closeChatTrailer: () => set({ chatTrailer: null }),
 
   authGateOpen: false,
   openAuthGate: () => set({ authGateOpen: true }),

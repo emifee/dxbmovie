@@ -66,8 +66,17 @@ export async function GET(request: Request) {
     const genrePart = !genre || genre === "all" ? "" : `&with_genres=${genre}`;
     url = `${TMDB_BASE}/discover/movie?api_key=${apiKey}&sort_by=popularity.desc&page=${page}&vote_count.gte=100&watch_region=${watchRegion}&with_watch_providers=${providerId}${genrePart}`;
   } else if (!genre || genre === "all") {
-    // Trending this week — broad, popular picks
-    url = `${TMDB_BASE}/trending/movie/week?api_key=${apiKey}&page=${page}`;
+    // Randomize between broad trending and upcoming/future movies
+    // The server handles the random selection so the client doesn't need to know
+    const rand = Math.random();
+    if (rand > 0.6) {
+      // 40% chance: Upcoming / Future movies (sorted by popularity to ensure quality)
+      const currentYear = new Date().getFullYear();
+      url = `${TMDB_BASE}/discover/movie?api_key=${apiKey}&sort_by=popularity.desc&page=${page}&primary_release_date.gte=${currentYear}-01-01&vote_count.gte=10`;
+    } else {
+      // 60% chance: Trending this week
+      url = `${TMDB_BASE}/trending/movie/week?api_key=${apiKey}&page=${page}`;
+    }
   } else {
     // Genre-filtered popular movies
     url = `${TMDB_BASE}/discover/movie?api_key=${apiKey}&with_genres=${genre}&sort_by=popularity.desc&page=${page}&vote_count.gte=100`;

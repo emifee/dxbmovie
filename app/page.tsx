@@ -167,7 +167,7 @@ export default function HomePage() {
       if (hasActiveFilters()) {
         fetchDiscover(1);
       } else {
-        const fetchPage = isDefaultHomeState ? Math.floor(Math.random() * 5) + 1 : 1;
+        const fetchPage = isDefaultHomeState ? Math.floor(Math.random() * 10) + 1 : 1;
         fetchMovies(genre, activeService, fetchPage);
       }
     } else {

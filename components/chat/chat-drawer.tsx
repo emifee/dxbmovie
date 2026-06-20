@@ -12,7 +12,9 @@ import {
 } from "@/lib/account-store";
 import { MODELS } from "@/lib/ai-config";
 import { Sparkle } from "@/components/ui/sparkle";
+import { RecommendationCards } from "./recommendation-cards";
 import { CompanionAvatar } from "@/components/ui/companion-avatar";
+import { FloatingChatPlayer } from "./floating-chat-player";
 import { MessageBubble } from "./message-bubble";
 import { NotificationPrompt } from "@/components/notification-prompt";
 import { loadPushState } from "@/lib/notifications";
@@ -162,6 +164,8 @@ export function ChatDrawer() {
             };
             audio.onerror = finishIntro;
             
+            // Add a brief delay before speaking so the user sees the orb pulsing first
+            await new Promise((r) => setTimeout(r, 1200));
             await audio.play();
           } catch (error) {
             console.error("Voice intro fallback:", error);
@@ -648,6 +652,9 @@ export function ChatDrawer() {
               )}
             </div>
           </header>
+
+          {/* Floating PiP player for trailers inside chat */}
+          <FloatingChatPlayer />
 
           {/* ─── Messages area ─── */}
           <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-5">

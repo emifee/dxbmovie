@@ -18,7 +18,11 @@ export function RecommendationCards({ movies }: { movies: Movie[] }) {
       const res = await fetch(`/api/movies/trailer/${movie.id}?type=${movie.mediaType || "movie"}`);
       const data = await res.json();
       if (data.key) {
-        openTrailer(data.key, movie.title, movie.id, movie.mediaType || "movie");
+        if (useUIStore.getState().chatOpen) {
+          useUIStore.getState().openChatTrailer(data.key, movie.title, movie.id, movie.mediaType || "movie");
+        } else {
+          openTrailer(data.key, movie.title, movie.id, movie.mediaType || "movie");
+        }
       } else {
         openDetail(movie);
       }
