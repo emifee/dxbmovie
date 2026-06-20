@@ -137,29 +137,42 @@ export function ChatDrawer() {
           setShowVoiceIntro(false);
         };
 
-        if ("speechSynthesis" in window) {
-          const utterance = new SpeechSynthesisUtterance("Hello there, what are you feeling to watch?");
-          utterance.lang = "en-US";
-          utterance.rate = 1.0;
-          utterance.pitch = 1.1;
-          
-          // Try to pick a good voice
-          const voices = window.speechSynthesis.getVoices();
-          const femaleVoice = voices.find(v => 
-            v.name.includes("Female") || v.name.includes("Samantha") || v.name.includes("Google US English") || v.name.includes("Siri")
-          );
-          if (femaleVoice) utterance.voice = femaleVoice;
-          
-          utterance.onend = () => setTimeout(finishIntro, 300);
-          utterance.onerror = finishIntro;
-          window.speechSynthesis.speak(utterance);
-        } else {
-          // Fallback if no TTS
-          setTimeout(finishIntro, 2500);
-        }
+        const playVoiceIntro = async () => {
+          try {
+            const res = await fetch("/api/tts", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ 
+                text: "HELLO THERE what are you feeling to watch?", 
+                gender: "female" 
+              }),
+            });
+            
+            if (!res.ok) {
+              throw new Error("TTS fetch failed");
+            }
+            
+            const blob = await res.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+            
+            audio.onended = () => {
+              setTimeout(finishIntro, 300);
+              URL.revokeObjectURL(audioUrl);
+            };
+            audio.onerror = finishIntro;
+            
+            await audio.play();
+          } catch (error) {
+            console.error("Voice intro fallback:", error);
+            setTimeout(finishIntro, 2500); // Wait a bit then show chat
+          }
+        };
+
+        playVoiceIntro();
         
-        // Failsafe so they aren't stuck
-        setTimeout(finishIntro, 4000);
+        // Failsafe so they aren't stuck if fetch/audio completely hangs
+        setTimeout(finishIntro, 8000);
       }
     } else {
       setShowVoiceIntro(false);
