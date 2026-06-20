@@ -74,7 +74,7 @@ export function EngagementNudge() {
               Unlock your personal AI movie companion
             </h3>
             <p className="mt-1 text-xs text-text-secondary leading-relaxed">
-              Sign in to get unlimited AI chats, save your watchlist, and get picks tailored to your taste — free forever.
+              Sign in to get unlimited AI chats, save your watchlist, and get picks tailored to your taste, free forever.
             </p>
           </div>
         </div>
@@ -86,7 +86,7 @@ export function EngagementNudge() {
           className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition duration-200 hover:shadow-glow-lg active:scale-[0.98]"
         >
           <GoogleGlyph />
-          Continue with Google — it takes 2 seconds
+          Continue with Google, it takes 2 seconds
         </button>
       </div>
     </div>

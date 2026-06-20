@@ -141,7 +141,8 @@ export function selectUsage(s: AccountState): UsageView {
   };
 }
 
-/** Should the Gmail sign-in gate block this send? Gate ALL sends if not signed in. */
+/** Should the Gmail sign-in gate block this send? Gate after 3 free guest messages. */
 export function shouldGateAuth(s: AccountState): boolean {
-  return !s.signedIn;
+  if (s.signedIn) return false;
+  return s.freeUsed >= 3;
 }

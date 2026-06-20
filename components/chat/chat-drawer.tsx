@@ -105,6 +105,7 @@ export function ChatDrawer() {
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
   const [sessions, setSessions] = useState<StoredChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [showVoiceIntro, setShowVoiceIntro] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingDraft = useRef<string | null>(null);
@@ -118,6 +119,51 @@ export function ChatDrawer() {
     return () => {
       document.body.style.overflow = "";
     };
+  }, [open]);
+
+  // Handle Voice Intro (once per 24 hours per device)
+  useEffect(() => {
+    if (open) {
+      const lastIntro = localStorage.getItem("dxb:last-voice-intro");
+      const now = Date.now();
+      if (!lastIntro || now - parseInt(lastIntro, 10) > 24 * 60 * 60 * 1000) {
+        setShowVoiceIntro(true);
+        localStorage.setItem("dxb:last-voice-intro", now.toString());
+        
+        let finished = false;
+        const finishIntro = () => {
+          if (finished) return;
+          finished = true;
+          setShowVoiceIntro(false);
+        };
+
+        if ("speechSynthesis" in window) {
+          const utterance = new SpeechSynthesisUtterance("Hello there, what are you feeling to watch?");
+          utterance.lang = "en-US";
+          utterance.rate = 1.0;
+          utterance.pitch = 1.1;
+          
+          // Try to pick a good voice
+          const voices = window.speechSynthesis.getVoices();
+          const femaleVoice = voices.find(v => 
+            v.name.includes("Female") || v.name.includes("Samantha") || v.name.includes("Google US English") || v.name.includes("Siri")
+          );
+          if (femaleVoice) utterance.voice = femaleVoice;
+          
+          utterance.onend = () => setTimeout(finishIntro, 300);
+          utterance.onerror = finishIntro;
+          window.speechSynthesis.speak(utterance);
+        } else {
+          // Fallback if no TTS
+          setTimeout(finishIntro, 2500);
+        }
+        
+        // Failsafe so they aren't stuck
+        setTimeout(finishIntro, 4000);
+      }
+    } else {
+      setShowVoiceIntro(false);
+    }
   }, [open]);
 
   // Load sessions: try server first for signed-in users, fallback to localStorage.
@@ -493,17 +539,33 @@ export function ChatDrawer() {
 
         {/* All content sits above the gradient */}
         <div className="relative z-10 flex h-full flex-col">
-
-          {/* ─── Header ─── */}
-          <header className="flex items-center gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-            <button
-              type="button"
-              onClick={close}
-              aria-label="Back"
-              className="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-white/70 transition hover:bg-white/5 hover:text-white"
-            >
-              <ChevronLeft size={20} />
-            </button>
+          {showVoiceIntro ? (
+            <div className="flex h-full flex-col items-center justify-center animate-fade-in">
+              <div 
+                className="relative h-40 w-40 rounded-full bg-[radial-gradient(circle_at_35%_35%,_#ffb6ff_0%,_#c462e0_30%,_#763cf9_70%,_#4614a8_100%)] shadow-[0_0_60px_rgba(196,98,224,0.6)]"
+                style={{
+                  animation: "intro-blink 1s ease-in-out 2 forwards",
+                }}
+              />
+              <style dangerouslySetInnerHTML={{__html: `
+                @keyframes intro-blink {
+                  0%, 100% { transform: scale(1); opacity: 0.8; }
+                  50% { transform: scale(1.4); opacity: 1; filter: brightness(1.2); }
+                }
+              `}} />
+            </div>
+          ) : (
+            <>
+              {/* ─── Header ─── */}
+              <header className="flex items-center gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={close}
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+                >
+                  <ChevronLeft size={24} />
+                </button>
             <CompanionAvatar companion={signedIn ? aiCompanion : null} size={34} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-white">{assistantName}</p>
@@ -589,7 +651,7 @@ export function ChatDrawer() {
           </div>
 
           {/* ─── Input bar ─── */}
-          <div className="relative px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="relative px-2 sm:px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <input
               ref={imageInputRef}
               type="file"
@@ -707,6 +769,8 @@ export function ChatDrawer() {
               )}
             </div>
           </div>
+            </>
+          )}
         </div>
       </div>
     </div>
