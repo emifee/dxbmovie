@@ -21,7 +21,7 @@ import { COMPANION_RACE_OPTIONS } from "@/lib/ai-companion";
 import { GENRE_LIST } from "@/lib/genre-list";
 import { GradientOrb } from "@/components/ui/gradient-orb";
 import { CompanionAvatar } from "@/components/ui/companion-avatar";
-import { GoogleGlyph } from "@/components/ui/google-glyph";
+import { GoogleButton } from "@/components/login/google-button";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -301,13 +301,7 @@ export default function ProfilePage() {
 
                 {/* CTA */}
                 <div className="w-full">
-                  <button 
-                    onClick={openAuthGate}
-                    className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-8 py-4 font-semibold text-black transition-all hover:scale-[1.02] hover:bg-white/95 active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
-                  >
-                    <GoogleGlyph />
-                    Continue with Google
-                  </button>
+                  <GoogleButton />
                   <p className="mt-4 text-center text-[11px] text-text-secondary">
                     By continuing you agree to our{" "}
                     <Link href="/terms" className="underline underline-offset-2">
