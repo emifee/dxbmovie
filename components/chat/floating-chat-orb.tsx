@@ -46,30 +46,27 @@ export function FloatingChatOrb() {
   return (
     <div
       className={cn(
-        "fixed bottom-24 left-1/2 z-50 flex -translate-x-1/2 transition-all duration-500 lg:bottom-12",
+        "fixed top-4 left-1/2 z-[60] flex -translate-x-1/2 transition-all duration-500 ease-out lg:top-6",
         isVisible
           ? "translate-y-0 scale-100 opacity-100"
-          : "pointer-events-none translate-y-10 scale-90 opacity-0"
+          : "pointer-events-none -translate-y-12 scale-95 opacity-0"
       )}
     >
       <button
         onClick={() => openChat()}
-        className="group relative flex items-center gap-3 rounded-full border border-primary/40 bg-black/60 p-2 pr-5 text-sm shadow-glow backdrop-blur-xl transition hover:border-primary/80 hover:shadow-glow-lg"
+        className="group relative flex items-center gap-2.5 rounded-full border border-primary/40 bg-black/50 p-1.5 pr-4 shadow-glow backdrop-blur-xl transition hover:border-primary/80 hover:shadow-glow-lg"
       >
         {/* The mini speaking ball */}
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-primary shadow-glow transition-transform duration-300 group-hover:scale-110">
-          <Mic size={16} className="text-white drop-shadow-md" />
+        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-primary shadow-glow transition-transform duration-300 group-hover:scale-110">
+          <Mic size={14} className="text-white drop-shadow-md" />
         </div>
 
         {/* Typing text area */}
         <div className="flex flex-col items-start overflow-hidden whitespace-nowrap">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-primary/80">
-            Ask DXBmovies
-          </span>
-          <p className="max-w-[200px] truncate font-semibold text-white/90 lg:max-w-[300px]">
+          <p className="max-w-[180px] truncate font-medium text-white/90 lg:max-w-[280px]">
             <TypingText
               phrases={PROMPTS}
-              className="!justify-start text-xs sm:text-sm"
+              className="!justify-start text-xs"
               typingSpeed={70}
             />
           </p>
