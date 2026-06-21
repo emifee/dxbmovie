@@ -6,6 +6,7 @@ import { X, Star, Play, Plus, Sparkles, Check } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useUIStore } from "@/lib/store";
 import { tmdbImage } from "@/lib/utils";
+import { setPendingAction } from "@/lib/pending-actions";
 import type { Movie } from "@/lib/types";
 
 /**
@@ -74,7 +75,8 @@ export function MovieDetailDrawer() {
     if (!movie || watchlistState !== "idle") return;
 
     if (!session?.user) {
-      window.location.href = "/login";
+      setPendingAction({ type: "add_watchlist", movie });
+      useUIStore.getState().openAuthGate();
       return;
     }
 

@@ -8,6 +8,7 @@ import { ChatDrawer } from "@/components/chat/chat-drawer";
 import { GoogleGate } from "@/components/auth/google-gate";
 import { signIn, useSession } from "next-auth/react";
 import { useUIStore } from "@/lib/store";
+import { setPendingAction } from "@/lib/pending-actions";
 import { PROVIDER_THEMES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -207,6 +208,9 @@ export default function ReelsPage() {
 
   const handleReaction = async (movie: any, newReaction: 'like' | 'dislike') => {
     if (status === "unauthenticated") {
+      if (movie && movie.id) {
+        setPendingAction({ type: "reaction", movieId: movie.id, reaction: newReaction });
+      }
       openAuthGate();
       return;
     }
@@ -229,6 +233,9 @@ export default function ReelsPage() {
 
   const handleWatchlist = async (movie: any) => {
     if (status === "unauthenticated") {
+      if (movie && movie.id) {
+        setPendingAction({ type: "add_watchlist", movie });
+      }
       openAuthGate();
       return;
     }

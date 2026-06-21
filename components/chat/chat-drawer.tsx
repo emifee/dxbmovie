@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { ChevronLeft, MoreVertical, Plus, Mic, ArrowUp, Sparkles, Zap, Trash2, SquarePen, ImagePlus, X } from "lucide-react";
 import { useUIStore } from "@/lib/store";
+import { setPendingAction } from "@/lib/pending-actions";
 import {
   useAccountStore,
   selectUsage,
@@ -110,8 +111,7 @@ export function ChatDrawer() {
   const [showVoiceIntro, setShowVoiceIntro] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const pendingDraft = useRef<string | null>(null);
-  const prevSignedIn = useRef(signedIn);
+  const prevSessionId = useRef(activeSessionId);
   const menuRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -295,16 +295,20 @@ export function ChatDrawer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, activeSessionId, movieContext]);
 
-  // After a successful sign-in, auto-send the message that triggered the gate.
+  const pendingChatMessage = useUIStore((s) => s.pendingChatMessage);
+  const setPendingChatMessage = useUIStore((s) => s.setPendingChatMessage);
+
+  // If user was redirected back after sign-in, auto-send their recovered message.
   useEffect(() => {
-    if (!prevSignedIn.current && signedIn && pendingDraft.current) {
-      const text = pendingDraft.current;
-      pendingDraft.current = null;
-      attemptSend(text);
+    if (open && pendingChatMessage) {
+      const text = pendingChatMessage;
+      setPendingChatMessage(null);
+      // Wait a tiny bit for UI to settle before sending
+      setTimeout(() => {
+        attemptSend(text, null);
+      }, 300);
     }
-    prevSignedIn.current = signedIn;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn]);
+  }, [open, pendingChatMessage, setPendingChatMessage]);
 
   if (!open) return null;
 
@@ -439,7 +443,7 @@ export function ChatDrawer() {
 
     // 1. Gmail sign-in gate — anonymous user past their first message.
     if (shouldGateAuth(acct)) {
-      pendingDraft.current = outboundText;
+      setPendingAction({ type: "open_chat", text: outboundText, movie: movieContext });
       setDraft("");
       openAuthGate();
       return;

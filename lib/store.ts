@@ -51,6 +51,10 @@ interface UIState {
   filterOpen: boolean;
   openFilter: () => void;
   closeFilter: () => void;
+
+  // Holds a drafted chat message recovered from localStorage after sign-in
+  pendingChatMessage: string | null;
+  setPendingChatMessage: (msg: string | null) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -58,6 +62,9 @@ export const useUIStore = create<UIState>((set) => ({
   chatMovieContext: null,
   openChat: (movie) => set({ chatOpen: true, chatMovieContext: movie ?? null }),
   closeChat: () => set({ chatOpen: false }),
+
+  pendingChatMessage: null,
+  setPendingChatMessage: (msg) => set({ pendingChatMessage: msg }),
 
   detailMovie: null,
   openDetail: (movie) => set({ detailMovie: movie }),

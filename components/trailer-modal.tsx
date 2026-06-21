@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { X, ThumbsUp, ThumbsDown, Plus, Volume2, VolumeX, Check, Sparkles, Play, Pause } from "lucide-react";
 import { useUIStore } from "@/lib/store";
 import { useSession } from "next-auth/react";
+import { setPendingAction } from "@/lib/pending-actions";
 
 declare global {
   interface Window {
@@ -199,6 +200,7 @@ export function TrailerModal() {
 
   const handleReaction = async (movieId: number, type: 'like' | 'dislike') => {
     if (status === "unauthenticated") {
+      setPendingAction({ type: "reaction", movieId, reaction: type });
       openAuthGate();
       return;
     }
@@ -218,6 +220,7 @@ export function TrailerModal() {
 
   const handleWatchlist = async (movie: any) => {
     if (status === "unauthenticated") {
+      setPendingAction({ type: "add_watchlist", movie });
       openAuthGate();
       return;
     }
