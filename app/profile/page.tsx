@@ -300,7 +300,7 @@ export default function ProfilePage() {
                 </h2>
 
                 {/* CTA */}
-                <div className="mb-8 w-full">
+                <div className="w-full">
                   <button 
                     onClick={openAuthGate}
                     className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-8 py-4 font-semibold text-black transition-all hover:scale-[1.02] hover:bg-white/95 active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
@@ -318,22 +318,6 @@ export default function ProfilePage() {
                       Privacy Policy
                     </Link>
                   </p>
-                </div>
-
-                <p className="mb-6 max-w-xs text-sm leading-relaxed text-text-secondary">
-                  Discover what to watch, keep track of your favorites, and explore your cinematic universe.
-                </p>
-
-                {/* Feature pills */}
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  {["Smart Recommendations", "Movie Details", "Personalized For You"].map((f) => (
-                    <span
-                      key={f}
-                      className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary"
-                    >
-                      {f}
-                    </span>
-                  ))}
                 </div>
               </div>
             </div>

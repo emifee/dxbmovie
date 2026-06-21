@@ -29,7 +29,7 @@ export default function LoginPage() {
         </h2>
 
         {/* CTA */}
-        <div className="mb-8 w-full">
+        <div className="w-full">
           <GoogleButton />
           <p className="mt-4 text-center text-[11px] text-text-secondary">
             By continuing you agree to our{" "}
@@ -41,22 +41,6 @@ export default function LoginPage() {
               Privacy Policy
             </Link>
           </p>
-        </div>
-
-        <p className="mb-6 max-w-xs text-sm leading-relaxed text-text-secondary">
-          Discover what to watch, keep track of your favorites, and explore your cinematic universe.
-        </p>
-
-        {/* Feature pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {FEATURES.map((f) => (
-            <span
-              key={f}
-              className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary"
-            >
-              {f}
-            </span>
-          ))}
         </div>
       </div>
     </main>
