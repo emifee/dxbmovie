@@ -285,7 +285,7 @@ export default function ProfilePage() {
               <div className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/20 blur-[80px]" />
 
               {/* Top: logo + tagline */}
-              <div className="z-10 text-center mb-8">
+              <div className="z-10 mb-10 text-center">
                 <h1 className="text-2xl font-bold">
                   <span className="text-gradient">DXBmovies</span>
                 </h1>
@@ -293,17 +293,39 @@ export default function ProfilePage() {
               </div>
 
               {/* Center: orb + headline */}
-              <div className="z-10 flex flex-col items-center text-center">
-                <GradientOrb size={160} className="mb-10 animate-orb-pulse" />
-                <h2 className="max-w-xs text-3xl font-bold leading-tight text-white">
+              <div className="z-10 flex w-full flex-col items-center text-center">
+                <GradientOrb size={160} className="mb-8 animate-orb-pulse" />
+                <h2 className="mb-8 max-w-xs text-3xl font-bold leading-tight text-white">
                   Movies, Matched to Your Mood
                 </h2>
-                <p className="mt-3 max-w-xs text-sm leading-relaxed text-text-secondary">
+
+                {/* CTA */}
+                <div className="mb-8 w-full">
+                  <button 
+                    onClick={openAuthGate}
+                    className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-8 py-4 font-semibold text-black transition-all hover:scale-[1.02] hover:bg-white/95 active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
+                  >
+                    <GoogleGlyph />
+                    Continue with Google
+                  </button>
+                  <p className="mt-4 text-center text-[11px] text-text-secondary">
+                    By continuing you agree to our{" "}
+                    <Link href="/terms" className="underline underline-offset-2">
+                      Terms
+                    </Link>
+                    {" "}and{" "}
+                    <Link href="/privacy" className="underline underline-offset-2">
+                      Privacy Policy
+                    </Link>
+                  </p>
+                </div>
+
+                <p className="mb-6 max-w-xs text-sm leading-relaxed text-text-secondary">
                   Discover what to watch, keep track of your favorites, and explore your cinematic universe.
                 </p>
 
                 {/* Feature pills */}
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                <div className="flex flex-wrap items-center justify-center gap-2">
                   {["Smart Recommendations", "Movie Details", "Personalized For You"].map((f) => (
                     <span
                       key={f}
@@ -313,27 +335,6 @@ export default function ProfilePage() {
                     </span>
                   ))}
                 </div>
-              </div>
-
-              {/* Bottom: CTA */}
-              <div className="z-10 mt-10 w-full">
-                <button 
-                  onClick={openAuthGate}
-                  className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-8 py-4 font-semibold text-black transition-all hover:scale-[1.02] hover:bg-white/95 active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
-                >
-                  <GoogleGlyph />
-                  Continue with Google
-                </button>
-                <p className="mt-4 text-center text-[11px] text-text-secondary">
-                  By continuing you agree to our{" "}
-                  <Link href="/terms" className="underline underline-offset-2">
-                    Terms
-                  </Link>
-                  {" "}and{" "}
-                  <Link href="/privacy" className="underline underline-offset-2">
-                    Privacy Policy
-                  </Link>
-                </p>
               </div>
             </div>
           )}
