@@ -32,8 +32,14 @@ async function tryTTS(apiKey: string, voiceId: string, text: string): Promise<Re
 }
 
 export async function POST(request: Request) {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
-  if (!apiKey) {
+  const rawKeys = process.env.ELEVENLABS_API_KEY;
+  if (!rawKeys) {
+    return NextResponse.json({ error: "TTS not configured" }, { status: 503 });
+  }
+
+  // Support comma-separated API keys for automatic fallback
+  const apiKeys = rawKeys.split(",").map((k) => k.trim()).filter(Boolean);
+  if (apiKeys.length === 0) {
     return NextResponse.json({ error: "TTS not configured" }, { status: 503 });
   }
 
@@ -49,17 +55,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "text required" }, { status: 400 });
   }
 
-  // Try each premade voice in order until one works
   const candidates = PREMADE_VOICES[gender] ?? PREMADE_VOICES.female;
-  for (const voiceId of candidates) {
-    const res = await tryTTS(apiKey, voiceId, text);
-    if (res) {
-      return new Response(res.body, {
-        headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" },
-      });
+  
+  // Try each API key (fallback on quota limits)
+  for (const apiKey of apiKeys) {
+    // Try each premade voice in order
+    for (const voiceId of candidates) {
+      const res = await tryTTS(apiKey, voiceId, text);
+      if (res) {
+        return new Response(res.body, {
+          headers: { "Content-Type": "audio/mpeg", "Cache-Control": "no-store" },
+        });
+      }
     }
   }
 
-  console.error("[api/tts] All premade voices failed for gender:", gender);
+  console.error("[api/tts] All TTS attempts failed. Keys exhausted or rate limited.");
   return NextResponse.json({ error: "TTS failed" }, { status: 503 });
 }
