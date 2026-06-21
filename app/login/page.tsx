@@ -5,7 +5,7 @@ import { GradientOrb } from "@/components/ui/gradient-orb";
 import { GoogleButton } from "@/components/login/google-button";
 
 // Feature pills shown under the headline.
-const FEATURES = ["AI Recommendations", "Movie Talks", "Remembers You"];
+const FEATURES = ["Smart Recommendations", "Movie Details", "Personalized For You"];
 
 export default function LoginPage() {
   return (
@@ -18,7 +18,7 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold">
           <span className="text-gradient">DXBmovies</span>
         </h1>
-        <p className="mt-1 text-sm text-text-secondary">Your AI movie companion</p>
+        <p className="mt-1 text-sm text-text-secondary">Your ultimate movie companion</p>
       </div>
 
       {/* Center: orb + headline */}
@@ -28,7 +28,7 @@ export default function LoginPage() {
           Movies, Matched to Your Mood
         </h2>
         <p className="mt-3 max-w-xs text-sm leading-relaxed text-text-secondary">
-          Talk to your AI, discover what to watch, remember everything you love.
+          Discover what to watch, keep track of your favorites, and explore your cinematic universe.
         </p>
 
         {/* Feature pills */}

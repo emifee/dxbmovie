@@ -71,10 +71,10 @@ export function EngagementNudge() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-semibold text-white leading-tight">
-              Unlock your personal AI movie companion
+              Unlock your ultimate movie companion
             </h3>
             <p className="mt-1 text-xs text-text-secondary leading-relaxed">
-              Sign in to get unlimited AI chats, save your watchlist, and get picks tailored to your taste, free forever.
+              Sign in to get unlimited movie talks, save your watchlist, and get picks tailored to your taste, free forever.
             </p>
           </div>
         </div>
