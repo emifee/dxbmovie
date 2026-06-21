@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Search, X, SlidersHorizontal, Film } from "lucide-react";
 import { ChatEntryCard } from "@/components/chat-entry-card";
+import { FloatingChatOrb } from "@/components/chat/floating-chat-orb";
 import { GenrePills } from "@/components/genre-pills";
 import { MoviePosterCard } from "@/components/movie-poster-card";
 import { HeroBackground } from "@/components/hero-background";
@@ -439,6 +440,7 @@ export default function HomePage() {
       </div>
 
       <BottomNav />
+      <FloatingChatOrb />
       <MenuDrawer />
       <ChatDrawer />
       <FilterDrawer />
