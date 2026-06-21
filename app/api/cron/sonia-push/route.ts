@@ -23,28 +23,31 @@ async function generateSoniaMessage(genres: string[]): Promise<{ title: string; 
   const userGenreLine = genres.length > 0 ? `User's favourite genres: ${genres.join(", ")}` : "";
   const userPrompt = `${userGenreLine}\n\nGenerate a push notification recommendation now.`;
 
-  // Try Groq first
-  if (process.env.GROQ_API_KEY) {
-    try {
-      const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-      const res = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: SONIA_SYSTEM },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 150,
-        temperature: 1.0,
-      });
-      const raw = res.choices[0]?.message?.content ?? "";
-      const start = raw.indexOf("{");
-      const end = raw.lastIndexOf("}");
-      if (start !== -1 && end !== -1) {
-        const parsed = JSON.parse(raw.slice(start, end + 1));
-        return { title: parsed.title, body: parsed.body };
+  const rawGroqKeys = process.env.GROQ_API_KEY;
+  if (rawGroqKeys) {
+    const groqKeys = rawGroqKeys.split(",").map((k) => k.trim()).filter(Boolean);
+    for (const groqKey of groqKeys) {
+      try {
+        const groq = new Groq({ apiKey: groqKey });
+        const res = await groq.chat.completions.create({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: SONIA_SYSTEM },
+            { role: "user", content: userPrompt },
+          ],
+          max_tokens: 150,
+          temperature: 1.0,
+        });
+        const raw = res.choices[0]?.message?.content ?? "";
+        const start = raw.indexOf("{");
+        const end = raw.lastIndexOf("}");
+        if (start !== -1 && end !== -1) {
+          const parsed = JSON.parse(raw.slice(start, end + 1));
+          return { title: parsed.title, body: parsed.body };
+        }
+      } catch (err) {
+        console.error("[cron/sonia-push] Groq key failed:", err);
       }
-    } catch (err) {
-      console.error("[cron/sonia-push] Groq failed:", err);
     }
   }
 
