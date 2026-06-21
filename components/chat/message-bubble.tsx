@@ -65,6 +65,11 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
     if (isPlaying) { stopAudio(); return; }
 
     setIsPlaying(true);
+    
+    // Create Audio synchronously in the click handler to bypass iOS Safari restrictions
+    const audio = new Audio();
+    audioRef.current = audio;
+    
     try {
       const res = await fetch("/api/tts", {
         method: "POST",
@@ -81,12 +86,19 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
+      
+      audio.src = url;
       audio.onended = () => { setIsPlaying(false); URL.revokeObjectURL(url); audioRef.current = null; };
-      audio.onerror = () => { setIsPlaying(false); URL.revokeObjectURL(url); audioRef.current = null; };
+      audio.onerror = (e) => { 
+        console.error("Audio playback error:", e);
+        setIsPlaying(false); 
+        URL.revokeObjectURL(url); 
+        audioRef.current = null; 
+      };
+      
       await audio.play();
-    } catch {
+    } catch (e) {
+      console.error("TTS fetch or play failed:", e);
       setIsPlaying(false);
       browserTTSFallback(message.content);
     }
