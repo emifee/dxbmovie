@@ -58,20 +58,24 @@ async function callOpenAI(key: string, messages: AIChatMessage[]): Promise<strin
 }
 
 export async function routeChat(messages: AIChatMessage[]): Promise<RouterResult> {
-  const groqKey = process.env.GROQ_API_KEY;
+  const rawGroqKeys = process.env.GROQ_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
 
   // --- PRIMARY: Groq ---
-  if (groqKey) {
-    try {
-      const text = await callGroq(groqKey, messages);
-      console.log("[ai-router] provider=groq model=" + GROQ_MODEL);
-      return { text, provider: "groq" };
-    } catch (err) {
-      console.warn(
-        "[ai-router] Groq failed, switching to OpenAI —",
-        (err as Error).message,
-      );
+  if (rawGroqKeys) {
+    const groqKeys = rawGroqKeys.split(",").map((k) => k.trim()).filter(Boolean);
+    
+    for (const groqKey of groqKeys) {
+      try {
+        const text = await callGroq(groqKey, messages);
+        console.log("[ai-router] provider=groq model=" + GROQ_MODEL);
+        return { text, provider: "groq" };
+      } catch (err) {
+        console.warn(
+          "[ai-router] Groq key failed, trying next key or switching to OpenAI —",
+          (err as Error).message,
+        );
+      }
     }
   }
 
