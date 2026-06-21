@@ -21,6 +21,7 @@ import { COMPANION_RACE_OPTIONS } from "@/lib/ai-companion";
 import { GENRE_LIST } from "@/lib/genre-list";
 import { GradientOrb } from "@/components/ui/gradient-orb";
 import { CompanionAvatar } from "@/components/ui/companion-avatar";
+import { GoogleGlyph } from "@/components/ui/google-glyph";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -281,7 +282,7 @@ export default function ProfilePage() {
           ) : (
             <div className="relative mx-auto mt-4 flex w-full max-w-md flex-col items-center text-center">
               {/* Ambient background glow */}
-              <div className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
+              <div className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/20 blur-[80px]" />
 
               {/* Top: logo + tagline */}
               <div className="z-10 text-center mb-8">
@@ -318,9 +319,9 @@ export default function ProfilePage() {
               <div className="z-10 mt-10 w-full">
                 <button 
                   onClick={openAuthGate}
-                  className="flex w-full items-center justify-center gap-3 rounded-full bg-white px-6 py-4 font-semibold text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-8 py-4 font-semibold text-black transition-all hover:scale-[1.02] hover:bg-white/95 active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
                 >
-                  <Image src="/google.svg" alt="Google" width={20} height={20} />
+                  <GoogleGlyph />
                   Continue with Google
                 </button>
                 <p className="mt-4 text-center text-[11px] text-text-secondary">

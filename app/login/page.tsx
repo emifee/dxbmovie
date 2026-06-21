@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <main className="relative mx-auto flex min-h-dvh max-w-app flex-col items-center justify-between overflow-hidden px-6 py-12">
       {/* Ambient background glow */}
-      <div className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/20 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-primary/20 blur-[80px]" />
 
       {/* Top: logo + tagline */}
       <div className="z-10 text-center">
