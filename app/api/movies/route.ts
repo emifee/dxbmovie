@@ -45,6 +45,8 @@ function mapMovie(m: Record<string, unknown>): Movie {
   };
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const genre = searchParams.get("genre"); // TMDB genre ID or 'all'
@@ -66,15 +68,17 @@ export async function GET(request: Request) {
     const genrePart = !genre || genre === "all" ? "" : `&with_genres=${genre}`;
     url = `${TMDB_BASE}/discover/movie?api_key=${apiKey}&sort_by=popularity.desc&page=${page}&vote_count.gte=100&watch_region=${watchRegion}&with_watch_providers=${providerId}${genrePart}`;
   } else if (!genre || genre === "all") {
-    // Randomize between broad trending and upcoming/future movies
-    // The server handles the random selection so the client doesn't need to know
+    // Randomize between broad trending, current year, and upcoming/future movies (e.g. 2025/2026)
     const rand = Math.random();
-    if (rand > 0.6) {
-      // 40% chance: Upcoming / Future movies (sorted by popularity to ensure quality)
-      const currentYear = new Date().getFullYear();
+    const currentYear = new Date().getFullYear();
+    if (rand > 0.7) {
+      // 30% chance: Upcoming / Future movies (e.g. 2026)
+      url = `${TMDB_BASE}/discover/movie?api_key=${apiKey}&sort_by=popularity.desc&page=${page}&primary_release_date.gte=${currentYear + 1}-01-01`;
+    } else if (rand > 0.4) {
+      // 30% chance: Current Year releases
       url = `${TMDB_BASE}/discover/movie?api_key=${apiKey}&sort_by=popularity.desc&page=${page}&primary_release_date.gte=${currentYear}-01-01&vote_count.gte=10`;
     } else {
-      // 60% chance: Trending this week
+      // 40% chance: Trending this week
       url = `${TMDB_BASE}/trending/movie/week?api_key=${apiKey}&page=${page}`;
     }
   } else {
@@ -84,7 +88,6 @@ export async function GET(request: Request) {
 
   try {
     const res = await fetch(url, {
-      // Cache for 1 hour — trending list doesn't change that fast
       next: { revalidate: 3600 },
     });
 
@@ -93,9 +96,12 @@ export async function GET(request: Request) {
     }
 
     const data = (await res.json()) as { results: Record<string, unknown>[] };
-    const movies: Movie[] = data.results
+    let movies: Movie[] = data.results
       .filter((m) => m.poster_path) // skip entries without artwork
       .map(mapMovie);
+
+    // Shuffle the movies so the UI looks completely random on every load
+    movies = movies.sort(() => 0.5 - Math.random());
 
     return NextResponse.json(movies);
   } catch (err) {
