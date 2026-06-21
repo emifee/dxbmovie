@@ -457,7 +457,7 @@ export function ChatDrawer() {
     const userMsg: ChatMessage = {
       id: genId(),
       role: "user",
-      content: imageDataUrl && !draft.trim() ? "Sent an image for analysis." : text,
+      content: text === "Analyze this image and suggest what to watch." && imageDataUrl ? "Sent an image for analysis." : text,
       timestamp: Date.now(),
       ...(imageDataUrl ? { imageUrl: imageDataUrl } : {}),
     };

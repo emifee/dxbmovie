@@ -191,7 +191,11 @@ export async function POST(request: Request) {
   if (imageDataUrl && chatMessages.length > 0) {
     const last = chatMessages[chatMessages.length - 1];
     if (last.role === "user") {
-      last.content += "\n[User attached an image for analysis — describe and discuss it in the context of movies/TV.]";
+      if (movieContext && last.content.startsWith("Tell me about ")) {
+        last.content += `\n[System Context: The user attached the poster for ${movieContext}.]`;
+      } else {
+        last.content += "\n[User attached an image for analysis — describe and discuss it in the context of movies/TV.]";
+      }
     }
   }
 
