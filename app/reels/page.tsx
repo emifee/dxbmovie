@@ -10,6 +10,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useUIStore } from "@/lib/store";
 import { setPendingAction } from "@/lib/pending-actions";
 import { PROVIDER_THEMES } from "@/lib/constants";
+import { recordReelWatched, isReelUnwatched } from "@/lib/reels-history";
 import { cn } from "@/lib/utils";
 
 declare global {
@@ -118,6 +119,7 @@ export default function ReelsPage() {
       } else {
         ytPlayer.unMute();
       }
+      recordReelWatched(reels[activeIndex].key);
     }
   }, [activeIndex, ytPlayer]);
 
@@ -132,14 +134,26 @@ export default function ReelsPage() {
     document.documentElement.style.setProperty("--color-primary-rgb", PROVIDER_THEMES.all.rgb);
     
     const randomStartPage = Math.floor(Math.random() * 10) + 1;
-    setPage(randomStartPage);
     
-    fetch(`/api/movies/reels?page=${randomStartPage}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (Array.isArray(d) && d.length > 0) setReels(d);
-      })
-      .catch(console.error);
+    const fetchInitialReels = async (pageNum: number) => {
+      try {
+        const r = await fetch(`/api/movies/reels?page=${pageNum}`);
+        const d = await r.json();
+        if (Array.isArray(d) && d.length > 0) {
+          const unseen = d.filter(item => isReelUnwatched(item.key));
+          // If we found enough unseen, or we've tried 5 times, stop looping
+          if (unseen.length >= 3 || pageNum > randomStartPage + 5) {
+            setReels(unseen.length > 0 ? unseen : d);
+            setPage(pageNum);
+          } else {
+            fetchInitialReels(pageNum + 1);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchInitialReels(randomStartPage);
 
     fetch("/api/user/reactions")
       .then(r => r.json())
@@ -163,21 +177,34 @@ export default function ReelsPage() {
   useEffect(() => {
     if (activeIndex >= reels.length - 2 && !loadingMore && reels.length > 0) {
       setLoadingMore(true);
-      const nextPage = page + 1;
-      fetch(`/api/movies/reels?page=${nextPage}`)
-        .then((r) => r.json())
-        .then((d) => {
+      
+      const fetchMoreReels = async (pageNum: number) => {
+        try {
+          const r = await fetch(`/api/movies/reels?page=${pageNum}`);
+          const d = await r.json();
           if (Array.isArray(d)) {
-            setReels((prev) => {
-              const existing = new Set(prev.map(r => r.key));
-              const newItems = d.filter(item => !existing.has(item.key));
-              return [...prev, ...newItems];
-            });
-            setPage(nextPage);
+            const unseen = d.filter(item => isReelUnwatched(item.key));
+            if (unseen.length > 0 || pageNum > page + 5) {
+              setReels((prev) => {
+                const existing = new Set(prev.map(r => r.key));
+                const newItems = (unseen.length > 0 ? unseen : d).filter(item => !existing.has(item.key));
+                return [...prev, ...newItems];
+              });
+              setPage(pageNum);
+              setLoadingMore(false);
+            } else {
+              fetchMoreReels(pageNum + 1);
+            }
+          } else {
+             setLoadingMore(false);
           }
-        })
-        .catch(console.error)
-        .finally(() => setLoadingMore(false));
+        } catch (e) {
+          console.error(e);
+          setLoadingMore(false);
+        }
+      };
+      
+      fetchMoreReels(page + 1);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeIndex, reels.length]);

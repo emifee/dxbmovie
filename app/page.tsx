@@ -22,6 +22,7 @@ import { EngagementNudge } from "@/components/engagement-nudge";
 import { FeedbackModal, loadFeedbackState, markFeedbackPrompted } from "@/components/feedback-modal";
 import { useAccountStore } from "@/lib/account-store";
 import { useUIStore, useFilterStore } from "@/lib/store";
+import { getSearchHistory, saveSearchQuery, clearSearchHistory } from "@/lib/search-history";
 import { cn } from "@/lib/utils";
 import { MOCK_MOVIES } from "@/lib/mock-data";
 import { STREAMING_SERVICES, PROVIDER_THEMES } from "@/lib/constants";
@@ -45,6 +46,7 @@ export default function HomePage() {
   const openSearch = useUIStore((s) => s.openSearch);
   const closeSearch = useUIStore((s) => s.closeSearch);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [searchResults, setSearchResults] = useState<Movie[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [activeService, setActiveService] = useState<string | null>(null);
@@ -89,9 +91,13 @@ export default function HomePage() {
       const providerParam = selectedProvider ? `&provider=${encodeURIComponent(selectedProvider)}` : "";
       const res = await fetch(`/api/movies?genre=${param}${providerParam}&page=${pageNum}`);
       if (!res.ok) throw new Error("API error");
-      const data: Movie[] = await res.json();
+      let data: Movie[] = await res.json();
       
       if (Array.isArray(data)) {
+        // Randomize the order of the default home page movies so "Trending Now" feels fresh
+        if (pageNum === 1 && param === "all" && !providerParam) {
+          data = [...data].sort(() => 0.5 - Math.random());
+        }
         setMovies(prev => pageNum === 1 ? data : [...prev, ...data]);
         if (data.length === 0) setHasMore(false);
       }
@@ -243,7 +249,10 @@ export default function HomePage() {
   }, [loading, fetchingMore, searchQuery, hasMore]);
 
   useEffect(() => {
-    if (searchOpen) searchInputRef.current?.focus();
+    if (searchOpen) {
+      setSearchHistory(getSearchHistory());
+      searchInputRef.current?.focus();
+    }
   }, [searchOpen]);
 
   function handleSearch(value: string) {
@@ -253,9 +262,12 @@ export default function HomePage() {
     searchDebounce.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
+        saveSearchQuery(value.trim());
         const res = await fetch(`/api/movies/search?q=${encodeURIComponent(value.trim())}`);
         const data: Movie[] = await res.json();
         setSearchResults(Array.isArray(data) ? data : []);
+        // Update history view if user clears the bar later
+        setSearchHistory(getSearchHistory());
       } catch {
         setSearchResults([]);
       } finally {
@@ -334,6 +346,31 @@ export default function HomePage() {
               >
                 <SlidersHorizontal size={18} />
               </button>
+            </div>
+          )}
+
+          {searchOpen && !searchQuery && searchHistory.length > 0 && (
+            <div className="mb-5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Recent Searches</h3>
+                <button 
+                  onClick={() => { clearSearchHistory(); setSearchHistory([]); }}
+                  className="text-xs text-text-secondary transition hover:text-white"
+                >
+                  Clear All
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {searchHistory.map(query => (
+                  <button
+                    key={query}
+                    onClick={() => handleSearch(query)}
+                    className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-text-secondary transition hover:border-primary/50 hover:text-white hover:bg-surface/80"
+                  >
+                    {query}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
