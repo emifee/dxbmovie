@@ -43,6 +43,8 @@ export default function ProfilePage() {
   const [dnaGenres, setDnaGenres] = useState<string[]>([]);
   const [conversations, setConversations] = useState<ChatSessionSummary[]>([]);
   const [joinedAt, setJoinedAt] = useState<string | null>(null);
+  const [accuracyScore, setAccuracyScore] = useState<number | null>(null);
+  const [accuracyMessage, setAccuracyMessage] = useState<string | null>(null);
   const [dnaEditing, setDnaEditing] = useState(false);
   const [dnaWorking, setDnaWorking] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -86,6 +88,8 @@ export default function ProfilePage() {
         });
         setDnaGenres(data.genres ?? []);
         if (data.joinedAt) setJoinedAt(data.joinedAt);
+        if (data.accuracyScore !== undefined) setAccuracyScore(data.accuracyScore);
+        if (data.accuracyMessage) setAccuracyMessage(data.accuracyMessage);
       }
 
       if (watchlistRes.ok) {
@@ -483,15 +487,14 @@ export default function ProfilePage() {
             <h2 className="text-base font-bold text-white">Your Movie DNA</h2>
             {session?.user && (
               <button
-                type="button"
-                onClick={() => (dnaEditing ? saveDna() : setDnaEditing(true))}
+                onClick={dnaEditing ? saveDna : () => setDnaEditing(true)}
                 disabled={dnaWorking}
-                className="flex items-center gap-1 text-xs font-medium text-primary transition hover:text-primary/80"
+                className="flex items-center gap-1 text-sm font-medium text-primary hover:text-white disabled:opacity-50"
               >
                 {dnaEditing ? (
                   <>
                     {dnaWorking ? (
-                      <span className="h-3 w-3 animate-spin rounded-full border border-primary/30 border-t-primary" />
+                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                     ) : (
                       <Check size={12} />
                     )}
@@ -506,6 +509,39 @@ export default function ProfilePage() {
               </button>
             )}
           </div>
+          
+          {/* Decaying Accuracy UI */}
+          {accuracyScore !== null && accuracyMessage && (
+            <div className="mt-4 rounded-2xl bg-surface-raised p-4 border border-border">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-white flex items-center gap-1.5">
+                  <Sparkles size={14} className={accuracyScore < 70 ? "text-orange-400" : "text-primary"} />
+                  Sonia's Accuracy
+                </span>
+                <span className={cn(
+                  "text-sm font-bold",
+                  accuracyScore < 70 ? "text-orange-400" : "text-primary"
+                )}>
+                  {accuracyScore}%
+                </span>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="h-1.5 w-full bg-surface rounded-full overflow-hidden mb-2">
+                <div 
+                  className={cn(
+                    "h-full rounded-full transition-all duration-1000",
+                    accuracyScore < 70 ? "bg-orange-400" : "bg-gradient-primary"
+                  )}
+                  style={{ width: `${accuracyScore}%` }}
+                />
+              </div>
+              
+              <p className="text-xs text-text-secondary leading-relaxed">
+                {accuracyMessage}
+              </p>
+            </div>
+          )}
 
           {dnaEditing ? (
             <div className="mt-3 flex flex-wrap gap-2">

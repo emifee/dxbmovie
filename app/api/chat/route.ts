@@ -189,6 +189,14 @@ export async function POST(request: Request) {
     try {
       const client = await clientPromise;
       const db = client.db("dxbmovies");
+      
+      // Update lastInteractionAt to prevent Taste DNA decay
+      await db.collection("userPreferences").updateOne(
+        { userId },
+        { $set: { lastInteractionAt: new Date().toISOString() } },
+        { upsert: true }
+      );
+
       const [prefs, watchlistItems, reactions] = await Promise.all([
         db.collection("userPreferences").findOne({ userId }),
         db.collection("watchlists").find({ userId }).limit(20).toArray(),

@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import clientPromise from "@/lib/mongodb";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -8,6 +11,24 @@ export async function GET(request: Request) {
   const type = searchParams.get("type") || "movie";
   const mainTrailerKey = searchParams.get("mainKey");
   const mainTitle = searchParams.get("mainTitle");
+
+  // Track interaction in the background
+  getServerSession(authOptions).then(async (session) => {
+    const userId = (session?.user as { id?: string } | undefined)?.id;
+    if (userId) {
+      try {
+        const client = await clientPromise;
+        const db = client.db("dxbmovies");
+        await db.collection("userPreferences").updateOne(
+          { userId },
+          { $set: { lastInteractionAt: new Date().toISOString() } },
+          { upsert: true }
+        );
+      } catch (e) {
+        console.error("Failed to update interaction time", e);
+      }
+    }
+  }).catch(() => {});
 
   // If no ID is provided, we fetch trending items to build a random reels feed.
   // if (!id) {

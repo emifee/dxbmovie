@@ -48,12 +48,41 @@ export async function GET() {
       joinedAt = new Date(userDoc.createdAt).toISOString();
     }
 
+    // Calculate Decaying Taste Profile Accuracy
+    const dnaCount = prefs?.dna?.length || 0;
+    // Base accuracy: 50% + 5% per DNA trait (max 95%)
+    let baseAccuracy = 50 + (dnaCount * 5);
+    if (baseAccuracy > 95) baseAccuracy = 95;
+    if (dnaCount === 0) baseAccuracy = 0; // 0 if no DNA
+
+    let accuracyScore = baseAccuracy;
+    let accuracyMessage = "Sonia is still learning about you.";
+    
+    if (baseAccuracy > 0) {
+      const lastInteraction = prefs?.lastInteractionAt ? new Date(prefs.lastInteractionAt) : new Date();
+      const now = new Date();
+      const diffMs = now.getTime() - lastInteraction.getTime();
+      const daysSince = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      // Decay: drop 1.5% per day of inactivity
+      const decay = daysSince * 1.5;
+      accuracyScore = Math.max(0, Math.floor(baseAccuracy - decay));
+      
+      if (daysSince > 2) {
+        accuracyMessage = `Sonia's understanding of your taste is ${accuracyScore}% accurate. She hasn't learned anything new in ${daysSince} days — accuracy is dropping.`;
+      } else {
+        accuracyMessage = `Sonia's understanding of your taste is ${accuracyScore}% accurate.`;
+      }
+    }
+
     return NextResponse.json({
       discussed,
       watchlistCount,
       chatCount,
       genres,
       joinedAt,
+      accuracyScore,
+      accuracyMessage,
     });
   } catch (err) {
     console.error("[profile GET]", err);
