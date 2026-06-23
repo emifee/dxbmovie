@@ -11,7 +11,7 @@ const TMDB_BASE = "https://api.themoviedb.org/3";
 const SYSTEM_PROMPT = `You are DXBmovies, a smart, passionate, and incredibly human movie companion. You don't sound like an AI or a robotic assistant—you sound like a real film-buff friend. You know everything about films, TV shows, directors, actors, and storytelling. 
 You give personalized recommendations based on the user's mood, taste, and watch history. 
 You are highly conversational, empathetic, and engaging. Use casual language, show genuine enthusiasm, and even throw in a little friendly slang when appropriate. Never be overly formal or structured. 
-You understand streaming availability in the MENA region including Netflix, Prime Video, OSN, Shahid, Starz Play, and Watch It. Always recommend something the user can actually watch right now.
+You have access to REAL-TIME streaming availability data from TMDB for the UAE (AE), Saudi Arabia (SA), Egypt (EG), US, and UK. When the user asks "where can I watch X", use the real-time search to get the actual streaming data. NEVER guess or make up streaming availability — always use the search action to get real data. Platforms include Netflix, Prime Video, OSN, Shahid, Starz Play, Apple TV+, Disney+, and more.
 
 LANGUAGE RULE: Always reply in the SAME language the user writes in. If they write in Arabic, reply in Arabic. Match their language exactly.
 
@@ -19,7 +19,7 @@ HUMAN CONVERSATION RULE: Sound natural! Express your own opinions ("I absolutely
 
 ACTIVE ENGAGEMENT RULE: Always keep the conversation going like a real text conversation. Ask a follow-up question at the end of your response to learn more about their taste or how they're feeling today. Make them want to keep talking to you.
 
-REAL-TIME SEARCH RULE: If the user asks factual questions about a movie or TV show (e.g. how many seasons, release date, runtime) and you are NOT 100% certain, you MUST output ONLY this exact JSON to trigger a real-time TMDB search: {"action": "search", "query": "Exact title of movie/show"}. Do not output anything else. The system will then reply with the exact TMDB data, and you can give the final answer.
+REAL-TIME SEARCH RULE: If the user asks ANY factual question about a movie or TV show — including where to watch it, cast, director, how many seasons, release date, runtime, budget, box office, age rating — and you are NOT 100% certain of the answer, you MUST output ONLY this exact JSON to trigger a real-time TMDB search: {"action": "search", "query": "Exact title of movie/show"}. Do not output anything else. The system will reply with comprehensive real-time data including streaming availability by country, full cast/crew, ratings, budget, and more. Then give the final answer using that data. ALWAYS search when asked about streaming availability — never guess.
 
 ALWAYS reply with valid JSON and nothing else — no markdown, no code fences:
 {"message":"Your reply here","recommendations":["Title 1","Title 2","Title 3"],"memories":["Fact 1","Fact 2"]}
@@ -71,16 +71,82 @@ async function fetchTMDBDataForAI(query: string, apiKey: string): Promise<string
     const hit = data.results.find((r: any) => r.media_type === "tv" || r.media_type === "movie");
     if (!hit) return "No results found on TMDB.";
 
+    const appendFields = "watch/providers,credits,keywords,release_dates,external_ids";
+
     if (hit.media_type === "tv") {
-      const tvRes = await fetch(`${TMDB_BASE}/tv/${hit.id}?api_key=${apiKey}`);
+      const tvRes = await fetch(`${TMDB_BASE}/tv/${hit.id}?api_key=${apiKey}&append_to_response=${appendFields}`);
       if (!tvRes.ok) return `TV Show: ${hit.name}. Overview: ${hit.overview}`;
       const tv = await tvRes.json();
-      return `[REAL-TIME TMDB DATA] TV Show: ${tv.name}. First aired: ${tv.first_air_date}. Seasons: ${tv.number_of_seasons}. Episodes: ${tv.number_of_episodes}. Status: ${tv.status}. Overview: ${tv.overview}`;
+
+      // Watch providers — gather multiple regions
+      const wp = tv["watch/providers"]?.results || {};
+      const providerLines: string[] = [];
+      for (const region of ["AE", "SA", "EG", "US", "GB"]) {
+        const rp = wp[region];
+        if (rp) {
+          const flat = (rp.flatrate || []).map((p: any) => p.provider_name).join(", ");
+          const rent = (rp.rent || []).map((p: any) => p.provider_name).join(", ");
+          const buy = (rp.buy || []).map((p: any) => p.provider_name).join(", ");
+          const parts = [];
+          if (flat) parts.push(`Stream: ${flat}`);
+          if (rent) parts.push(`Rent: ${rent}`);
+          if (buy) parts.push(`Buy: ${buy}`);
+          if (parts.length > 0) providerLines.push(`  ${region}: ${parts.join(" | ")}`);
+        }
+      }
+
+      // Cast & crew
+      const cast = (tv.credits?.cast || []).slice(0, 8).map((c: any) => `${c.name} as ${c.character}`).join(", ");
+      const directors = (tv.credits?.crew || []).filter((c: any) => c.job === "Director" || c.department === "Directing").slice(0, 3).map((c: any) => c.name).join(", ");
+      const creators = (tv.created_by || []).map((c: any) => c.name).join(", ");
+
+      // Genres & keywords
+      const genres = (tv.genres || []).map((g: any) => g.name).join(", ");
+      const keywords = (tv.keywords?.results || []).slice(0, 10).map((k: any) => k.name).join(", ");
+
+      // Networks
+      const networks = (tv.networks || []).map((n: any) => n.name).join(", ");
+
+      return `[REAL-TIME TMDB DATA] TV Show: ${tv.name}. First aired: ${tv.first_air_date}. Last aired: ${tv.last_air_date || "ongoing"}. Seasons: ${tv.number_of_seasons}. Episodes: ${tv.number_of_episodes}. Status: ${tv.status}. Rating: ${tv.vote_average}/10 (${tv.vote_count} votes). Genres: ${genres}. Networks: ${networks}. Created by: ${creators || "N/A"}. Cast: ${cast || "N/A"}. Directors: ${directors || "N/A"}. Languages: ${(tv.spoken_languages || []).map((l: any) => l.english_name).join(", ")}. Origin Country: ${(tv.origin_country || []).join(", ")}. Tagline: ${tv.tagline || "N/A"}. Overview: ${tv.overview}. Keywords: ${keywords || "N/A"}.${providerLines.length > 0 ? "\nWhere to watch:\n" + providerLines.join("\n") : "\nStreaming availability: Not found on TMDB for AE/SA/US/GB."}${tv.external_ids?.imdb_id ? `. IMDB: ${tv.external_ids.imdb_id}` : ""}`;
     } else {
-      const mRes = await fetch(`${TMDB_BASE}/movie/${hit.id}?api_key=${apiKey}`);
+      const mRes = await fetch(`${TMDB_BASE}/movie/${hit.id}?api_key=${apiKey}&append_to_response=${appendFields}`);
       if (!mRes.ok) return `Movie: ${hit.title}. Release: ${hit.release_date}. Overview: ${hit.overview}`;
       const m = await mRes.json();
-      return `[REAL-TIME TMDB DATA] Movie: ${m.title}. Release: ${m.release_date}. Runtime: ${m.runtime} mins. Status: ${m.status}. Overview: ${m.overview}`;
+
+      // Watch providers — gather multiple regions
+      const wp = m["watch/providers"]?.results || {};
+      const providerLines: string[] = [];
+      for (const region of ["AE", "SA", "EG", "US", "GB"]) {
+        const rp = wp[region];
+        if (rp) {
+          const flat = (rp.flatrate || []).map((p: any) => p.provider_name).join(", ");
+          const rent = (rp.rent || []).map((p: any) => p.provider_name).join(", ");
+          const buy = (rp.buy || []).map((p: any) => p.provider_name).join(", ");
+          const parts = [];
+          if (flat) parts.push(`Stream: ${flat}`);
+          if (rent) parts.push(`Rent: ${rent}`);
+          if (buy) parts.push(`Buy: ${buy}`);
+          if (parts.length > 0) providerLines.push(`  ${region}: ${parts.join(" | ")}`);
+        }
+      }
+
+      // Cast & crew
+      const cast = (m.credits?.cast || []).slice(0, 8).map((c: any) => `${c.name} as ${c.character}`).join(", ");
+      const directors = (m.credits?.crew || []).filter((c: any) => c.job === "Director").slice(0, 3).map((c: any) => c.name).join(", ");
+      const writers = (m.credits?.crew || []).filter((c: any) => c.job === "Screenplay" || c.job === "Writer").slice(0, 3).map((c: any) => c.name).join(", ");
+
+      // Genres & keywords
+      const genres = (m.genres || []).map((g: any) => g.name).join(", ");
+      const keywords = (m.keywords?.keywords || []).slice(0, 10).map((k: any) => k.name).join(", ");
+
+      // Age rating
+      const aeRating = (m.release_dates?.results || []).find((r: any) => r.iso_3166_1 === "AE" || r.iso_3166_1 === "US");
+      const certification = aeRating?.release_dates?.[0]?.certification || "N/A";
+
+      // Production companies
+      const prodCompanies = (m.production_companies || []).slice(0, 3).map((c: any) => c.name).join(", ");
+
+      return `[REAL-TIME TMDB DATA] Movie: ${m.title}. Release: ${m.release_date}. Runtime: ${m.runtime} mins. Status: ${m.status}. Rating: ${m.vote_average}/10 (${m.vote_count} votes). Age Rating: ${certification}. Genres: ${genres}. Director: ${directors || "N/A"}. Writers: ${writers || "N/A"}. Cast: ${cast || "N/A"}. Budget: $${(m.budget || 0).toLocaleString()}. Box Office: $${(m.revenue || 0).toLocaleString()}. Production: ${prodCompanies || "N/A"}. Languages: ${(m.spoken_languages || []).map((l: any) => l.english_name).join(", ")}. Origin Country: ${(m.origin_country || []).join(", ")}. Tagline: ${m.tagline || "N/A"}. Overview: ${m.overview}. Keywords: ${keywords || "N/A"}.${providerLines.length > 0 ? "\nWhere to watch:\n" + providerLines.join("\n") : "\nStreaming availability: Not found on TMDB for AE/SA/US/GB."}${m.external_ids?.imdb_id ? `. IMDB: ${m.external_ids.imdb_id}` : ""}`;
     }
   } catch {
     return "Search failed.";
@@ -172,10 +238,23 @@ export async function POST(request: Request) {
     }
   }
 
-  // Build system prompt
-  let systemContent = movieContext
-    ? `${SYSTEM_PROMPT}\n\nThe user opened this conversation from the movie page for: "${movieContext}". Start by talking about that movie.`
-    : SYSTEM_PROMPT;
+  // Build system prompt — enrich movieContext with real TMDB data
+  let movieDataContext = "";
+  if (movieContext && tmdbKey) {
+    // Only fetch on the first message (when user just opened the chat from a movie page)
+    const userMsgCount = messages.filter((m) => m.role === "user").length;
+    if (userMsgCount <= 1) {
+      try {
+        const tmdbData = await fetchTMDBDataForAI(movieContext, tmdbKey);
+        movieDataContext = `\n\nThe user opened this conversation from the movie page for: "${movieContext}". Here is real-time data about this title:\n${tmdbData}\n\nUse this data to answer any questions about this movie/show. Start by talking about it.`;
+      } catch {
+        movieDataContext = `\n\nThe user opened this conversation from the movie page for: "${movieContext}". Start by talking about that movie.`;
+      }
+    } else {
+      movieDataContext = `\n\nThe user is chatting about: "${movieContext}".`;
+    }
+  }
+  let systemContent = SYSTEM_PROMPT + movieDataContext;
   systemContent += userContextStr;
 
   // Convert conversation history to the standard format
