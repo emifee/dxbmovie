@@ -151,7 +151,9 @@ export default function ReelsPage() {
         const r = await fetch(url);
         const d = await r.json();
         if (Array.isArray(d) && d.length > 0) {
-          const unseen = d.filter(item => isReelUnwatched(item.key));
+          const sharedItemKey = (sharedId && pageNum === 1) ? d[0]?.key : null;
+          const unseen = d.filter(item => item.key === sharedItemKey || isReelUnwatched(item.key));
+          
           // If we found enough unseen, or we've tried 5 times, stop looping
           if (unseen.length >= 3 || pageNum > randomStartPage + 5) {
             setReels(unseen.length > 0 ? unseen : d);
