@@ -36,6 +36,7 @@ export default function ReelsPage() {
   const [watchlistIds, setWatchlistIds] = useState<Set<number>>(new Set());
   const [globalMuted, setGlobalMuted] = useState(true);
   const [isPWA, setIsPWA] = useState(false);
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
 
   useEffect(() => {
     // Robust PWA detection
@@ -46,6 +47,13 @@ export default function ReelsPage() {
     
     if (isStandalone) {
       setIsPWA(true);
+    }
+
+    // Detect in-app browsers (Instagram, Facebook, TikTok, etc.)
+    const ua = navigator.userAgent || '';
+    const inApp = /instagram|fbav|fban|line\/|snapchat|tiktok|twitter|threads/i.test(ua);
+    if (inApp) {
+      setIsInAppBrowser(true);
     }
   }, []);
   
@@ -424,7 +432,7 @@ export default function ReelsPage() {
                     <div 
                       className={cn(
                         "relative z-20 flex items-end justify-between p-4 lg:p-12 lg:pb-12 h-full",
-                        isPWA ? "pb-[150px]" : "pb-[80px]"
+                        isPWA ? "pb-[150px]" : isInAppBrowser ? "pb-[120px]" : "pb-[80px]"
                       )}
                       onClick={() => {
                         if (ytPlayer) {
