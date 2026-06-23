@@ -246,15 +246,15 @@ export async function POST(request: Request) {
     if (userMsgCount <= 1) {
       try {
         const tmdbData = await fetchTMDBDataForAI(movieContext, tmdbKey);
-        movieDataContext = `\n\nThe user opened this conversation from the movie page for: "${movieContext}". Here is real-time data about this title:\n${tmdbData}\n\nUse this data to answer any questions about this movie/show. Start by talking about it.`;
+        movieDataContext = `\n\nThe user opened this conversation from the movie page for: "${movieContext}". Here is real-time data about this title:\n${tmdbData}\n\nUse this data to answer any questions about this movie/show. You already have all the data — do NOT trigger a search action for this title. Start by talking about it naturally.`;
       } catch {
         movieDataContext = `\n\nThe user opened this conversation from the movie page for: "${movieContext}". Start by talking about that movie.`;
       }
-    } else {
-      movieDataContext = `\n\nThe user is chatting about: "${movieContext}".`;
     }
+    // On follow-up messages (userMsgCount > 1), do NOT re-inject movie context.
+    // The conversation history already contains the previous messages about this movie.
   }
-  let systemContent = SYSTEM_PROMPT + movieDataContext;
+  let systemContent = SYSTEM_PROMPT + "\n\nNEVER REPEAT RULE: NEVER repeat information you already said in a previous message. If you already introduced a movie, do NOT re-introduce it. Build on the conversation naturally — respond to what the user just said without restating facts." + movieDataContext;
   systemContent += userContextStr;
 
   // Convert conversation history to the standard format
