@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { ThumbsUp, ThumbsDown, Plus, Volume2, VolumeX, Check, Sparkles, Film } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Plus, Volume2, VolumeX, Check, Sparkles, Film, Share2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { SideNav } from "@/components/side-nav";
 import { ChatDrawer } from "@/components/chat/chat-drawer";
@@ -133,11 +133,22 @@ export default function ReelsPage() {
     document.documentElement.style.setProperty("--color-primary", PROVIDER_THEMES.all.hex);
     document.documentElement.style.setProperty("--color-primary-rgb", PROVIDER_THEMES.all.rgb);
     
-    const randomStartPage = Math.floor(Math.random() * 10) + 1;
+    const params = new URLSearchParams(window.location.search);
+    const sharedId = params.get("id");
+    const sharedType = params.get("type");
+    
+    // If a shared reel is requested, we must start at page 1 for the API to fetch it
+    const randomStartPage = sharedId ? 1 : Math.floor(Math.random() * 10) + 1;
     
     const fetchInitialReels = async (pageNum: number) => {
       try {
-        const r = await fetch(`/api/movies/reels?page=${pageNum}`);
+        let url = `/api/movies/reels?page=${pageNum}`;
+        if (sharedId && pageNum === 1) {
+          url += `&id=${sharedId}`;
+          if (sharedType) url += `&type=${sharedType}`;
+        }
+        
+        const r = await fetch(url);
         const d = await r.json();
         if (Array.isArray(d) && d.length > 0) {
           const unseen = d.filter(item => isReelUnwatched(item.key));
@@ -475,6 +486,26 @@ export default function ReelsPage() {
                             ) : (
                               <Plus className="h-6 w-6" />
                             )}
+                          </div>
+                        </button>
+                        
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            if (!reel.movie) return;
+                            const url = `https://dxbmovies.online/reels?id=${reel.movie.id}&type=${reel.movie.mediaType || 'movie'}`;
+                            if (navigator.share) {
+                              navigator.share({ title: `Watch ${reel.title} Trailer`, url }).catch(() => {});
+                            } else {
+                              navigator.clipboard.writeText(url);
+                              alert("Link copied to clipboard!");
+                            }
+                          }}
+                          aria-label="Share this trailer"
+                          className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
+                        >
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border bg-black/40 border-white/20 text-white group-hover:bg-black/60">
+                            <Share2 className="h-6 w-6" />
                           </div>
                         </button>
                         

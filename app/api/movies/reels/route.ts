@@ -24,29 +24,38 @@ export async function GET(request: Request) {
     const page = parseInt(pageStr, 10) || 1;
 
     // 1. Push the main movie's trailer first (if available and page is 1)
-    if (mainTrailerKey && mainTitle && page === 1) {
-      let mainMovie = undefined;
-      if (id) {
-        try {
-          const fetchUrl = `${TMDB_BASE}/${type}/${id}?api_key=${apiKey}`;
-          const res = await fetch(fetchUrl);
-          if (res.ok) {
-            const r = await res.json();
-            mainMovie = {
-              id: r.id as number,
-              title: (r.title ?? r.name ?? "") as string,
-              overview: (r.overview as string) ?? "",
-              posterPath: (r.poster_path as string | null) ?? null,
-              backdropPath: (r.backdrop_path as string | null) ?? null,
-              releaseDate: (r.release_date ?? r.first_air_date) as string,
-              voteAverage: r.vote_average as number,
-              genreIds: r.genre_ids,
-              mediaType: type as "movie" | "tv",
-            };
+    if (id && page === 1) {
+      try {
+        const fetchUrl = `${TMDB_BASE}/${type}/${id}?api_key=${apiKey}&append_to_response=videos`;
+        const res = await fetch(fetchUrl);
+        if (res.ok) {
+          const r = await res.json();
+          const mainMovie = {
+            id: r.id as number,
+            title: (r.title ?? r.name ?? "") as string,
+            overview: (r.overview as string) ?? "",
+            posterPath: (r.poster_path as string | null) ?? null,
+            backdropPath: (r.backdrop_path as string | null) ?? null,
+            releaseDate: (r.release_date ?? r.first_air_date) as string,
+            voteAverage: r.vote_average as number,
+            genreIds: r.genre_ids,
+            mediaType: type as "movie" | "tv",
+          };
+          
+          let key = mainTrailerKey;
+          let title = mainTitle || mainMovie.title;
+
+          if (!key && r.videos?.results) {
+            const trailer = r.videos.results.find((v: any) => v.type === "Trailer" && v.site === "YouTube") ||
+                            r.videos.results.find((v: any) => v.site === "YouTube");
+            if (trailer) key = trailer.key;
           }
-        } catch { }
-      }
-      reels.push({ key: mainTrailerKey, title: mainTitle, backdrop: null, movie: mainMovie });
+
+          if (key) {
+            reels.push({ key, title, backdrop: null, movie: mainMovie });
+          }
+        }
+      } catch { }
     }
 
     // 2. Fetch related movies (or trending if no ID)
