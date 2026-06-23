@@ -11,16 +11,16 @@ export const metadata: Metadata = {
   title: "DXBmovies – Ultimate Movie Companion",
   description:
     "Talk to your ultimate movie companion, discover what to watch tonight, and remember everything you love. DXBmovies – your personal cinema guide.",
-  metadataBase: new URL("https://dxbmovies.online"),
+  metadataBase: new URL("https://dxbmovie.online"),
   openGraph: {
     title: "DXBmovies – Ultimate Movie Companion",
     description: "Discover movies and TV shows with your personal ultimate movie companion.",
-    url: "https://dxbmovies.online",
+    url: "https://dxbmovie.online",
     siteName: "DXBmovies",
     type: "website",
     images: [
       {
-        url: "https://dxbmovies.online/icons/icon-512.png",
+        url: "https://dxbmovie.online/icons/icon-512.png",
         width: 512,
         height: 512,
         alt: "DXB Logo",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "DXBmovies – Ultimate Movie Companion",
     description: "Your ultimate movie companion for discovering the perfect film.",
-    images: ["https://dxbmovies.online/icons/icon-512.png"],
+    images: ["https://dxbmovie.online/icons/icon-512.png"],
   },
   appleWebApp: {
     capable: true,

@@ -493,7 +493,7 @@ export default function ReelsPage() {
                           onClick={(e) => { 
                             e.stopPropagation(); 
                             if (!reel.movie) return;
-                            const url = `https://dxbmovies.online/reels?id=${reel.movie.id}&type=${reel.movie.mediaType || 'movie'}`;
+                            const url = `https://dxbmovie.online/reels?id=${reel.movie.id}&type=${reel.movie.mediaType || 'movie'}`;
                             if (navigator.share) {
                               navigator.share({ title: `Watch ${reel.title} Trailer`, url }).catch(() => {});
                             } else {
