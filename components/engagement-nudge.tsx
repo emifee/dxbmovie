@@ -5,13 +5,16 @@ import { X, Sparkles } from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 import { GoogleGlyph } from "@/components/ui/google-glyph";
 
-const NUDGE_DELAY_MS = 35_000; // 35 seconds
+import { trackEvent } from "@/lib/analytics";
+
+const NUDGE_DELAY_MS = 60_000; // 60 seconds
 const DISMISSED_KEY = "dxb_nudge_dismissed";
+const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * Timed engagement nudge — shows a beautiful bottom-sheet for unauthenticated
- * users after ~35 seconds of browsing. Dismissible, and remembers dismissal
- * for the session via sessionStorage.
+ * users after ~60 seconds of browsing. Dismissible, and remembers dismissal
+ * for 24 hours via localStorage.
  */
 export function EngagementNudge() {
   const { status } = useSession();
@@ -21,13 +24,20 @@ export function EngagementNudge() {
   useEffect(() => {
     // Don't show for authenticated users
     if (status === "authenticated") return;
-    // Don't show if already dismissed this session
-    if (typeof window !== "undefined" && sessionStorage.getItem(DISMISSED_KEY)) return;
+    
+    // Don't show if dismissed recently (within 24 hours)
+    if (typeof window !== "undefined") {
+      const lastDismissed = localStorage.getItem(DISMISSED_KEY);
+      if (lastDismissed && Date.now() - parseInt(lastDismissed, 10) < DISMISS_COOLDOWN_MS) {
+        return;
+      }
+    }
 
     const timer = setTimeout(() => {
       // Re-check auth status in case they signed in during the wait
       if (status === "unauthenticated") {
         setVisible(true);
+        trackEvent("nudge_shown");
       }
     }, NUDGE_DELAY_MS);
 
@@ -38,11 +48,13 @@ export function EngagementNudge() {
 
   function dismiss() {
     setAnimateOut(true);
-    sessionStorage.setItem(DISMISSED_KEY, "1");
+    localStorage.setItem(DISMISSED_KEY, Date.now().toString());
+    trackEvent("nudge_dismissed");
     setTimeout(() => setVisible(false), 300);
   }
 
   function handleSignIn() {
+    trackEvent("nudge_clicked");
     dismiss();
     signIn("google", { callbackUrl: window.location.href });
   }

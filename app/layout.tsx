@@ -8,13 +8,14 @@ import { Providers } from "./providers";
 const GA_ID = "G-GRWVXZCPD9";
 
 export const metadata: Metadata = {
-  title: "DXBmovies – Ultimate Movie Companion",
+  title: "DXBmovies – AI Movie Companion & Tracker",
   description:
-    "Talk to your ultimate movie companion, discover what to watch tonight, and remember everything you love. DXBmovies – your personal cinema guide.",
+    "DXBmovies is an AI-powered movie recommendation engine and tracker. Discover what to watch, get personalized recommendations, and track your favorite films. Note: DXBmovies is a companion app, not a streaming platform.",
+  keywords: ["movie recommendations", "AI movie assistant", "movie tracker", "what to watch", "movie companion", "film discovery", "not a streaming site"],
   metadataBase: new URL("https://dxbmovie.online"),
   openGraph: {
-    title: "DXBmovies – Ultimate Movie Companion",
-    description: "Discover movies and TV shows with your personal ultimate movie companion.",
+    title: "DXBmovies – AI Movie Companion & Tracker",
+    description: "Your personal AI movie companion. Discover new movies, get personalized recommendations, and track your favorites. (Not a streaming platform).",
     url: "https://dxbmovie.online",
     siteName: "DXBmovies",
     type: "website",
@@ -29,8 +30,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DXBmovies – Ultimate Movie Companion",
-    description: "Your ultimate movie companion for discovering the perfect film.",
+    title: "DXBmovies – AI Movie Companion",
+    description: "Discover the perfect film with your AI movie companion and tracker.",
     images: ["https://dxbmovie.online/icons/icon-512.png"],
   },
   appleWebApp: {
@@ -77,6 +78,23 @@ export default function RootLayout({
             gtag('config', '${GA_ID}', {
               page_path: window.location.pathname,
             });
+          `}
+        </Script>
+        {/* Structured Data to prevent misclassification as a streaming site */}
+        <Script id="schema-org" type="application/ld+json" strategy="afterInteractive">
+          {`
+            {
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "DXBmovies",
+              "url": "https://dxbmovie.online",
+              "applicationCategory": "EntertainmentApplication",
+              "description": "An AI-powered movie recommendation engine and tracker. DXBmovies helps you discover what to watch next. It is a companion app and NOT a streaming platform or ticketing site.",
+              "offers": {
+                "@type": "Offer",
+                "price": "0"
+              }
+            }
           `}
         </Script>
       </head>

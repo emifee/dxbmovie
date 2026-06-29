@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Movie } from "@/lib/types";
+import { getLanguage } from "@/lib/language";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -16,8 +17,10 @@ export async function GET(request: Request) {
   if (!apiKey) return NextResponse.json({ error: "Not configured" }, { status: 500 });
 
   try {
+    const lang = getLanguage();
+
     // We use recommendations because it often provides better, more curated results than "similar"
-    const fetchUrl = `${TMDB_BASE}/${type}/${id}/recommendations?api_key=${apiKey}&language=en-US&page=1`;
+    const fetchUrl = `${TMDB_BASE}/${type}/${id}/recommendations?api_key=${apiKey}&language=${lang}&page=1`;
     const res = await fetch(fetchUrl, { next: { revalidate: 3600 } });
     
     if (!res.ok) throw new Error("TMDB recommendations error");

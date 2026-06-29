@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
 const DB_NAME = "dxbmovies";
 
@@ -29,7 +30,7 @@ export async function GET() {
       db.collection("watchlists").countDocuments({ userId }),
       db.collection("chatSessions").find({ userId }).toArray(),
       db.collection("userPreferences").findOne({ userId }),
-      db.collection("users").findOne({ _id: userId as unknown as import("mongodb").ObjectId }),
+      db.collection("users").findOne({ _id: new ObjectId(userId) }),
     ]);
 
     // Count total unique movies the user discussed (based on chat session messages).
@@ -83,6 +84,7 @@ export async function GET() {
       joinedAt,
       accuracyScore,
       accuracyMessage,
+      username: userDoc?.username || null,
     });
   } catch (err) {
     console.error("[profile GET]", err);

@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import { useUIStore } from "@/lib/store";
 import { GradientOrb } from "@/components/ui/gradient-orb";
 import { GoogleGlyph } from "@/components/ui/google-glyph";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * Gmail-only sign-in gate. Shown after the anonymous user's first AI reply,
@@ -22,6 +23,7 @@ export function GoogleGate() {
 
   useEffect(() => {
     if (!open) return;
+    trackEvent("auth_gate_shown");
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
@@ -30,7 +32,13 @@ export function GoogleGate() {
 
   if (!open) return null;
 
+  function handleClose() {
+    trackEvent("auth_gate_dismissed");
+    close();
+  }
+
   function handleContinue() {
+    trackEvent("auth_gate_clicked");
     // Trigger Google OAuth. AccountHydrator watches the session and will flip
     // `signedIn` in the store, which causes the chat drawer to auto-send the
     // pending message that triggered this gate.
@@ -43,14 +51,14 @@ export function GoogleGate() {
       <button
         type="button"
         aria-label="Close"
-        onClick={close}
+        onClick={handleClose}
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
       />
 
       <div className="relative mx-auto w-full max-w-app animate-slide-up rounded-t-3xl border border-border bg-surface p-6 text-center sm:rounded-3xl sm:animate-fade-in">
         <button
           type="button"
-          onClick={close}
+          onClick={handleClose}
           aria-label="Close"
           className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface-raised text-text-secondary transition hover:text-white"
         >

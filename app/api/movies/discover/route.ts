@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Movie } from "@/lib/types";
+import { getLanguage } from "@/lib/language";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -31,9 +32,11 @@ export async function GET(request: Request) {
   const rating = searchParams.get("rating");
   const sort = searchParams.get("sort") || "Popular";
   const page = searchParams.get("page") || "1";
+  const lang = getLanguage();
 
   const params = new URLSearchParams({
     api_key: apiKey,
+    language: lang,
     include_adult: "false",
     page: page,
     vote_count_gte: "50", // Filter out obscure noise for ratings/sorting

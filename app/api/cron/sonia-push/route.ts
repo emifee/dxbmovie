@@ -3,6 +3,7 @@ import clientPromise from "@/lib/mongodb";
 import { sendPushNotification, type PushSubscriptionData } from "@/lib/push";
 import Groq from "groq-sdk";
 import OpenAI from "openai";
+import { getTasteTitle } from "@/lib/utils";
 
 const SONIA_SYSTEM = `You are Sonia, a friendly AI movie companion for DXBmovies.
 Generate a single short push notification that gives the user their exclusive "Daily Pick" which expires at midnight.
@@ -117,9 +118,24 @@ export async function GET(request: Request) {
     for (const user of users) {
       const genres: string[] = user.genres ?? [];
       const sub = user.pushSubscription as PushSubscriptionData;
+      
+      const lastInteraction = user.lastInteractionAt ? new Date(user.lastInteractionAt) : new Date(user.joinedAt || 0);
+      const daysSinceInteraction = (Date.now() - lastInteraction.getTime()) / (1000 * 60 * 60 * 24);
 
-      // Generate personalised message
-      const msg = await generateSoniaMessage(genres);
+      let msg;
+      
+      // Staleness nudge for 14+ days
+      if (daysSinceInteraction >= 14) {
+        const topGenre = genres.length > 0 ? genres[0] : null;
+        const tasteTitle = getTasteTitle(topGenre);
+        msg = {
+          title: "Your Movie Fans Card is fading ⏳",
+          body: `Your card says '${tasteTitle}' — but it's been ${Math.floor(daysSinceInteraction)} days. Open the app to keep your title current.`,
+        };
+      } else {
+        msg = await generateSoniaMessage(genres);
+      }
+
       if (!msg) {
         failed++;
         continue;

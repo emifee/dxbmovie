@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
+import { getLanguage } from "@/lib/language";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -11,6 +12,7 @@ export async function GET(request: Request) {
   const type = searchParams.get("type") || "movie";
   const mainTrailerKey = searchParams.get("mainKey");
   const mainTitle = searchParams.get("mainTitle");
+  const lang = getLanguage();
 
   // Track interaction in the background
   getServerSession(authOptions).then(async (session) => {
@@ -47,7 +49,7 @@ export async function GET(request: Request) {
     // 1. Push the main movie's trailer first (if available and page is 1)
     if (id && page === 1) {
       try {
-        const fetchUrl = `${TMDB_BASE}/${type}/${id}?api_key=${apiKey}&append_to_response=videos`;
+        const fetchUrl = `${TMDB_BASE}/${type}/${id}?api_key=${apiKey}&language=${lang}&append_to_response=videos&include_video_language=${lang},en,null`;
         const res = await fetch(fetchUrl);
         if (res.ok) {
           const r = await res.json();
@@ -82,7 +84,7 @@ export async function GET(request: Request) {
     // 2. Fetch related movies (or trending if no ID)
     let related: any[] = [];
     if (id) {
-      const fetchUrl = `${TMDB_BASE}/${type}/${id}/recommendations?api_key=${apiKey}&language=en-US&page=${page}`;
+      const fetchUrl = `${TMDB_BASE}/${type}/${id}/recommendations?api_key=${apiKey}&language=${lang}&page=${page}`;
       const res = await fetch(fetchUrl, { next: { revalidate: 3600 } });
       if (res.ok) {
         const data = (await res.json()) as { results: any[] };
@@ -90,7 +92,7 @@ export async function GET(request: Request) {
       }
     } else {
       // Use the requested page from the client to avoid duplicate loops
-      const fetchUrl = `${TMDB_BASE}/trending/all/day?api_key=${apiKey}&language=en-US&page=${page}`;
+      const fetchUrl = `${TMDB_BASE}/trending/all/day?api_key=${apiKey}&language=${lang}&page=${page}`;
       const res = await fetch(fetchUrl, { next: { revalidate: 3600 } });
       if (res.ok) {
         const data = (await res.json()) as { results: any[] };
@@ -105,7 +107,7 @@ export async function GET(request: Request) {
       try {
         const rType = r.media_type || type || "movie";
         const vRes = await fetch(
-          `${TMDB_BASE}/${rType}/${r.id}?api_key=${apiKey}&append_to_response=videos`,
+          `${TMDB_BASE}/${rType}/${r.id}?api_key=${apiKey}&language=${lang}&append_to_response=videos&include_video_language=${lang},en,null`,
           { next: { revalidate: 3600 } }
         );
         if (!vRes.ok) return null;

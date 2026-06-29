@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useAccountStore } from "@/lib/account-store";
 import { getAndClearPendingAction } from "@/lib/pending-actions";
 import { useUIStore } from "@/lib/store";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * Loads persisted account/usage state from localStorage on mount and syncs
@@ -26,6 +27,10 @@ export function AccountHydrator() {
   // Keep the Zustand store in sync with the NextAuth session.
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
+      if (!sessionStorage.getItem("ga_login_tracked")) {
+        trackEvent("login_success");
+        sessionStorage.setItem("ga_login_tracked", "1");
+      }
       storeSignIn(session.user.email);
       
       // Handle any pending actions from before sign in

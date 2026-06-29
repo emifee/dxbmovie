@@ -15,7 +15,7 @@ import { GoogleGate } from "@/components/auth/google-gate";
 import { useUIStore } from "@/lib/store";
 import { useAccountStore } from "@/lib/account-store";
 import type { CompanionGender, CompanionRace, Movie, ChatSessionSummary } from "@/lib/types";
-import { tmdbImage, cn } from "@/lib/utils";
+import { tmdbImage, cn, getTasteTitle } from "@/lib/utils";
 import { STREAMING_SERVICES, GENRES } from "@/lib/constants";
 import { COMPANION_RACE_OPTIONS } from "@/lib/ai-companion";
 import { GENRE_LIST } from "@/lib/genre-list";
@@ -23,6 +23,7 @@ import { GradientOrb } from "@/components/ui/gradient-orb";
 import { CompanionAvatar } from "@/components/ui/companion-avatar";
 import { GoogleButton } from "@/components/login/google-button";
 import Link from "next/link";
+import { toPng } from "html-to-image";
 
 export default function ProfilePage() {
   const openDetail = useUIStore((s) => s.openDetail);
@@ -45,6 +46,10 @@ export default function ProfilePage() {
   const [joinedAt, setJoinedAt] = useState<string | null>(null);
   const [accuracyScore, setAccuracyScore] = useState<number | null>(null);
   const [accuracyMessage, setAccuracyMessage] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [claimingUsername, setClaimingUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
   const [dnaEditing, setDnaEditing] = useState(false);
   const [dnaWorking, setDnaWorking] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -90,6 +95,7 @@ export default function ProfilePage() {
         if (data.joinedAt) setJoinedAt(data.joinedAt);
         if (data.accuracyScore !== undefined) setAccuracyScore(data.accuracyScore);
         if (data.accuracyMessage) setAccuracyMessage(data.accuracyMessage);
+        if (data.username) setUsername(data.username);
       }
 
       if (watchlistRes.ok) {
@@ -127,6 +133,11 @@ export default function ProfilePage() {
   const joinedDisplay = joinedAt
     ? new Date(joinedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })
     : "Recently";
+    
+  const topGenre = dnaGenres.length > 0 ? dnaGenres[0] : null;
+  const tasteTitle = getTasteTitle(topGenre);
+  const interactionCount = stats.watchlistCount + stats.discussed;
+  const hasUnlockedCard = interactionCount >= 5;
 
   function toggleService(slug: string) {
     setServices((prev) => {
@@ -135,6 +146,63 @@ export default function ProfilePage() {
       return next;
     });
   }
+
+  // ── Share Card & Username ──
+  async function claimUsername() {
+    if (!usernameInput) return;
+    setClaimingUsername(true);
+    setUsernameError("");
+    try {
+      const res = await fetch("/api/user/username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: usernameInput }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setUsername(data.username);
+      } else {
+        setUsernameError(data.error);
+      }
+    } catch {
+      setUsernameError("Failed to claim username");
+    } finally {
+      setClaimingUsername(false);
+    }
+  }
+
+  const [sharing, setSharing] = useState(false);
+  const shareCard = async () => {
+    setSharing(true);
+    try {
+      const node = document.getElementById("movie-fans-card");
+      if (!node) return;
+      // Temporarily make it visible for the screenshot
+      const originalDisplay = node.style.display;
+      node.style.display = "block";
+      const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2 });
+      node.style.display = originalDisplay;
+      
+      if (navigator.share) {
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], "movie-fans-card.png", { type: "image/png" });
+        await navigator.share({
+          title: "My Movie DNA",
+          text: `Check out my Movie Fans Card on DXBmovies! https://dxbmovie.online/card/${username || (session?.user as any)?.id || ""}`,
+          files: [file],
+        });
+      } else {
+        const link = document.createElement("a");
+        link.download = "movie-fans-card.png";
+        link.href = dataUrl;
+        link.click();
+      }
+    } catch (err) {
+      console.error("Failed to share", err);
+    } finally {
+      setSharing(false);
+    }
+  };
 
   // ── DNA editing ──
   function toggleDnaGenre(genre: string) {
@@ -281,7 +349,109 @@ export default function ProfilePage() {
                 </div>
               </div>
               <h1 className="mt-3 text-xl font-bold text-white">{fullName}</h1>
-              <p className="text-sm text-text-secondary">Joined {joinedDisplay}</p>
+              {username ? (
+                <p className="text-sm text-primary">dxbmovie.online/card/{username}</p>
+              ) : (
+                <p className="text-sm text-text-secondary">Joined {joinedDisplay}</p>
+              )}
+
+              {/* Movie Fans Card Share Button */}
+              <div className="mt-4 flex flex-col items-center">
+                {!username && hasUnlockedCard && (
+                  <div className="mb-4 flex flex-col items-center gap-2 rounded-xl bg-surface p-4 border border-border w-full max-w-sm">
+                    <p className="text-sm font-medium text-white">Claim your username to share your card</p>
+                    <div className="flex w-full gap-2">
+                      <input 
+                        value={usernameInput}
+                        onChange={e => setUsernameInput(e.target.value)}
+                        placeholder="e.g. emife"
+                        className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-white focus:border-primary/60 focus:outline-none"
+                      />
+                      <button 
+                        onClick={claimUsername}
+                        disabled={claimingUsername || !usernameInput}
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                      >
+                        Claim
+                      </button>
+                    </div>
+                    {usernameError && <p className="text-xs text-red-400">{usernameError}</p>}
+                  </div>
+                )}
+                
+                <button
+                  onClick={shareCard}
+                  disabled={sharing || !hasUnlockedCard}
+                  className="flex items-center gap-2 rounded-full bg-gradient-primary px-6 py-2.5 text-sm font-bold text-white transition hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  <Sparkles size={16} />
+                  {sharing ? "Generating..." : hasUnlockedCard ? "Share Movie Fans Card" : "Unlock Movie Fans Card"}
+                </button>
+                {!hasUnlockedCard && (
+                  <p className="mt-2 text-xs text-text-secondary">
+                    Rate or save {5 - interactionCount} more movies to unlock
+                  </p>
+                )}
+              </div>
+
+              {/* Hidden Node for Image Generation */}
+              <div className="absolute left-[-9999px] top-[-9999px] z-[-1] pointer-events-none">
+                <div 
+                  id="movie-fans-card" 
+                  className="hidden w-[400px] h-[711px] bg-background text-white p-8 relative overflow-hidden flex flex-col items-center justify-center text-center font-sans"
+                  style={{ background: "linear-gradient(to bottom, #121212, #000000)" }}
+                >
+                  {/* Decorative Orbs */}
+                  <div className="absolute top-[-50px] left-[-50px] w-[200px] h-[200px] bg-primary/30 rounded-full blur-[60px]" />
+                  <div className="absolute bottom-[-50px] right-[-50px] w-[200px] h-[200px] bg-accent/30 rounded-full blur-[60px]" />
+                  
+                  <div className="relative z-10 flex flex-col items-center w-full h-full pt-10">
+                    <div className="rounded-full bg-gradient-primary p-1 mb-4 shadow-[0_0_30px_rgba(var(--primary),0.3)]">
+                      <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-full bg-surface">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt={fullName} className="w-full h-full object-cover" crossOrigin="anonymous" />
+                        ) : (
+                          <span className="text-3xl font-bold text-gradient">{displayName.charAt(0)}</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <h2 className="text-3xl font-bold text-white mb-1">{fullName}</h2>
+                    <p className="text-lg text-primary font-medium mb-8 tracking-wide">
+                      {tasteTitle}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-4 w-full px-4 mb-8">
+                      {watchlist.slice(0, 4).map((m, i) => (
+                        <div key={i} className="aspect-[2/3] w-full rounded-xl overflow-hidden border border-white/10 shadow-lg relative">
+                          {m.posterPath ? (
+                            <img src={tmdbImage(m.posterPath) || ""} alt="Poster" className="w-full h-full object-cover" crossOrigin="anonymous" />
+                          ) : (
+                            <div className="w-full h-full bg-surface-raised flex items-center justify-center text-white/50 text-xs text-center p-2">
+                              {m.title}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-auto w-full flex justify-between items-center px-4 py-4 border-t border-white/10">
+                      <div className="text-left">
+                        <p className="text-2xl font-bold text-white">{stats.watchlistCount + stats.discussed}</p>
+                        <p className="text-xs text-white/60 uppercase tracking-widest">Movies Tracked</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold text-gradient">Top 5%</p>
+                        <p className="text-xs text-white/60 uppercase tracking-widest">For {topGenre || "Movies"}</p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-[10px] text-white/40 mt-4 tracking-widest uppercase">
+                      dxbmovie.online/card/{username || (session?.user as any)?.id}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </>
           ) : (
             <div className="relative mx-auto mt-4 flex w-full max-w-md flex-col items-center text-center">

@@ -5,6 +5,7 @@ import clientPromise from "@/lib/mongodb";
 import { routeChat, type AIChatMessage } from "@/lib/ai-router";
 import { sendPushNotification, type PushSubscriptionData } from "@/lib/push";
 import type { Movie } from "@/lib/types";
+import { getLanguage } from "@/lib/language";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -33,14 +34,14 @@ POSTER / IMAGE RULE: Whenever the user asks to see a poster, image, cover art, o
 
 RECOMMENDATION RULE: Only populate "recommendations" when the user explicitly asks for suggestions, asks to see a poster/image, or you are actively recommending titles. Mix Movies and TV Shows. If the user is just chatting or asking facts, leave recommendations EMPTY.
 
-Rules: only real films/shows, 2-3 titles when suggesting, stay on topic.
-CRITICAL: If the user already watched your recommendations, immediately suggest 3 new similar titles without asking more questions.`;
+Rules: only real films/shows, 5 titles when suggesting, stay on topic.
+CRITICAL: If the user already watched your recommendations, immediately suggest 5 new similar titles without asking more questions.`;
 
 
-async function searchTMDB(title: string, apiKey: string): Promise<Movie | null> {
+async function searchTMDB(title: string, apiKey: string, lang = "en-US"): Promise<Movie | null> {
   try {
     const res = await fetch(
-      `${TMDB_BASE}/search/multi?api_key=${apiKey}&query=${encodeURIComponent(title)}&include_adult=false`,
+      `${TMDB_BASE}/search/multi?api_key=${apiKey}&query=${encodeURIComponent(title)}&include_adult=false&language=${lang}`,
     );
     if (!res.ok) return null;
     const data = (await res.json()) as { results: Record<string, unknown>[] };
@@ -164,6 +165,7 @@ export async function POST(request: Request) {
   }
 
   const { messages, movieContext, imageDataUrl } = body;
+  const lang = getLanguage();
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "messages array required" }, { status: 400 });
   }
@@ -245,6 +247,9 @@ export async function POST(request: Request) {
       console.error("Failed to fetch user context", e);
     }
   }
+
+  // Force AI to reply in the detected language
+  userContextStr += `\n\nLANGUAGE ENFORCEMENT: The user's preferred language is "${lang}". You MUST reply in this language.`;
 
   // Build system prompt — enrich movieContext with real TMDB data
   let movieDataContext = "";
@@ -360,7 +365,7 @@ export async function POST(request: Request) {
     let movies: Movie[] = [];
     if (tmdbKey && Array.isArray(parsed.recommendations) && parsed.recommendations.length > 0) {
       const results = await Promise.all(
-        parsed.recommendations.slice(0, 3).map((title) => searchTMDB(title, tmdbKey)),
+        parsed.recommendations.slice(0, 5).map((title) => searchTMDB(title, tmdbKey, lang)),
       );
       movies = results.filter((m): m is Movie => m !== null);
     }

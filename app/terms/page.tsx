@@ -86,8 +86,16 @@ export default function TermsPage() {
           <h2 className="mb-2 font-semibold text-white">8. Contact</h2>
           <p>
             Questions? Reach us at{" "}
-            <a href="mailto:hello@dxbmovies.com" className="text-primary underline underline-offset-2">
-              hello@dxbmovies.com
+            <a href="mailto:hello@dxbmovie.online" className="text-primary underline underline-offset-2">
+              hello@dxbmovie.online
+            </a>
+          </p>
+          <p className="mt-2 flex flex-wrap gap-4">
+            <a href="https://instagram.com/dxbmovies" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2">
+              Instagram
+            </a>
+            <a href="https://facebook.com/dxbmovies" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2">
+              Facebook
             </a>
           </p>
         </div>
