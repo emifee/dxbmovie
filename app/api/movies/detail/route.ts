@@ -39,8 +39,8 @@ export async function GET(request: Request) {
       link: justWatchLink,
     }));
 
-    // Extract top cast with profile images
-    const cast = (data.credits?.cast || []).slice(0, 5).map((c: any) => ({
+    // Extract top cast with profile images (up to 10)
+    const cast = (data.credits?.cast || []).slice(0, 10).map((c: any) => ({
       id: c.id,
       name: c.name,
       character: c.character,

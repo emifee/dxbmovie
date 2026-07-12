@@ -67,8 +67,12 @@ export function MovieDetailDrawer() {
           if (!r.ok) throw new Error("Fetch failed");
           return r.json();
         })
-        .then((d) => setFullDetails(d))
-        .catch(() => setFullDetails(null));
+        .then((d) =\u003e setFullDetails({
+          genres: d.genres || [],
+          providers: d.providers || [],
+          cast: d.enrichedCast || d.cast || [],
+        }))
+        .catch(() =\u003e setFullDetails(null));
     } else {
       // Data already came from the detail API (deep-link), use it immediately
       setFullDetails({
@@ -211,50 +215,53 @@ export function MovieDetailDrawer() {
           <p className="mt-5 text-sm leading-relaxed text-text-secondary">{movie.overview}</p>
 
           {/* Cast */}
-          {(fullDetails?.cast?.length ?? movie.cast?.length ?? 0) > 0 && (
-            <div className="mt-6">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                Cast
-              </p>
-              <div className="mt-3 no-scrollbar -mx-5 flex gap-4 overflow-x-auto px-5 pb-4 scrollbar-hide">
-                {fullDetails?.cast ? (
-                  fullDetails.cast.map((c: any, i: number) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        useUIStore.getState().openActor(c.id || c.name);
-                      }}
-                      className="flex w-20 shrink-0 flex-col items-center gap-2 text-center transition hover:opacity-80"
-                    >
-                      <div className="relative aspect-square w-full overflow-hidden rounded-full bg-surface-raised border border-white/5">
-                        {c.profilePath ? (
-                          <Image
-                            src={c.profilePath}
-                            alt={c.name}
-                            fill
-                            unoptimized
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs text-text-secondary">
-                            {c.name.charAt(0)}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex w-full flex-col">
-                        <span className="text-[11px] font-medium leading-tight text-white line-clamp-2">{c.name}</span>
-                        <span className="mt-0.5 text-[10px] leading-tight text-text-secondary line-clamp-2">{c.character}</span>
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <p className="text-sm text-white">
-                    {(movie.cast || []).map((c: any) => (typeof c === "string" ? c : c?.name)).filter(Boolean).join(", ")}
-                  </p>
-                )}
-              </div>
+          <div className="mt-6">
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+              Cast &amp; Crew
+            </p>
+            <div className="mt-3 no-scrollbar -mx-5 flex gap-4 overflow-x-auto px-5 pb-4 scrollbar-hide">
+              {!fullDetails ? (
+                // Skeleton while loading
+                Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex w-20 shrink-0 flex-col items-center gap-2">
+                    <div className="h-20 w-20 rounded-full bg-white/5 animate-pulse" />
+                    <div className="h-2.5 w-14 rounded bg-white/5 animate-pulse" />
+                    <div className="h-2 w-10 rounded bg-white/5 animate-pulse" />
+                  </div>
+                ))
+              ) : fullDetails.cast?.length > 0 ? (
+                fullDetails.cast.map((c: any, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => useUIStore.getState().openActor(c.id || c.name)}
+                    className="flex w-20 shrink-0 flex-col items-center gap-2 text-center transition hover:opacity-80 active:scale-95"
+                  >
+                    <div className="relative h-20 w-20 overflow-hidden rounded-full bg-surface-raised border border-white/10">
+                      {c.profilePath ? (
+                        <Image
+                          src={c.profilePath}
+                          alt={c.name}
+                          fill
+                          unoptimized
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xl font-bold text-white/30">
+                          {c.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex w-full flex-col">
+                      <span className="text-[11px] font-medium leading-tight text-white line-clamp-2">{c.name}</span>
+                      <span className="mt-0.5 text-[10px] leading-tight text-text-secondary line-clamp-2">{c.character}</span>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <p className="text-sm text-text-secondary">No cast info available</p>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Where to watch */}
           {fullDetails?.providers && fullDetails.providers.length > 0 && (
