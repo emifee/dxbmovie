@@ -141,7 +141,7 @@ const defaultFilters: FilterState = {
 };
 
 interface FilterStore extends FilterState {
-  setFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
+  setFilter: (key: keyof FilterState, value: string | string[]) => void;
   toggleGenre: (genreId: string) => void;
   clearFilters: () => void;
   hasActiveFilters: () => boolean;
