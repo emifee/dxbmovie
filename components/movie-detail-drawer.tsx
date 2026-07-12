@@ -67,12 +67,12 @@ export function MovieDetailDrawer() {
           if (!r.ok) throw new Error("Fetch failed");
           return r.json();
         })
-        .then((d) =\u003e setFullDetails({
+        .then((d) => setFullDetails({
           genres: d.genres || [],
           providers: d.providers || [],
           cast: d.enrichedCast || d.cast || [],
         }))
-        .catch(() =\u003e setFullDetails(null));
+        .catch(() => setFullDetails(null));
     } else {
       // Data already came from the detail API (deep-link), use it immediately
       setFullDetails({
