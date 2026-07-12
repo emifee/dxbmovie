@@ -183,7 +183,7 @@ export default function HomePage() {
     setPage(1);
     setHasMore(true);
     nextRandomPageRef.current = 2;
-  }, [genre, activeService, countryFilter, type, filterGenre, year, country, network, rating, sort]);
+  }, [genre, activeService, countryFilter, type, genres, keywords, yearMin, yearMax, country, network, rating, sort]);
 
   // Populate the randomGridMovies from the main movies fetch to avoid extra API calls on mount
   useEffect(() => {
