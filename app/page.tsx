@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Search, X, SlidersHorizontal, Film } from "lucide-react";
-import { ChatEntryCard } from "@/components/chat-entry-card";
+import { useSession } from "next-auth/react";
+
 import { FloatingChatOrb } from "@/components/chat/floating-chat-orb";
 import { GenrePills } from "@/components/genre-pills";
+import { CountryPills } from "@/components/country-pills";
 import { MoviePosterCard } from "@/components/movie-poster-card";
 import { HeroBackground } from "@/components/hero-background";
 import { MovieCarousel } from "@/components/movie-carousel";
@@ -23,9 +25,10 @@ import { FeedbackModal, loadFeedbackState, markFeedbackPrompted } from "@/compon
 import { useAccountStore } from "@/lib/account-store";
 import { useUIStore, useFilterStore } from "@/lib/store";
 import { getSearchHistory, saveSearchQuery, clearSearchHistory } from "@/lib/search-history";
+import { trackGenre, trackCountry, trackProvider, trackSearch, getTopGenre, getTopCountry } from "@/lib/anon-prefs";
 import { cn } from "@/lib/utils";
 import { MOCK_MOVIES } from "@/lib/mock-data";
-import { STREAMING_SERVICES, PROVIDER_THEMES } from "@/lib/constants";
+import { STREAMING_SERVICES, PROVIDER_THEMES, GENRE_THEMES } from "@/lib/constants";
 import type { Movie } from "@/lib/types";
 
 const OnboardingOverlay = dynamic(
@@ -33,8 +36,22 @@ const OnboardingOverlay = dynamic(
   { ssr: false },
 );
 
+const HERO_HEADLINES = [
+  { prefix: "What are you in the mood ", gradient: "for tonight?" },
+  { prefix: "Find the perfect movie for ", gradient: "your evening" },
+  { prefix: "Tell me what you ", gradient: "want to watch" },
+  { prefix: "Let's find your next ", gradient: "favorite film" },
+  { prefix: "Not sure what to watch? ", gradient: "I can help" },
+  { prefix: "Discover movies tailored ", gradient: "just for you" },
+  { prefix: "What kind of story are you ", gradient: "looking for?" },
+  { prefix: "Your personal cinema guide ", gradient: "is ready" },
+  { prefix: "Skip the scrolling, start ", gradient: "watching" },
+  { prefix: "Let's find something ", gradient: "amazing to watch" },
+];
+
 export default function HomePage() {
   const [genre, setGenre] = useState<number | "all">("all");
+  const [countryFilter, setCountryFilter] = useState<string | "all">("all");
   const [movies, setMovies] = useState<Movie[]>(MOCK_MOVIES);
   const [randomGridMovies, setRandomGridMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,9 +71,15 @@ export default function HomePage() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const collapsed = useUIStore((s) => s.sidebarCollapsed);
   const chatOpen = useUIStore((s) => s.chatOpen);
-  const { type, genre: filterGenre, year, country, network, rating, sort, hasActiveFilters } = useFilterStore();
+  const { type, genres, keywords, yearMin, yearMax, country, network, rating, sort, hasActiveFilters } = useFilterStore();
+  const { status } = useSession();
   const openFilter = useUIStore((s) => s.openFilter);
   
+  // Taste filtering
+  const [dislikedIds, setDislikedIds] = useState<Set<number>>(new Set());
+  
+  const [dxbTrending, setDxbTrending] = useState<Movie[]>([]);
+
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [fetchingMore, setFetchingMore] = useState(false);
@@ -64,6 +87,18 @@ export default function HomePage() {
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   // Tracks which TMDB page to fetch next for the default home random feed
   const nextRandomPageRef = useRef(2);
+
+  const [heroHeadlineIndex, setHeroHeadlineIndex] = useState(0);
+
+  useEffect(() => {
+    // Pick a random starting headline on mount
+    setHeroHeadlineIndex(Math.floor(Math.random() * HERO_HEADLINES.length));
+    // Cycle through headlines every 7s (synced with hero slide interval)
+    const interval = setInterval(() => {
+      setHeroHeadlineIndex((prev) => (prev + 1) % HERO_HEADLINES.length);
+    }, 7000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Show feedback modal once user is signed in and has sent 3+ messages.
   // - Both steps done → never show again.
@@ -82,14 +117,15 @@ export default function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedIn, freeUsed]);
 
-  const fetchMovies = useCallback(async (selectedGenre: number | "all", selectedProvider: string | null, pageNum: number) => {
+  const fetchMovies = useCallback(async (selectedGenre: number | "all", selectedProvider: string | null, selectedCountry: string | "all", pageNum: number) => {
     if (pageNum === 1) setLoading(true);
     else setFetchingMore(true);
     
     try {
       const param = selectedGenre === "all" ? "all" : String(selectedGenre);
       const providerParam = selectedProvider ? `&provider=${encodeURIComponent(selectedProvider)}` : "";
-      const res = await fetch(`/api/movies?genre=${param}${providerParam}&page=${pageNum}`);
+      const countryParam = selectedCountry === "all" ? "" : `&country=${encodeURIComponent(selectedCountry)}`;
+      const res = await fetch(`/api/movies?genre=${param}${providerParam}${countryParam}&page=${pageNum}`);
       if (!res.ok) throw new Error("API error");
       let data: Movie[] = await res.json();
       
@@ -116,8 +152,10 @@ export default function HomePage() {
     try {
       const params = new URLSearchParams();
       if (type) params.append("type", type);
-      if (filterGenre) params.append("genre", filterGenre);
-      if (year) params.append("year", year);
+      if (genres.length > 0) params.append("genres", genres.join("|"));
+      if (keywords) params.append("keywords", keywords);
+      if (yearMin) params.append("yearMin", yearMin);
+      if (yearMax) params.append("yearMax", yearMax);
       if (country) params.append("country", country);
       if (network) params.append("network", network);
       if (rating) params.append("rating", rating);
@@ -138,44 +176,32 @@ export default function HomePage() {
       setLoading(false);
       setFetchingMore(false);
     }
-  }, [type, filterGenre, year, country, network, rating, sort]);
+  }, [type, genres, keywords, yearMin, yearMax, country, network, rating, sort]);
 
   useEffect(() => {
     // Reset to page 1 and hasMore whenever filters change
     setPage(1);
     setHasMore(true);
     nextRandomPageRef.current = 2;
-  }, [genre, activeService, type, filterGenre, year, country, network, rating, sort]);
+  }, [genre, activeService, countryFilter, type, filterGenre, year, country, network, rating, sort]);
 
+  // Populate the randomGridMovies from the main movies fetch to avoid extra API calls on mount
   useEffect(() => {
-    async function loadRandom() {
-      try {
-        const p1 = Math.floor(Math.random() * 5) + 1;
-        const p2 = Math.floor(Math.random() * 5) + 1;
-        const [resMovies, resTv] = await Promise.all([
-          fetch(`/api/movies/discover?sort=Popular&type=movie&page=${p1}`),
-          fetch(`/api/movies/discover?sort=Popular&type=tv&page=${p2}`)
-        ]);
-        const dataMovies = await resMovies.json();
-        const dataTv = await resTv.json();
-        const combined = [...(Array.isArray(dataMovies) ? dataMovies : []), ...(Array.isArray(dataTv) ? dataTv : [])];
-        setRandomGridMovies(combined.sort(() => 0.5 - Math.random()));
-      } catch (e) {
-        console.error(e);
-      }
+    if (movies.length > 0 && randomGridMovies.length === 0 && !loading) {
+      setRandomGridMovies([...movies].sort(() => 0.5 - Math.random()));
     }
-    loadRandom();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movies, loading]);
 
   useEffect(() => {
-    const isDefaultHomeState = genre === "all" && !activeService && !hasActiveFilters() && !searchQuery;
+    const isDefaultHomeState = genre === "all" && countryFilter === "all" && !activeService && !hasActiveFilters() && !searchQuery;
     
     if (page === 1) {
       if (hasActiveFilters()) {
         fetchDiscover(1);
       } else {
         const fetchPage = isDefaultHomeState ? Math.floor(Math.random() * 10) + 1 : 1;
-        fetchMovies(genre, activeService, fetchPage);
+        fetchMovies(genre, activeService, countryFilter, fetchPage);
       }
     } else {
       if (isDefaultHomeState) {
@@ -215,18 +241,23 @@ export default function HomePage() {
         if (hasActiveFilters()) {
           fetchDiscover(page);
         } else {
-          fetchMovies(genre, activeService, page);
+          fetchMovies(genre, activeService, countryFilter, page);
         }
       }
     }
-  }, [page, genre, activeService, fetchMovies, fetchDiscover, hasActiveFilters, searchQuery]);
+  }, [page, genre, activeService, countryFilter, fetchMovies, fetchDiscover, hasActiveFilters, searchQuery]);
 
   // Dynamic Theme Effect
   useEffect(() => {
-    const theme = activeService ? PROVIDER_THEMES[activeService] || PROVIDER_THEMES.all : PROVIDER_THEMES.all;
+    let theme = PROVIDER_THEMES.all;
+    if (genre !== "all") {
+      theme = GENRE_THEMES[genre] || PROVIDER_THEMES.all;
+    } else if (activeService) {
+      theme = PROVIDER_THEMES[activeService] || PROVIDER_THEMES.all;
+    }
     document.documentElement.style.setProperty("--color-primary", theme.hex);
     document.documentElement.style.setProperty("--color-primary-rgb", theme.rgb);
-  }, [activeService]);
+  }, [activeService, genre]);
 
   useEffect(() => {
     if (loading || fetchingMore || searchQuery || !hasMore) return;
@@ -255,6 +286,110 @@ export default function HomePage() {
     }
   }, [searchOpen]);
 
+  // Deep Link Handling for Movies
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const movieId = params.get("m");
+    const mediaType = params.get("type") || "movie";
+    
+    if (movieId) {
+      // Clean up URL without reloading
+      window.history.replaceState({}, "", "/");
+      
+      // Fetch movie detail and open drawer
+      fetch(`/api/movies/detail?id=${movieId}&type=${mediaType}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && !data.error) {
+            useUIStore.getState().openDetail(data);
+          }
+        })
+        .catch(console.error);
+    }
+  }, []);
+
+  // Initialize "Not Interested" filters and listen for UI events
+  useEffect(() => {
+    // 1. Get from local storage (anon)
+    import("@/lib/anon-prefs").then((mod) => {
+      const prefs = mod.getAnonPrefs();
+      if (prefs.notInterested && prefs.notInterested.length > 0) {
+        setDislikedIds(prev => new Set([...Array.from(prev), ...prefs.notInterested]));
+      }
+    });
+
+    // 2. Get from server (auth)
+    if (status === "authenticated") {
+      fetch("/api/user/reactions")
+        .then(r => r.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const dislikes = data.filter((d: any) => d.reaction === "dislike").map((d: any) => d.movieId);
+            if (dislikes.length > 0) {
+              setDislikedIds(prev => new Set([...Array.from(prev), ...dislikes]));
+            }
+          }
+        })
+        .catch(() => {});
+    }
+
+    // 3. Listen to drawer action
+    const handleNotInterested = (e: any) => {
+      const id = e.detail?.movieId;
+      if (id) {
+        setDislikedIds(prev => {
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+      }
+    };
+    window.addEventListener("dxb-not-interested", handleNotInterested);
+    return () => window.removeEventListener("dxb-not-interested", handleNotInterested);
+  }, [status]);
+
+  // Fetch Trending on DXB
+  useEffect(() => {
+    fetch("/api/movies/dxb-trending")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setDxbTrending(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Read anonymous prefs on mount to pre-select top genre/country
+  const hasAutoSelectedRef = useRef(false);
+  useEffect(() => {
+    if (status !== "unauthenticated") return;
+    if (hasAutoSelectedRef.current) return;
+    
+    // Only pre-select if we are on the default home view (no filters/search active)
+    const isDefaultHomeState = genre === "all" && countryFilter === "all" && !activeService && !hasActiveFilters() && !searchQuery;
+    
+    if (isDefaultHomeState) {
+      const topGenre = getTopGenre();
+      const topCountry = getTopCountry();
+      
+      // We don't want to auto-select BOTH immediately and confuse the user, 
+      // let's prioritize their absolute favorite signal
+      if (topGenre) {
+        setGenre(topGenre);
+        hasAutoSelectedRef.current = true;
+      } else if (topCountry) {
+        setCountryFilter(topCountry);
+        hasAutoSelectedRef.current = true;
+      } else {
+        // No top genre/country found, but we checked.
+        hasAutoSelectedRef.current = true;
+      }
+    } else {
+      // If they already have a filter active somehow on load, don't override it later.
+      hasAutoSelectedRef.current = true;
+    }
+  }, [status, genre, countryFilter, activeService, hasActiveFilters, searchQuery]);
+
   function handleSearch(value: string) {
     setSearchQuery(value);
     if (searchDebounce.current) clearTimeout(searchDebounce.current);
@@ -262,6 +397,7 @@ export default function HomePage() {
     searchDebounce.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
+        trackSearch(value.trim());
         saveSearchQuery(value.trim());
         const res = await fetch(`/api/movies/search?q=${encodeURIComponent(value.trim())}`);
         const data: Movie[] = await res.json();
@@ -289,32 +425,78 @@ export default function HomePage() {
 
 
 
-  const displayMovies = searchResults ?? movies;
+  const displayMovies = (searchResults ?? movies).filter(m => !dislikedIds.has(m.id));
   const displayLoading = searchResults === null ? loading : searchLoading;
-  const isDefaultHome = genre === "all" && !hasActiveFilters() && !searchQuery && !searchOpen;
+  const isDefaultHome = genre === "all" && countryFilter === "all" && !hasActiveFilters() && !searchQuery && !searchOpen;
 
   return (
     <div className={cn("relative min-h-dvh transition-[padding] duration-200", collapsed ? "lg:pl-20" : "lg:pl-64")}>
       <SideNav />
-      {!isDefaultHome && (
-        <div className={cn("pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/15 to-transparent", chatOpen && "invisible lg:visible")} />
+      {!isDefaultHome && countryFilter === "all" && (
+        <div 
+          className={cn("pointer-events-none absolute inset-x-0 top-0 h-[60vh] opacity-30", chatOpen && "invisible lg:visible")}
+          style={{
+            background: "linear-gradient(to bottom, var(--color-primary) 0%, transparent 100%)"
+          }}
+        />
+      )}
+      {!isDefaultHome && countryFilter !== "all" && (
+        <>
+          <div 
+            className={cn("pointer-events-none absolute inset-x-0 top-0 h-[60vh] opacity-[0.10] bg-cover bg-center blur-3xl", chatOpen && "invisible lg:visible")}
+            style={{ backgroundImage: `url('https://flagcdn.com/w1280/${countryFilter.toLowerCase()}.webp')` }}
+          />
+          <div 
+            className={cn("pointer-events-none absolute inset-x-0 top-0 h-[60vh] opacity-[0.25] bg-cover bg-center", chatOpen && "invisible lg:visible")}
+            style={{
+              backgroundImage: `url('https://flagcdn.com/w1280/${countryFilter.toLowerCase()}.webp')`,
+              WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)"
+            }}
+          />
+        </>
       )}
 
       <div className={cn("relative mx-auto w-full max-w-app pb-24 lg:max-w-6xl lg:pb-12 xl:max-w-7xl", chatOpen && "invisible lg:visible")}>
         
         {isDefaultHome ? (
-          <HeroBackground movies={movies}>
-            <div className="mx-auto max-w-2xl px-5">
-              <ChatEntryCard />
+          <HeroBackground movies={movies} onMovieClick={useUIStore.getState().openDetail}>
+            {/* AI-first hero headline */}
+            <div className="mx-auto max-w-lg mt-6 lg:mt-10">
+              {/* Eyebrow */}
+              <button 
+                onClick={() => useUIStore.getState().openChat()}
+                className="group inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 mb-4 transition hover:bg-primary/20 active:scale-95 cursor-pointer"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </span>
+                <span className="text-xs font-medium text-primary flex items-center gap-1">
+                  Ask AI what to watch
+                  <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                </span>
+              </button>
+
+              {/* Headline — key remount triggers fade-in; Safari always paints fresh text */}
+              <h1
+                key={heroHeadlineIndex}
+                className="animate-in fade-in duration-700 text-3xl lg:text-5xl font-extrabold text-white leading-[1.1] tracking-tight"
+              >
+                {HERO_HEADLINES[heroHeadlineIndex].prefix}
+                <span className="text-primary">
+                  {HERO_HEADLINES[heroHeadlineIndex].gradient}
+                </span>
+              </h1>
             </div>
           </HeroBackground>
         ) : (
-          <div className="px-5 pt-16 lg:px-10 lg:pt-20 mb-8 lg:mb-12">
-            <ChatEntryCard />
-          </div>
+          <div className="px-5 pt-16 lg:px-10 lg:pt-20 mb-8 lg:mb-12 h-20" />
         )}
 
-        <section className={cn(isDefaultHome ? "mt-[-2rem] relative z-20" : "mt-8 lg:mt-12", "px-5 lg:px-10")}>
+        <section className={cn(
+          "relative z-40 px-5 lg:px-10",
+          isDefaultHome ? "mt-[-1rem]" : "mt-8 lg:mt-12"
+        )}>
           {searchOpen && (
             <div className="mb-5 flex items-center gap-3">
               <div className="relative flex-1">
@@ -383,7 +565,10 @@ export default function HomePage() {
                     <button
                       key={s.slug}
                       type="button"
-                      onClick={() => setActiveService(active ? null : s.slug)}
+                      onClick={() => {
+                        trackProvider(s.slug);
+                        setActiveService(active ? null : s.slug);
+                      }}
                       className={cn(
                         "relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-2xl border transition active:scale-95",
                         active
@@ -407,15 +592,39 @@ export default function HomePage() {
             </section>
           )}
 
-          {!searchQuery && <GenrePills selected={genre} onSelect={setGenre} />}
+          {!searchQuery && (
+            <>
+              <GenrePills 
+                selected={genre} 
+                onSelect={(g) => {
+                  if (g !== "all") trackGenre(g);
+                  setGenre(g);
+                }} 
+              />
+              <div className="mt-2" />
+              <CountryPills 
+                selected={countryFilter} 
+                onSelect={(c) => {
+                  if (c !== "all") trackCountry(c);
+                  setCountryFilter(c);
+                }} 
+              />
+            </>
+          )}
         </section>
 
         {isDefaultHome && (
-          <div className="relative z-20 mt-6 lg:mt-8">
+          <div className="relative z-20 mt-3 lg:mt-5 space-y-8">
+            {dxbTrending.length > 0 && (
+              <MovieCarousel 
+                title="Trending on DXB" 
+                movies={dxbTrending.filter(m => !dislikedIds.has(m.id))} 
+                />
+            )}
             <MovieCarousel 
-              title="Trending Now" 
-              movies={movies} 
-              size="large" 
+              title="Global Hits" 
+              movies={movies.filter(m => !dislikedIds.has(m.id))} 
+              size="large"
               action={
                 !searchOpen && (
                   <button

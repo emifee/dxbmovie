@@ -40,6 +40,7 @@ async function callGroq(key: string, messages: AIChatMessage[]): Promise<string>
       messages,
       temperature: 0.8,
       max_tokens: 500,
+      response_format: { type: "json_object" },
     }),
     GROQ_TIMEOUT_MS,
   );
@@ -53,6 +54,7 @@ async function callOpenAI(key: string, messages: AIChatMessage[]): Promise<strin
     messages,
     temperature: 0.8,
     max_tokens: 500,
+    response_format: { type: "json_object" },
   });
   return completion.choices[0]?.message?.content ?? "";
 }

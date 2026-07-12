@@ -3,18 +3,72 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { tmdbImage } from "@/lib/utils";
 import { CardCTAButton } from "@/components/card-cta-button";
+import { MatchButton } from "@/components/match-button";
+
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
+import { getTasteTitle } from "@/lib/utils";
+import { unstable_cache } from "next/cache";
 
 export const revalidate = 60; // Revalidate every 60s for performance
 
 async function getPublicProfile(username: string) {
-  // Using an internal fetch here, but normally would extract DB logic.
-  // We'll fetch from our own API route for simplicity of this implementation.
-  // Note: Absolute URL is needed for server-side fetch.
-  const baseUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-  const res = await fetch(`${baseUrl}/api/user/public/${username}`, { next: { revalidate: 60 } });
-  
-  if (!res.ok) return null;
-  return res.json();
+  const getProfile = unstable_cache(
+    async (uname: string) => {
+      try {
+        const client = await clientPromise;
+        const db = client.db("dxbmovies");
+
+        const userQuery: any = { $or: [{ username: uname }] };
+        if (ObjectId.isValid(uname)) {
+          userQuery.$or.push({ _id: new ObjectId(uname) });
+        }
+
+        const userDoc = await db.collection("users").findOne(userQuery);
+        if (!userDoc) return null;
+
+        const userId = userDoc._id.toString();
+
+        const [prefs, watchlistItems, chatSessions] = await Promise.all([
+          db.collection("userPreferences").findOne({ userId }),
+          db.collection("watchlists").find({ userId }).limit(4).toArray(),
+          db.collection("chatSessions").countDocuments({ userId }),
+        ]);
+
+        const watchlistCount = await db.collection("watchlists").countDocuments({ userId });
+        
+        const topGenre = (prefs?.genres && prefs.genres.length > 0) ? prefs.genres[0] : null;
+        const tasteTitle = getTasteTitle(topGenre);
+        const interactionCount = watchlistCount + chatSessions;
+
+        const topMovies = watchlistItems.map((w: any) => ({
+          id: w.movie.id,
+          title: w.movie.title,
+          posterPath: w.movie.posterPath || w.movie.poster_path,
+        }));
+
+        return {
+          name: userDoc.name || "Movie Fan",
+          image: userDoc.image || null,
+          username: userDoc.username || userId,
+          tasteTitle,
+          topGenre,
+          stats: { interactionCount },
+          topMovies,
+        };
+      } catch (error) {
+        console.error("Failed to load public profile:", error);
+        return null;
+      }
+    },
+    [`profile-${username}`],
+    { revalidate: 60 }
+  );
+
+  console.time(`getProfile-${username}`);
+  const data = await getProfile(username);
+  console.timeEnd(`getProfile-${username}`);
+  return data;
 }
 
 export default async function PublicCardPage({ params }: { params: { username: string } }) {
@@ -92,8 +146,9 @@ export default async function PublicCardPage({ params }: { params: { username: s
         </div>
       </div>
 
-      {/* Acquisition CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/90 to-transparent z-50 flex flex-col items-center pointer-events-none">
+      {/* Match & Acquisition CTAs */}
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/90 to-transparent z-50 flex flex-col items-center gap-3 pointer-events-none">
+        <MatchButton username={username} hostName={name} />
         <CardCTAButton />
       </div>
     </div>

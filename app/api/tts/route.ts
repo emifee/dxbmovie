@@ -57,10 +57,13 @@ export async function POST(request: Request) {
 
   const candidates = PREMADE_VOICES[gender] ?? PREMADE_VOICES.female;
   
+  // Randomize the order of candidates so we don't always get the same voice
+  const shuffledCandidates = [...candidates].sort(() => Math.random() - 0.5);
+
   // Try each API key (fallback on quota limits)
   for (const apiKey of apiKeys) {
-    // Try each premade voice in order
-    for (const voiceId of candidates) {
+    // Try each premade voice in random order
+    for (const voiceId of shuffledCandidates) {
       const res = await tryTTS(apiKey, voiceId, text);
       if (res) {
         return new Response(res.body, {

@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, Star, Play, Plus, Sparkles, Check } from "lucide-react";
+import { X, Star, Play, Plus, Sparkles, Check, Share2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useUIStore } from "@/lib/store";
 import { tmdbImage } from "@/lib/utils";
 import { setPendingAction } from "@/lib/pending-actions";
+import { trackMovieView, trackNotInterested } from "@/lib/anon-prefs";
 import type { Movie } from "@/lib/types";
 
 /**
@@ -59,14 +60,23 @@ export function MovieDetailDrawer() {
       .catch(() => setRelatedMovies([]))
       .finally(() => setRelatedLoading(false));
 
-    // Fetch Full Details
-    fetch(`/api/movies/detail?id=${movie.id}&type=${movie.mediaType}`)
-      .then(async (r) => {
-        if (!r.ok) throw new Error("Fetch failed");
-        return r.json();
-      })
-      .then((d) => setFullDetails(d))
-      .catch(() => setFullDetails(null));
+    // Fetch Full Details (skip if already seeded from deep-link)
+    if (!(movie as any).enrichedCast) {
+      fetch(`/api/movies/detail?id=${movie.id}&type=${movie.mediaType}`)
+        .then(async (r) => {
+          if (!r.ok) throw new Error("Fetch failed");
+          return r.json();
+        })
+        .then((d) => setFullDetails(d))
+        .catch(() => setFullDetails(null));
+    } else {
+      // Data already came from the detail API (deep-link), use it immediately
+      setFullDetails({
+        genres: (movie as any).genres || [],
+        providers: (movie as any).providers || [],
+        cast: (movie as any).enrichedCast || [],
+      });
+    }
 
     return () => { document.body.style.overflow = ""; };
   }, [movie]);
@@ -101,6 +111,33 @@ export function MovieDetailDrawer() {
 
   const poster = tmdbImage(movie.posterPath, "w342");
 
+  const handleNotInterested = async () => {
+    // Optimistically update local tracking to hide it immediately across the app
+    trackNotInterested(movie.id);
+    
+    // If logged in, sync it to the backend immediately
+    if (status === "authenticated") {
+      fetch("/api/user/reactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ movieId: movie.id, reaction: "dislike" }),
+      }).catch(() => {});
+    }
+
+    // Force a page refresh of the feed since we don't have a global movie context to remove it instantly
+    // In a full SPA this would be an event, but here we just close the drawer.
+    // We can dispatch a custom event that `page.tsx` listens to!
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("dxb-not-interested", { detail: { movieId: movie.id } }));
+    }
+    close();
+  };
+
+  function handleRelatedClick(rm: Movie) {
+    close();
+    openDetail(rm);
+  }
+
   return (
     <div className="fixed inset-0 z-[60] flex flex-col justify-end lg:items-center lg:justify-center lg:p-6">
       {/* Scrim */}
@@ -115,13 +152,31 @@ export function MovieDetailDrawer() {
         {/* Grab handle + close */}
         <div className="sticky top-0 z-10 flex items-center justify-between bg-surface/95 px-5 pb-2 pt-3 backdrop-blur">
           <span className="mx-auto h-1 w-10 rounded-full bg-border" />
-          <button
-            onClick={close}
-            aria-label="Close"
-            className="absolute right-4 top-3 grid h-8 w-8 place-items-center rounded-full bg-surface-raised text-text-secondary transition hover:text-white"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex gap-2 absolute right-4 top-3">
+            <button
+              type="button"
+              aria-label="Share"
+              onClick={() => {
+                const url = `https://dxbmovie.online/m/${movie.id}?type=${movie.mediaType || "movie"}`;
+                if (navigator.share) {
+                  navigator.share({ title: `Check out ${movie.title}`, url }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(url);
+                  alert("Link copied to clipboard!");
+                }
+              }}
+              className="grid h-8 w-8 place-items-center rounded-full bg-surface-raised text-text-secondary transition hover:text-white"
+            >
+              <Share2 size={16} />
+            </button>
+            <button
+              onClick={close}
+              aria-label="Close"
+              className="grid h-8 w-8 place-items-center rounded-full bg-surface-raised text-text-secondary transition hover:text-white"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         <div className="px-5 pb-8">
@@ -161,27 +216,41 @@ export function MovieDetailDrawer() {
               <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 Cast
               </p>
-              <div className="mt-3 no-scrollbar -mx-5 flex gap-4 overflow-x-auto px-5 pb-2">
+              <div className="mt-3 no-scrollbar -mx-5 flex gap-4 overflow-x-auto px-5 pb-4 scrollbar-hide">
                 {fullDetails?.cast ? (
-                  fullDetails.cast.map((c: any) => (
-                    <div key={c.name} className="flex shrink-0 items-center gap-3">
-                      {c.profilePath ? (
-                        <div className="relative h-12 w-12 overflow-hidden rounded-full border border-border">
-                          <Image src={c.profilePath} alt={c.name} fill className="object-cover" />
-                        </div>
-                      ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface-raised text-text-secondary">
-                          <span className="text-sm font-semibold">{c.name.charAt(0)}</span>
-                        </div>
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-white">{c.name}</span>
-                        <span className="text-xs text-text-secondary">{c.character || "Cast"}</span>
+                  fullDetails.cast.map((c: any, i: number) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        useUIStore.getState().openActor(c.id || c.name);
+                      }}
+                      className="flex w-20 shrink-0 flex-col items-center gap-2 text-center transition hover:opacity-80"
+                    >
+                      <div className="relative aspect-square w-full overflow-hidden rounded-full bg-surface-raised border border-white/5">
+                        {c.profilePath ? (
+                          <Image
+                            src={c.profilePath}
+                            alt={c.name}
+                            fill
+                            unoptimized
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xs text-text-secondary">
+                            {c.name.charAt(0)}
+                          </div>
+                        )}
                       </div>
-                    </div>
+                      <div className="flex w-full flex-col">
+                        <span className="text-[11px] font-medium leading-tight text-white line-clamp-2">{c.name}</span>
+                        <span className="mt-0.5 text-[10px] leading-tight text-text-secondary line-clamp-2">{c.character}</span>
+                      </div>
+                    </button>
                   ))
                 ) : (
-                  <p className="text-sm text-white">{(movie.cast || []).join(", ")}</p>
+                  <p className="text-sm text-white">
+                    {(movie.cast || []).map((c: any) => (typeof c === "string" ? c : c?.name)).filter(Boolean).join(", ")}
+                  </p>
                 )}
               </div>
             </div>
@@ -268,6 +337,14 @@ export function MovieDetailDrawer() {
               Ask AI about this
             </button>
           </div>
+          
+          <button 
+            type="button"
+            onClick={handleNotInterested}
+            className="mt-4 w-full text-center text-[13px] font-medium text-text-secondary transition hover:text-white/90"
+          >
+            Not interested in this?
+          </button>
 
           {/* Related Movies */}
           {(relatedMovies.length > 0 || relatedLoading) && (

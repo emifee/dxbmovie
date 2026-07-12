@@ -4,6 +4,8 @@ import "./globals.css";
 import { AccountHydrator } from "@/components/account-hydrator";
 import { PWAAutoPrompt } from "@/components/pwa-auto-prompt";
 import { Providers } from "./providers";
+import { SaveProfileNudge } from "@/components/save-profile-nudge";
+import { ActorModal } from "@/components/actor-modal";
 
 const GA_ID = "G-GRWVXZCPD9";
 
@@ -65,6 +67,17 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Preconnect to critical third-party origins for faster resource loading */}
+        <link rel="preconnect" href="https://image.tmdb.org" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://api.themoviedb.org" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://i.ytimg.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.youtube.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://image.tmdb.org" />
+        <link rel="dns-prefetch" href="https://api.themoviedb.org" />
+        <link rel="dns-prefetch" href="https://i.ytimg.com" />
+        <link rel="dns-prefetch" href="https://www.youtube.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
         {/* Google Analytics 4 */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
@@ -97,12 +110,24 @@ export default function RootLayout({
             }
           `}
         </Script>
+        {/* Microsoft Clarity for session recordings & heatmaps */}
+        <Script id="clarity-script" strategy="afterInteractive">
+          {`
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "xesvhedfdd");
+          `}
+        </Script>
       </head>
       <body className="bg-background font-sans text-text-primary antialiased">
         <Providers>
           <AccountHydrator />
           <PWAAutoPrompt />
+          <SaveProfileNudge />
           {children}
+          <ActorModal />
         </Providers>
       </body>
     </html>

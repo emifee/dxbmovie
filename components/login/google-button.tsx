@@ -10,6 +10,7 @@ import { GoogleGlyph } from "@/components/ui/google-glyph";
  */
 export function GoogleButton() {
   function handleClick() {
+    localStorage.setItem("dxb_signup_source", "manual_login");
     signIn("google", { callbackUrl: "/?onboarding=1" });
   }
 

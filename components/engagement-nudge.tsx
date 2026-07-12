@@ -2,42 +2,35 @@
 
 import { useState, useEffect } from "react";
 import { X, Sparkles } from "lucide-react";
-import { signIn, useSession } from "next-auth/react";
-import { GoogleGlyph } from "@/components/ui/google-glyph";
+import { useSession } from "next-auth/react";
+import { useUIStore } from "@/lib/store";
 
-import { trackEvent } from "@/lib/analytics";
-
-const NUDGE_DELAY_MS = 60_000; // 60 seconds
-const DISMISSED_KEY = "dxb_nudge_dismissed";
-const DISMISS_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+const NUDGE_DELAY_MS = 2000; // 2 seconds
+const DISMISSED_KEY = "dxb_guest_cta_dismissed";
 
 /**
- * Timed engagement nudge — shows a beautiful bottom-sheet for unauthenticated
- * users after ~60 seconds of browsing. Dismissible, and remembers dismissal
- * for 24 hours via localStorage.
+ * Sticky Guest AI Trial CTA — shows a beautiful bottom banner for unauthenticated
+ * users inviting them to try the AI. Dismissible for the session.
  */
 export function EngagementNudge() {
   const { status } = useSession();
   const [visible, setVisible] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
+  const openChat = useUIStore((s) => s.openChat);
 
   useEffect(() => {
     // Don't show for authenticated users
     if (status === "authenticated") return;
     
-    // Don't show if dismissed recently (within 24 hours)
+    // Don't show if dismissed in this session
     if (typeof window !== "undefined") {
-      const lastDismissed = localStorage.getItem(DISMISSED_KEY);
-      if (lastDismissed && Date.now() - parseInt(lastDismissed, 10) < DISMISS_COOLDOWN_MS) {
-        return;
-      }
+      const dismissed = sessionStorage.getItem(DISMISSED_KEY);
+      if (dismissed) return;
     }
 
     const timer = setTimeout(() => {
-      // Re-check auth status in case they signed in during the wait
       if (status === "unauthenticated") {
         setVisible(true);
-        trackEvent("nudge_shown");
       }
     }, NUDGE_DELAY_MS);
 
@@ -48,15 +41,13 @@ export function EngagementNudge() {
 
   function dismiss() {
     setAnimateOut(true);
-    localStorage.setItem(DISMISSED_KEY, Date.now().toString());
-    trackEvent("nudge_dismissed");
+    sessionStorage.setItem(DISMISSED_KEY, "true");
     setTimeout(() => setVisible(false), 300);
   }
 
-  function handleSignIn() {
-    trackEvent("nudge_clicked");
+  function handleTrySonia() {
     dismiss();
-    signIn("google", { callbackUrl: window.location.href });
+    openChat();
   }
 
   return (
@@ -65,28 +56,28 @@ export function EngagementNudge() {
         animateOut ? "translate-y-full opacity-0" : "animate-slide-up"
       }`}
     >
-      <div className="relative w-full max-w-md rounded-2xl border border-primary/30 bg-surface/95 backdrop-blur-xl p-5 shadow-[0_-4px_30px_rgba(var(--color-primary-rgb),0.15)]">
+      <div className="relative w-full max-w-md rounded-2xl border border-primary/40 bg-black/80 backdrop-blur-xl p-4 shadow-[0_-4px_30px_rgba(var(--color-primary-rgb),0.3)]">
         {/* Close button */}
         <button
           type="button"
           onClick={dismiss}
           aria-label="Dismiss"
-          className="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-surface-raised text-text-secondary transition hover:text-white"
+          className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-white/10 text-white/50 transition hover:bg-white/20 hover:text-white"
         >
           <X size={14} />
         </button>
 
         {/* Content */}
-        <div className="flex items-start gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-primary shadow-glow">
-            <Sparkles size={20} className="text-white" />
+        <div className="flex items-center gap-4">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-primary shadow-glow animate-pulse-glow">
+            <Sparkles size={22} className="text-white" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-white leading-tight">
-              Unlock your ultimate movie companion
+          <div className="flex-1 min-w-0 pr-6">
+            <h3 className="text-[15px] font-bold text-white leading-tight">
+              Not sure what to watch?
             </h3>
-            <p className="mt-1 text-xs text-text-secondary leading-relaxed">
-              Sign in to get unlimited movie talks, save your watchlist, and get picks tailored to your taste, free forever.
+            <p className="mt-0.5 text-[13px] text-white/70 leading-relaxed">
+              Ask our AI for a personalized movie pick.
             </p>
           </div>
         </div>
@@ -94,13 +85,13 @@ export function EngagementNudge() {
         {/* CTA */}
         <button
           type="button"
-          onClick={handleSignIn}
-          className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-full bg-white px-5 py-3 text-sm font-medium text-black transition duration-200 hover:shadow-glow-lg active:scale-[0.98]"
+          onClick={handleTrySonia}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-[15px] font-bold text-black transition duration-200 hover:shadow-glow-lg active:scale-[0.98]"
         >
-          <GoogleGlyph />
-          Continue with Google, it takes 2 seconds
+          Try Recommendation
         </button>
       </div>
     </div>
   );
 }
+

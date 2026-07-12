@@ -119,6 +119,13 @@ export function TrailerModal() {
           },
           onStateChange: (e: any) => {
             if (e.data === 1) { setPlayerReady(true); } // PLAYING
+          },
+          onError: (e: any) => {
+            // Auto-skip geo-restricted / unavailable videos
+            setReels((prev) => {
+              const filtered = prev.filter((_, i) => i !== activeIndex);
+              return filtered;
+            });
           }
         }
       });

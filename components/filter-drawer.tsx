@@ -47,7 +47,7 @@ const COUNTRIES = [
 
 export function FilterDrawer() {
   const { filterOpen, closeFilter } = useUIStore();
-  const { type, sort, network, rating, genre, year, country, setFilter, clearFilters } = useFilterStore();
+  const { type, sort, network, rating, genres, keywords, yearMin, yearMax, country, setFilter, toggleGenre, clearFilters } = useFilterStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -99,12 +99,45 @@ export function FilterDrawer() {
                   { label: "Manga", value: "manga" },
                 ]}
               />
-              <SelectBox
-                label="Genre"
-                value={genre}
-                onChange={(v) => setFilter("genre", v)}
-                options={[{ label: "Any Genre", value: "" }, ...GENRES.map(g => ({ label: g.label, value: g.id }))]}
-              />
+              {/* Keywords */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                  Keywords (Comma separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. vampire, time travel, heist"
+                  value={keywords}
+                  onChange={(e) => setFilter("keywords", e.target.value)}
+                  className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-white placeholder-text-secondary focus:border-primary focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Genres (Multi-select) */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                Genres
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {GENRES.map((g) => {
+                  const isActive = genres.includes(g.id);
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => toggleGenre(g.id)}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                        isActive 
+                          ? "border-primary bg-primary/10 text-primary" 
+                          : "border-border bg-surface text-text-secondary hover:border-white/20"
+                      )}
+                    >
+                      {g.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Sort & Year Row */}
@@ -123,12 +156,30 @@ export function FilterDrawer() {
                   { label: "Revenue", value: "Revenue" },
                 ]}
               />
-              <SelectBox
-                label="Year"
-                value={year}
-                onChange={(v) => setFilter("year", v)}
-                options={[{ label: "Any Year", value: "" }, ...YEARS.map(y => ({ label: y, value: y }))]}
-              />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                  Years
+                </label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={yearMin}
+                    onChange={(e) => setFilter("yearMin", e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-border bg-surface px-3 py-3 text-sm text-white focus:border-primary focus:outline-none"
+                  >
+                    <option value="">From</option>
+                    {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                  <span className="text-text-secondary">-</span>
+                  <select
+                    value={yearMax}
+                    onChange={(e) => setFilter("yearMax", e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-border bg-surface px-3 py-3 text-sm text-white focus:border-primary focus:outline-none"
+                  >
+                    <option value="">To</option>
+                    {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* Networks & Country Row */}

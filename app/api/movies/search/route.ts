@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Movie } from "@/lib/types";
+import { enrichWithProviders } from "@/lib/tmdb-helpers";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -19,9 +20,14 @@ export async function GET(request: Request) {
     if (!res.ok) throw new Error("TMDB error");
     const data = (await res.json()) as { results: Record<string, unknown>[] };
 
-    const movies: Movie[] = data.results
+    const filtered = data.results
       .filter((r) => r.media_type === "movie" || r.media_type === "tv")
-      .slice(0, 20)
+      .slice(0, 20);
+
+    const countryCode = request.headers.get("x-vercel-ip-country") || "US";
+    const enriched = await enrichWithProviders(filtered, apiKey, countryCode);
+
+    const movies: Movie[] = enriched
       .map((r) => ({
         id: r.id as number,
         title: (r.title ?? r.name ?? "") as string,
@@ -32,6 +38,7 @@ export async function GET(request: Request) {
         genres: [],
         cast: [],
         mediaType: (r.media_type as "movie" | "tv") ?? "movie",
+        providers: r._providers,
       }));
 
     return NextResponse.json(movies);

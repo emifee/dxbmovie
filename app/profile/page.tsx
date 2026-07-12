@@ -179,26 +179,31 @@ export default function ProfilePage() {
       if (!node) return;
       // Temporarily make it visible for the screenshot
       const originalDisplay = node.style.display;
-      node.style.display = "block";
-      const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2 });
-      node.style.display = originalDisplay;
-      
-      if (navigator.share) {
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], "movie-fans-card.png", { type: "image/png" });
-        await navigator.share({
-          title: "My Movie DNA",
-          text: `Check out my Movie Fans Card on DXBmovies! https://dxbmovie.online/card/${username || (session?.user as any)?.id || ""}`,
-          files: [file],
-        });
-      } else {
-        const link = document.createElement("a");
-        link.download = "movie-fans-card.png";
-        link.href = dataUrl;
-        link.click();
+      try {
+        node.style.display = "block";
+        const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 2 });
+        
+        if (navigator.share) {
+          const blob = await (await fetch(dataUrl)).blob();
+          const file = new File([blob], "movie-fans-card.png", { type: "image/png" });
+          await navigator.share({
+            title: "My Movie DNA",
+            text: `Check out my Movie Fans Card on DXBmovies! https://dxbmovie.online/card/${username || (session?.user as any)?.id || ""}`,
+            files: [file],
+          });
+        } else {
+          const link = document.createElement("a");
+          link.download = "movie-fans-card.png";
+          link.href = dataUrl;
+          link.click();
+        }
+      } finally {
+        node.style.display = originalDisplay;
       }
     } catch (err) {
       console.error("Failed to share", err);
+      // Give the user some visual feedback if generation fails
+      alert("Failed to generate your card. Please try again.");
     } finally {
       setSharing(false);
     }
@@ -395,11 +400,11 @@ export default function ProfilePage() {
               </div>
 
               {/* Hidden Node for Image Generation */}
-              <div className="absolute left-[-9999px] top-[-9999px] z-[-1] pointer-events-none">
+              <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', zIndex: -1, pointerEvents: 'none' }}>
                 <div 
                   id="movie-fans-card" 
-                  className="hidden w-[400px] h-[711px] bg-background text-white p-8 relative overflow-hidden flex flex-col items-center justify-center text-center font-sans"
-                  style={{ background: "linear-gradient(to bottom, #121212, #000000)" }}
+                  className="w-[400px] h-[711px] bg-background text-white p-8 relative overflow-hidden flex flex-col items-center justify-center text-center font-sans"
+                  style={{ background: "linear-gradient(to bottom, #121212, #000000)", display: "none" }}
                 >
                   {/* Decorative Orbs */}
                   <div className="absolute top-[-50px] left-[-50px] w-[200px] h-[200px] bg-primary/30 rounded-full blur-[60px]" />

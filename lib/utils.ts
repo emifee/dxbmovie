@@ -6,8 +6,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** TMDB poster URL builder. Defaults to w342 per the design spec. */
-export function tmdbImage(path: string | null, size = "w342") {
+/** TMDB poster URL builder. Defaults to w185 for faster loading on mobile poster grids. */
+export function tmdbImage(path: string | null, size = "w185") {
   if (!path) return null;
   return `https://image.tmdb.org/t/p/${size}${path}`;
 }

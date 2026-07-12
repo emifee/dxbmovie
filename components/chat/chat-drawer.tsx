@@ -109,11 +109,18 @@ export function ChatDrawer() {
   const [sessions, setSessions] = useState<StoredChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [showVoiceIntro, setShowVoiceIntro] = useState(false);
+  const [aiRecording, setAiRecording] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prevSessionId = useRef(activeSessionId);
   const menuRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const draftRef = useRef(draft);
+  const voiceTranscriptRef = useRef("");
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  useEffect(() => { draftRef.current = draft; }, [draft]);
 
   // Lock body scroll while the drawer is open.
   useEffect(() => {
@@ -123,65 +130,130 @@ export function ChatDrawer() {
     };
   }, [open]);
 
-  // Handle Voice Intro (once per 24 hours per device)
+  // Handle Proactive Voice Greeting (once per 24 hours per device)
   useEffect(() => {
-    if (open) {
-      const lastIntro = localStorage.getItem("dxb:last-voice-intro");
-      const now = Date.now();
-      if (!lastIntro || now - parseInt(lastIntro, 10) > 24 * 60 * 60 * 1000) {
-        setShowVoiceIntro(true);
-        localStorage.setItem("dxb:last-voice-intro", now.toString());
-        
-        let finished = false;
-        const finishIntro = () => {
-          if (finished) return;
-          finished = true;
-          setShowVoiceIntro(false);
-        };
-
-        const playVoiceIntro = async () => {
-          try {
-            const res = await fetch("/api/tts", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ 
-                text: "HELLO THERE what are you feeling to watch?", 
-                gender: "female" 
-              }),
-            });
-            
-            if (!res.ok) {
-              throw new Error("TTS fetch failed");
-            }
-            
-            const blob = await res.blob();
-            const audioUrl = URL.createObjectURL(blob);
-            const audio = new Audio(audioUrl);
-            
-            audio.onended = () => {
-              setTimeout(finishIntro, 300);
-              URL.revokeObjectURL(audioUrl);
-            };
-            audio.onerror = finishIntro;
-            
-            // Add a brief delay before speaking so the user sees the orb pulsing first
-            await new Promise((r) => setTimeout(r, 1200));
-            await audio.play();
-          } catch (error) {
-            console.error("Voice intro fallback:", error);
-            setTimeout(finishIntro, 2500); // Wait a bit then show chat
-          }
-        };
-
-        playVoiceIntro();
-        
-        // Failsafe so they aren't stuck if fetch/audio completely hangs
-        setTimeout(finishIntro, 8000);
-      }
-    } else {
-      setShowVoiceIntro(false);
+    if (!open) return;
+    
+    const lastIntro = localStorage.getItem("dxb:last-voice-intro");
+    const now = Date.now();
+    // Only trigger if no greeting in the last 24 hours
+    if (lastIntro && now - parseInt(lastIntro, 10) < 24 * 60 * 60 * 1000) {
+      return;
     }
-  }, [open]);
+
+    let isCancelled = false;
+
+    // Play a tiny native beep sound to grab attention
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.type = "sine";
+      oscillator.frequency.value = 600; // soft beep
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+      oscillator.start(audioCtx.currentTime);
+      oscillator.stop(audioCtx.currentTime + 0.2);
+    } catch (e) {
+      console.error("AudioContext beep failed", e);
+    }
+
+    setAiRecording(true);
+
+    const timer = setTimeout(async () => {
+      if (isCancelled) return;
+
+      const greetings = [
+        "Hello there, how are you doing?",
+        "Hey! What are you in the mood to watch today?",
+        "Hi there! Looking for a good movie recommendation?",
+        "Hello! I have a beautiful movie to recommend for you today if you're interested?",
+        "Hey! Need help deciding what to watch tonight?",
+        "Hi there, I can find the perfect movie for your mood. What are you thinking?",
+        "Greetings! Ready to discover something amazing?",
+      ];
+      const text = greetings[Math.floor(Math.random() * greetings.length)];
+
+      try {
+        const firstVisitStr = localStorage.getItem("dxb:first-visit-time");
+        let firstVisitTime = firstVisitStr ? parseInt(firstVisitStr, 10) : 0;
+        
+        if (!firstVisitTime) {
+          firstVisitTime = Date.now();
+          localStorage.setItem("dxb:first-visit-time", firstVisitTime.toString());
+        }
+
+        const hoursSinceFirstVisit = (Date.now() - firstVisitTime) / (1000 * 60 * 60);
+
+        if (hoursSinceFirstVisit > 24) {
+          // More than 24 hours since they first visited. Fall back to just appending the text without ElevenLabs voice.
+          setMessages((prev) => {
+            if (prev.length > 0) return prev;
+            return [
+              ...prev,
+              {
+                id: `msg-${Date.now()}`,
+                role: "assistant",
+                content: text,
+                timestamp: Date.now(),
+              },
+            ];
+          });
+          return;
+        }
+
+        const res = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            text, 
+            gender: aiCompanion?.gender ?? "female" 
+          }),
+        });
+        
+        if (!res.ok) throw new Error("TTS fetch failed");
+        
+        const blob = await res.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        
+        if (isCancelled) {
+          URL.revokeObjectURL(audioUrl);
+          return;
+        }
+
+        // Only append if they haven't sent a message yet
+        setMessages((prev) => {
+          if (prev.length > 0) {
+            URL.revokeObjectURL(audioUrl);
+            return prev;
+          }
+          localStorage.setItem("dxb:last-voice-intro", Date.now().toString());
+          return [
+            ...prev,
+            {
+              id: `msg-${Date.now()}`,
+              role: "assistant",
+              content: text,
+              audioUrl,
+              timestamp: Date.now(),
+            },
+          ];
+        });
+      } catch (error) {
+        console.error("Proactive greeting failed:", error);
+      } finally {
+        if (!isCancelled) setAiRecording(false);
+      }
+    }, 5000);
+
+    return () => {
+      isCancelled = true;
+      setAiRecording(false);
+      clearTimeout(timer);
+    };
+  }, [open, aiCompanion?.gender]);
 
   // Load sessions: try server first for signed-in users, fallback to localStorage.
   useEffect(() => {
@@ -324,45 +396,65 @@ export function ChatDrawer() {
     attemptSend(text);
   }
 
-  function handleVoice() {
+  function startVoice() {
     if (typeof window === "undefined") return;
-    
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
     if (!SpeechRecognition) {
       alert("Voice recognition is not supported on this device/browser.");
       return;
     }
-
     try {
       const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
       recognition.lang = "en-US";
-      recognition.interimResults = true; // Show results as they speak
-      recognition.continuous = false;
-      
+      recognition.interimResults = true;
+      recognition.continuous = true;
+      voiceTranscriptRef.current = "";
+      setRecordingSeconds(0);
       setIsListening(true);
-      
+
+      // Start a recording timer
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds((s) => s + 1);
+      }, 1000);
+
       recognition.onresult = (e: any) => {
-        const transcript = Array.from(e.results)
-          .map((result: any) => result[0].transcript)
-          .join("");
-        setDraft(transcript);
+        const transcript = Array.from(e.results).map((result: any) => result[0].transcript).join("");
+        voiceTranscriptRef.current = transcript;
       };
-      
       recognition.onerror = (e: any) => {
         console.error("Speech recognition error:", e.error);
-        setIsListening(false);
+        cleanupRecording();
       };
-      
       recognition.onend = () => {
-        setIsListening(false);
+        // Don't cleanup here — stopVoice handles it
       };
-      
       recognition.start();
     } catch (err) {
       console.error("Failed to start speech recognition:", err);
-      setIsListening(false);
+      cleanupRecording();
     }
+  }
+
+  function cleanupRecording() {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    setRecordingSeconds(0);
+    setIsListening(false);
+  }
+
+  function stopVoice() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+      const transcript = voiceTranscriptRef.current.trim();
+      if (transcript) {
+        attemptSend(transcript, null);
+      }
+    }
+    cleanupRecording();
   }
 
   function pickImage() {
@@ -433,7 +525,7 @@ export function ChatDrawer() {
     }
   }
 
-  function attemptSend(text: string, imageDataUrl?: string | null) {
+  function attemptSend(text: string, imageDataUrl: string | null = null) {
     const value = text.trim();
     const hasImage = Boolean(imageDataUrl);
     if (!value && !hasImage) return;
@@ -445,6 +537,7 @@ export function ChatDrawer() {
     if (shouldGateAuth(acct)) {
       setPendingAction({ type: "open_chat", text: outboundText, movie: movieContext });
       setDraft("");
+      localStorage.setItem("dxb_signup_source", "chat_limit");
       openAuthGate();
       return;
     }
@@ -495,12 +588,13 @@ export function ChatDrawer() {
       }),
     })
       .then((r) => r.json())
-      .then((data: { content?: string; error?: string; recommendations?: import("@/lib/types").Movie[]; provider?: "groq" | "openai" }) => {
+      .then(async (data: { content?: string; error?: string; recommendations?: import("@/lib/types").Movie[]; provider?: "groq" | "openai" }) => {
         const content = data.content ?? "Sorry, I hit a snag. Try asking again.";
         const recommendations = data.recommendations && data.recommendations.length > 0
           ? data.recommendations
           : undefined;
         const provider = data.provider;
+
         setMessages((prev) =>
           prev.map((m) =>
             m.id === loadingId ? { ...m, content, recommendations, provider, timestamp: Date.now() } : m,
@@ -560,33 +654,16 @@ export function ChatDrawer() {
 
         {/* All content sits above the gradient */}
         <div className="relative z-10 flex h-full flex-col">
-          {showVoiceIntro ? (
-            <div className="flex h-full flex-col items-center justify-center animate-fade-in">
-              <div 
-                className="relative h-40 w-40 rounded-full bg-[radial-gradient(circle_at_35%_35%,_#ffb6ff_0%,_#c462e0_30%,_#763cf9_70%,_#4614a8_100%)] shadow-[0_0_60px_rgba(196,98,224,0.6)]"
-                style={{
-                  animation: "intro-blink 1s ease-in-out 2 forwards",
-                }}
-              />
-              <style dangerouslySetInnerHTML={{__html: `
-                @keyframes intro-blink {
-                  0%, 100% { transform: scale(1); opacity: 0.8; }
-                  50% { transform: scale(1.4); opacity: 1; filter: brightness(1.2); }
-                }
-              `}} />
-            </div>
-          ) : (
-            <>
-              {/* ─── Header ─── */}
-              <header className="flex items-center gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-                <button
-                  type="button"
-                  aria-label="Close"
-                  onClick={close}
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
-                >
-                  <ChevronLeft size={24} />
-                </button>
+          {/* ─── Header ─── */}
+          <header className="flex items-center gap-3 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={close}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+            >
+              <ChevronLeft size={24} />
+            </button>
             <CompanionAvatar companion={signedIn ? aiCompanion : null} size={34} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-white">{assistantName}</p>
@@ -662,11 +739,26 @@ export function ChatDrawer() {
 
           {/* ─── Messages area ─── */}
           <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-5">
-            {hasMessages ? (
+            {hasMessages || aiRecording ? (
               <div className="space-y-5">
                 {messages.map((m) => (
                   <MessageBubble key={m.id} message={m} />
                 ))}
+                
+                {aiRecording && (
+                  <div className="flex animate-message-in gap-3">
+                    <CompanionAvatar companion={signedIn ? aiCompanion : null} size={28} className="mt-1 shrink-0" />
+                    <div className="flex items-center gap-3 rounded-3xl bg-white/[0.08] px-5 py-3 backdrop-blur-md">
+                      <Mic size={14} className="text-primary animate-pulse" />
+                      <span className="text-[13px] font-medium text-white/80 tracking-wide">Recording</span>
+                      <div className="flex items-center gap-1 mt-1">
+                        <div className="h-1 w-1 animate-bounce rounded-full bg-white/50" style={{ animationDelay: "0ms" }} />
+                        <div className="h-1 w-1 animate-bounce rounded-full bg-white/50" style={{ animationDelay: "150ms" }} />
+                        <div className="h-1 w-1 animate-bounce rounded-full bg-white/50" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               /* ─── Empty state ─── */
@@ -685,7 +777,7 @@ export function ChatDrawer() {
               onChange={onImageSelected}
             />
 
-            {attachedImageDataUrl && (
+            {attachedImageDataUrl && !isListening && (
               <div className="mb-3 relative inline-block">
                 <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm">
                   <Image
@@ -711,7 +803,7 @@ export function ChatDrawer() {
             )}
 
             {/* Quick suggestion chips — shown on toggle */}
-            {showSuggestions && (
+            {showSuggestions && !isListening && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {SUGGESTIONS.map((s) => (
                   <button
@@ -726,75 +818,119 @@ export function ChatDrawer() {
               </div>
             )}
 
-            {/* Gemini-style pill input */}
-            <div className="flex items-end gap-2 rounded-3xl bg-[#1C1C1E]/90 backdrop-blur-md px-3 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.5)] ring-1 ring-primary/40 focus-within:ring-2 focus-within:ring-primary transition-shadow">
-              <button
-                type="button"
-                aria-label="Quick suggestions"
-                onClick={() => setShowSuggestions((v) => !v)}
-                className={cn(
-                  "grid h-10 w-10 shrink-0 place-items-center rounded-full transition",
-                  showSuggestions ? "text-primary" : "text-white/40 hover:text-white/70",
-                )}
+            {isListening ? (
+              /* ─── Recording Overlay ─── */
+              <div
+                className="flex items-center gap-3 rounded-3xl bg-[#1C1C1E]/95 backdrop-blur-md px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.5)] ring-2 ring-red-500/60"
+                onPointerUp={stopVoice}
               >
-                <Plus size={22} />
-              </button>
-              <textarea
-                ref={textareaRef}
-                value={draft}
-                rows={1}
-                onChange={(e) => {
-                  setDraft(e.target.value);
-                  // Auto-grow: reset height then set to scrollHeight, capped at ~5 lines
-                  e.target.style.height = "auto";
-                  e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`;
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    attemptSend(draft, attachedImageDataUrl);
-                    // Reset height after send
-                    e.currentTarget.style.height = "auto";
-                  }
-                }}
-                placeholder="Ask DXB…"
-                className="min-w-0 flex-1 resize-none bg-transparent py-2 text-base leading-snug text-white placeholder:text-white/30 focus:outline-none"
-                style={{ maxHeight: "140px", overflowY: "auto" }}
-              />
-              <button
-                type="button"
-                aria-label="Attach image"
-                onClick={pickImage}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white/40 transition hover:text-white/70"
-              >
-                <ImagePlus size={20} />
-              </button>
-              {draft.trim() || attachedImageDataUrl ? (
+                {/* Pulsing red dot */}
+                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
+                  <div className="absolute h-10 w-10 animate-ping rounded-full bg-red-500/30" />
+                  <div className="h-4 w-4 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.7)]" />
+                </div>
+
+                {/* Animated waveform bars */}
+                <div className="flex items-center gap-[3px] flex-1">
+                  {[...Array(16)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-[3px] rounded-full bg-white/60"
+                      style={{
+                        height: `${12 + Math.random() * 20}px`,
+                        animation: `voiceBar 0.6s ease-in-out ${i * 0.05}s infinite alternate`,
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Timer */}
+                <span className="text-sm font-mono text-white/70 tabular-nums min-w-[40px] text-right">
+                  {Math.floor(recordingSeconds / 60)}:{String(recordingSeconds % 60).padStart(2, "0")}
+                </span>
+
+                {/* Stop button */}
                 <button
                   type="button"
-                  onClick={() => attemptSend(draft, attachedImageDataUrl)}
-                  aria-label="Send"
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-primary text-white transition active:scale-95 shadow-glow"
+                  onClick={stopVoice}
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-red-500 text-white transition active:scale-90 shadow-[0_0_15px_rgba(239,68,68,0.4)]"
                 >
                   <ArrowUp size={20} />
                 </button>
-              ) : (
+
+                <style jsx>{`
+                  @keyframes voiceBar {
+                    0% { height: 6px; }
+                    100% { height: 28px; }
+                  }
+                `}</style>
+              </div>
+            ) : (
+              /* ─── Normal text input ─── */
+              <div className="flex items-end gap-2 rounded-3xl bg-[#1C1C1E]/90 backdrop-blur-md px-3 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.5)] ring-1 ring-primary/40 focus-within:ring-2 focus-within:ring-primary transition-shadow">
                 <button
                   type="button"
-                  aria-label="Voice input"
-                  onClick={handleVoice}
+                  aria-label="Quick suggestions"
+                  onClick={() => setShowSuggestions((v) => !v)}
                   className={cn(
                     "grid h-10 w-10 shrink-0 place-items-center rounded-full transition",
-                    isListening ? "animate-pulse text-primary" : "text-white/40 hover:text-white/70",
+                    showSuggestions ? "text-primary" : "text-white/40 hover:text-white/70",
                   )}
                 >
-                  <Mic size={20} />
+                  <Plus size={22} />
                 </button>
-              )}
-            </div>
+                <textarea
+                  ref={textareaRef}
+                  value={draft}
+                  rows={1}
+                  onChange={(e) => {
+                    setDraft(e.target.value);
+                    e.target.style.height = "auto";
+                    e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`;
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      attemptSend(draft, attachedImageDataUrl);
+                      e.currentTarget.style.height = "auto";
+                    }
+                  }}
+                  placeholder="Ask DXB…"
+                  className="min-w-0 flex-1 resize-none bg-transparent py-2 text-base leading-snug text-white placeholder:text-white/30 focus:outline-none"
+                  style={{ maxHeight: "140px", overflowY: "auto" }}
+                />
+                <button
+                  type="button"
+                  aria-label="Attach image"
+                  onClick={pickImage}
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white/40 transition hover:text-white/70"
+                >
+                  <ImagePlus size={20} />
+                </button>
+                {draft.trim() || attachedImageDataUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => attemptSend(draft, attachedImageDataUrl)}
+                    aria-label="Send"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-primary text-white transition active:scale-95 shadow-glow"
+                  >
+                    <ArrowUp size={20} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    aria-label="Hold to talk"
+                    onPointerDown={startVoice}
+                    onPointerUp={stopVoice}
+                    onPointerLeave={stopVoice}
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white/40 transition hover:text-white/70"
+                  >
+                    <Mic size={20} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-            </>
-          )}
         </div>
       </div>
     </div>

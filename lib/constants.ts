@@ -70,6 +70,28 @@ export const PROVIDER_THEMES: Record<string, { hex: string; rgb: string }> = {
   rakuten: { hex: "#FFE200", rgb: "255, 226, 0" }, // Yellow
 };
 
+export const GENRE_THEMES: Record<string | number, { hex: string; rgb: string }> = {
+  all: { hex: "#8B5CF6", rgb: "139, 92, 246" }, // Default Purple
+  28: { hex: "#EF4444", rgb: "239, 68, 68" }, // Action - Red
+  12: { hex: "#EAB308", rgb: "234, 179, 8" }, // Adventure - Yellow
+  16: { hex: "#0EA5E9", rgb: "14, 165, 233" }, // Animation - Sky Blue
+  80: { hex: "#64748B", rgb: "100, 116, 139" }, // Crime - Slate
+  35: { hex: "#F97316", rgb: "249, 115, 22" }, // Comedy - Orange
+  99: { hex: "#84CC16", rgb: "132, 204, 22" }, // Documentary - Lime
+  18: { hex: "#3B82F6", rgb: "59, 130, 246" }, // Drama - Blue
+  10751: { hex: "#14B8A6", rgb: "20, 184, 166" }, // Family - Teal
+  14: { hex: "#D946EF", rgb: "217, 70, 239" }, // Fantasy - Fuchsia
+  36: { hex: "#A8A29E", rgb: "168, 162, 158" }, // History - Stone
+  27: { hex: "#7F1D1D", rgb: "127, 29, 29" }, // Horror - Dark Red
+  10402: { hex: "#EC4899", rgb: "236, 72, 153" }, // Music - Pink
+  9648: { hex: "#7C3AED", rgb: "124, 58, 237" }, // Mystery - Violet
+  10749: { hex: "#F43F5E", rgb: "244, 63, 94" }, // Romance - Rose
+  878: { hex: "#06B6D4", rgb: "6, 182, 212" }, // Sci-Fi - Cyan
+  53: { hex: "#B91C1C", rgb: "185, 28, 28" }, // Thriller - Red
+  10752: { hex: "#4D7C0F", rgb: "77, 124, 15" }, // War - Dark Green
+  37: { hex: "#D97706", rgb: "217, 119, 6" }, // Western - Amber
+};
+
 // Mood -> TMDB genre IDs, used by /api/chat when triggering TMDB Discover.
 export const MOOD_TO_GENRES: Record<string, number[]> = {
   happy: [35, 10751],

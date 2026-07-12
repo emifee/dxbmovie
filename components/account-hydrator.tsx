@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useAccountStore } from "@/lib/account-store";
 import { getAndClearPendingAction } from "@/lib/pending-actions";
+import { clearAnonPrefs } from "@/lib/anon-prefs";
 import { useUIStore } from "@/lib/store";
 import { trackEvent } from "@/lib/analytics";
 
@@ -30,6 +31,28 @@ export function AccountHydrator() {
       if (!sessionStorage.getItem("ga_login_tracked")) {
         trackEvent("login_success");
         sessionStorage.setItem("ga_login_tracked", "1");
+        
+        const source = localStorage.getItem("dxb_signup_source");
+        if (source) {
+          fetch("/api/user/track-signup-source", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ source }),
+          }).catch(console.error);
+          localStorage.removeItem("dxb_signup_source");
+        }
+        
+        // Merge anonymous preferences
+        const deviceId = localStorage.getItem("dxb_device_id");
+        if (deviceId) {
+          fetch("/api/anon/merge", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deviceId }),
+          })
+          .then(() => clearAnonPrefs())
+          .catch(console.error);
+        }
       }
       storeSignIn(session.user.email);
       

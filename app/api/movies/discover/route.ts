@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Movie } from "@/lib/types";
 import { getLanguage } from "@/lib/language";
+import { enrichWithProviders } from "@/lib/tmdb-helpers";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -25,8 +26,10 @@ export async function GET(request: Request) {
   if (!apiKey) return NextResponse.json({ error: "Not configured" }, { status: 500 });
 
   // Map frontend params to TMDB params
-  const genre = searchParams.get("genre");
-  const year = searchParams.get("year");
+  const genres = searchParams.get("genres");
+  const keywords = searchParams.get("keywords");
+  const yearMin = searchParams.get("yearMin");
+  const yearMax = searchParams.get("yearMax");
   const country = searchParams.get("country");
   const network = searchParams.get("network");
   const rating = searchParams.get("rating");
@@ -42,13 +45,44 @@ export async function GET(request: Request) {
     vote_count_gte: "50", // Filter out obscure noise for ratings/sorting
   });
 
-  if (genre) params.append("with_genres", genre);
+  if (genres) params.append("with_genres", genres); // Note: frontend uses | to join
   
-  if (year) {
+  if (keywords) {
+    // TMDB requires keyword IDs, not text strings. 
+    // We'll map the comma separated strings to TMDB IDs by hitting the search/keyword endpoint.
+    const keywordArray = keywords.split(",").map(k => k.trim()).filter(Boolean);
+    const keywordIds: number[] = [];
+    
+    for (const kw of keywordArray) {
+      const kwRes = await fetch(`${TMDB_BASE}/search/keyword?api_key=${apiKey}&query=${encodeURIComponent(kw)}`);
+      if (kwRes.ok) {
+        const kwData = await kwRes.json();
+        if (kwData.results && kwData.results.length > 0) {
+          // Take the exact match or the first one
+          const exact = kwData.results.find((r: any) => r.name.toLowerCase() === kw.toLowerCase());
+          keywordIds.push((exact || kwData.results[0]).id);
+        }
+      }
+    }
+    
+    if (keywordIds.length > 0) {
+      params.append("with_keywords", keywordIds.join(",")); // AND logic with commas
+    }
+  }
+  
+  if (yearMin) {
     if (endpoint.includes("movie")) {
-      params.append("primary_release_year", year);
+      params.append("primary_release_date.gte", `${yearMin}-01-01`);
     } else {
-      params.append("first_air_date_year", year);
+      params.append("first_air_date.gte", `${yearMin}-01-01`);
+    }
+  }
+
+  if (yearMax) {
+    if (endpoint.includes("movie")) {
+      params.append("primary_release_date.lte", `${yearMax}-12-31`);
+    } else {
+      params.append("first_air_date.lte", `${yearMax}-12-31`);
     }
   }
 
@@ -81,7 +115,10 @@ export async function GET(request: Request) {
     if (!res.ok) throw new Error("TMDB discover error");
     const data = (await res.json()) as { results: Record<string, unknown>[] };
 
-    const movies: Movie[] = data.results
+    const countryCode = request.headers.get("x-vercel-ip-country") || "US";
+    const enrichedResults = await enrichWithProviders(data.results, apiKey, countryCode);
+
+    const movies: Movie[] = enrichedResults
       .filter((r) => r.poster_path)
       .map((r) => ({
         id: r.id as number,
@@ -94,6 +131,7 @@ export async function GET(request: Request) {
         genres: [],
         cast: [],
         mediaType: endpoint.includes("movie") ? "movie" : "tv",
+        providers: r._providers,
       }));
 
     return NextResponse.json(movies);

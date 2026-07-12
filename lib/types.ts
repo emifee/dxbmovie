@@ -23,6 +23,7 @@ export interface Movie {
 export interface WatchProvider {
   name: string;
   logoPath: string | null;
+  link?: string;
 }
 
 export type ChatRole = "user" | "assistant";
@@ -50,6 +51,7 @@ export interface ChatMessage {
   role: ChatRole;
   content: string;
   imageUrl?: string; // data URL when user attaches an image
+  audioUrl?: string; // data URL when AI sends a voice message
   recommendations?: Movie[]; // present on the AI rec message
   model?: string; // kept for session storage compat, not displayed
   provider?: "groq" | "openai"; // kept for session storage compat, not displayed

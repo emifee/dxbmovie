@@ -124,8 +124,14 @@ export async function GET(request: Request) {
 
       let msg;
       
-      // Staleness nudge for 14+ days
-      if (daysSinceInteraction >= 14) {
+      // Staleness nudge for 3+ days
+      if (daysSinceInteraction >= 3 && daysSinceInteraction < 14) {
+        const topGenre = genres.length > 0 ? genres[0] : "movie";
+        msg = {
+          title: "We found a new movie for you 🍿",
+          body: `It's been a few days since you checked in. We found a highly-rated ${topGenre} you might love. Open to see it.`,
+        };
+      } else if (daysSinceInteraction >= 14) {
         const topGenre = genres.length > 0 ? genres[0] : null;
         const tasteTitle = getTasteTitle(topGenre);
         msg = {

@@ -7,16 +7,9 @@ import { cn } from "@/lib/utils";
 import { useUIStore } from "@/lib/store";
 
 const NUDGES = [
-  "Wanna talk movies?",
-  "I can recommend something",
-  "Looking for something great?",
-  "Ask me anything about films",
-  "I have a pick for you tonight",
-  "Let's find your next binge",
-  "Feeling like a movie night?",
-  "I know exactly what you'd love",
-  "Tell me your mood, I'll find it",
-  "Something new dropped on Netflix",
+  "Want more like this? Ask Sonia for recommendations 🎬",
+  "Ask me anything about films ✨",
+  "Not sure what to watch? Ask Sonia 🍿",
 ];
 
 /**
@@ -137,14 +130,15 @@ export function BottomNav() {
       {nudge && nudgePos && (
         <div
           key={nudge}
-          className="fixed z-40 animate-nudge-in pointer-events-none"
+          onClick={handleChat}
+          className="fixed z-40 animate-nudge-in pointer-events-auto cursor-pointer transition-transform hover:scale-105 active:scale-95"
           style={{
             bottom: nudgePos.bottom,
             left: nudgePos.x,
             transform: "translateX(-50%)",
           }}
         >
-          <div className="relative whitespace-nowrap rounded-2xl bg-gradient-primary px-4 py-2.5 text-xs font-semibold text-white shadow-glow">
+          <div className="relative whitespace-nowrap rounded-2xl bg-gradient-primary px-4 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.6)] animate-pulse">
             {nudge}
             {/* Arrow tail pointing down at the icon */}
             <svg
@@ -166,7 +160,7 @@ export function BottomNav() {
         </div>
       )}
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex justify-center pb-[max(0.5rem,env(safe-area-inset-bottom))] px-4 lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(0.5rem,env(safe-area-inset-bottom))] px-4 lg:hidden">
         <div className="flex w-full max-w-[320px] items-center justify-around rounded-[2rem] border border-white/[0.08] bg-surface-raised/70 px-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
           {/* Home */}
           <NavButton active={isHome} onClick={handleHome} label="Home">

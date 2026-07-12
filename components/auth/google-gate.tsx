@@ -39,9 +39,9 @@ export function GoogleGate() {
 
   function handleContinue() {
     trackEvent("auth_gate_clicked");
-    // Trigger Google OAuth. AccountHydrator watches the session and will flip
-    // `signedIn` in the store, which causes the chat drawer to auto-send the
-    // pending message that triggered this gate.
+    if (!localStorage.getItem("dxb_signup_source")) {
+      localStorage.setItem("dxb_signup_source", "auth_gate_generic");
+    }
     close();
     signIn("google", { callbackUrl: window.location.href });
   }

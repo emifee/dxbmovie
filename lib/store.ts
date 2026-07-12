@@ -17,6 +17,11 @@ interface UIState {
   openDetail: (movie: Movie) => void;
   closeDetail: () => void;
 
+  // Actor profile drawer
+  actorId: number | string | null;
+  openActor: (id: number | string) => void;
+  closeActor: () => void;
+
   // Navigation menu (hamburger / mobile side menu)
   menuOpen: boolean;
   openMenu: () => void;
@@ -70,6 +75,10 @@ export const useUIStore = create<UIState>((set) => ({
   openDetail: (movie) => set({ detailMovie: movie }),
   closeDetail: () => set({ detailMovie: null }),
 
+  actorId: null,
+  openActor: (id) => set({ actorId: id }),
+  closeActor: () => set({ actorId: null }),
+
   menuOpen: false,
   openMenu: () => set({ menuOpen: true }),
   closeMenu: () => set({ menuOpen: false }),
@@ -109,8 +118,10 @@ export const useUIStore = create<UIState>((set) => ({
 
 export interface FilterState {
   type: "movie" | "tv" | "anime" | "drama" | "manga" | "";
-  genre: string;
-  year: string;
+  genres: string[];
+  keywords: string;
+  yearMin: string;
+  yearMax: string;
   country: string;
   network: string;
   rating: string;
@@ -119,8 +130,10 @@ export interface FilterState {
 
 const defaultFilters: FilterState = {
   type: "",
-  genre: "",
-  year: "",
+  genres: [],
+  keywords: "",
+  yearMin: "",
+  yearMax: "",
   country: "",
   network: "",
   rating: "",
@@ -128,7 +141,8 @@ const defaultFilters: FilterState = {
 };
 
 interface FilterStore extends FilterState {
-  setFilter: (key: keyof FilterState, value: string) => void;
+  setFilter: <K extends keyof FilterState>(key: K, value: FilterState[K]) => void;
+  toggleGenre: (genreId: string) => void;
   clearFilters: () => void;
   hasActiveFilters: () => boolean;
 }
@@ -136,9 +150,24 @@ interface FilterStore extends FilterState {
 export const useFilterStore = create<FilterStore>((set, get) => ({
   ...defaultFilters,
   setFilter: (key, value) => set({ [key]: value }),
+  toggleGenre: (genreId) => set((state) => ({
+    genres: state.genres.includes(genreId)
+      ? state.genres.filter(id => id !== genreId)
+      : [...state.genres, genreId]
+  })),
   clearFilters: () => set(defaultFilters),
   hasActiveFilters: () => {
     const s = get();
-    return s.type !== "" || s.genre !== "" || s.year !== "" || s.country !== "" || s.network !== "" || s.rating !== "" || s.sort !== "Popular";
+    return (
+      s.type !== "" ||
+      s.genres.length > 0 ||
+      s.keywords !== "" ||
+      s.yearMin !== "" ||
+      s.yearMax !== "" ||
+      s.country !== "" ||
+      s.network !== "" ||
+      s.rating !== "" ||
+      s.sort !== "Popular"
+    );
   },
 }));

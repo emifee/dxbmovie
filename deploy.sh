@@ -50,10 +50,16 @@ rsync -az --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
 scp -i "$SSH_KEY" -o StrictHostKeyChecking=no \
   .env.local "${ORACLE_USER}@${ORACLE_IP}:${REMOTE_DIR}/.env.local"
 
-echo "▶  Restarting app on server..."
+echo "▶  Installing sharp + restarting app on server..."
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${ORACLE_USER}@${ORACLE_IP}" bash << 'REMOTE'
   set -e
   cd /home/ubuntu/dxbmovies
+
+  # Install sharp for Next.js image optimization in standalone mode
+  npm cache clean --force > /dev/null 2>&1 || true
+  rm -rf node_modules/.caniuse-lite* 2>/dev/null || true
+  npm install sharp --force
+  echo "✅  sharp installed"
 
   # Install Node.js if missing
   if ! command -v node &>/dev/null; then

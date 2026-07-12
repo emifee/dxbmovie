@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { ThumbsUp, ThumbsDown, Volume2, Square } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Volume2, Square, Play } from "lucide-react";
 import type { ChatMessage } from "@/lib/types";
 import { CompanionAvatar } from "@/components/ui/companion-avatar";
 import { RecommendationCards } from "./recommendation-cards";
@@ -143,6 +143,38 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
             <GeminiDots />
           ) : (
             <span className="whitespace-pre-wrap">{message.content}</span>
+          )}
+          
+          {message.audioUrl && (
+            <div className="mt-3 flex items-center gap-3 rounded-2xl bg-white/5 p-2 pr-4 backdrop-blur-sm border border-white/10 max-w-[240px]">
+              <button
+                type="button"
+                onClick={() => {
+                  if (isPlaying) {
+                    stopAudio();
+                  } else {
+                    const audio = new Audio(message.audioUrl);
+                    audioRef.current = audio;
+                    setIsPlaying(true);
+                    audio.onended = () => setIsPlaying(false);
+                    audio.onerror = () => setIsPlaying(false);
+                    audio.play();
+                  }
+                }}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+              >
+                {isPlaying ? <Square size={16} className="fill-current" /> : <Play size={16} className="ml-1 fill-current" />}
+              </button>
+              <div className="flex-1 flex items-center gap-1">
+                {/* Simulated waveform */}
+                <div className={cn("w-1 h-3 rounded-full bg-white/40 transition-all", isPlaying && "animate-pulse h-4 bg-primary")} />
+                <div className={cn("w-1 h-5 rounded-full bg-white/40 transition-all", isPlaying && "animate-pulse h-6 bg-primary delay-75")} />
+                <div className={cn("w-1 h-2 rounded-full bg-white/40 transition-all", isPlaying && "animate-pulse h-5 bg-primary delay-150")} />
+                <div className={cn("w-1 h-4 rounded-full bg-white/40 transition-all", isPlaying && "animate-pulse h-7 bg-primary delay-75")} />
+                <div className={cn("w-1 h-3 rounded-full bg-white/40 transition-all", isPlaying && "animate-pulse h-4 bg-primary")} />
+              </div>
+              <span className="text-xs font-medium text-white/50">Voice note</span>
+            </div>
           )}
         </div>
 

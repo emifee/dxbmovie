@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   const mainTitle = searchParams.get("mainTitle");
   const lang = getLanguage();
 
-  // Track interaction in the background
+  // Track interaction in the background (fire-and-forget)
   getServerSession(authOptions).then(async (session) => {
     const userId = (session?.user as { id?: string } | undefined)?.id;
     if (userId) {
@@ -31,11 +31,6 @@ export async function GET(request: Request) {
       }
     }
   }).catch(() => {});
-
-  // If no ID is provided, we fetch trending items to build a random reels feed.
-  // if (!id) {
-  //   return NextResponse.json({ error: "Missing movie ID" }, { status: 400 });
-  // }
 
   const apiKey = process.env.TMDB_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "Not configured" }, { status: 500 });
@@ -81,7 +76,8 @@ export async function GET(request: Request) {
       } catch { }
     }
 
-    // 2. Fetch related movies (or trending if no ID)
+    // 2. Fetch a LARGER batch of trending/discover items (10 instead of 5)
+    //    and request videos inline via append_to_response where possible
     let related: any[] = [];
     if (id) {
       const fetchUrl = `${TMDB_BASE}/${type}/${id}/recommendations?api_key=${apiKey}&language=${lang}&page=${page}`;
@@ -91,25 +87,56 @@ export async function GET(request: Request) {
         related = data.results.filter((r) => r.backdrop_path).slice(0, 10);
       }
     } else {
-      // Use the requested page from the client to avoid duplicate loops
-      const fetchUrl = `${TMDB_BASE}/trending/all/day?api_key=${apiKey}&language=${lang}&page=${page}`;
+      let fetchUrl = `${TMDB_BASE}/trending/all/day?api_key=${apiKey}&language=${lang}&page=${page}`;
+      
+      // Try to get user preferences for a personalized feed
+      try {
+        const session = await getServerSession(authOptions);
+        const userId = (session?.user as { id?: string } | undefined)?.id;
+        if (userId) {
+          const { getUserPreferences } = await import("@/lib/user-preferences");
+          const prefs = await getUserPreferences(userId);
+          
+          if (prefs) {
+            const hasGenres = prefs.topGenres && Object.keys(prefs.topGenres).length > 0;
+            const hasSearches = prefs.searchQueries && prefs.searchQueries.length > 0;
+            
+            if (hasSearches && (page % 2 === 0 || !hasGenres)) {
+              const q = prefs.searchQueries[Math.floor(Math.random() * Math.min(prefs.searchQueries.length, 5))];
+              fetchUrl = `${TMDB_BASE}/search/multi?api_key=${apiKey}&language=${lang}&query=${encodeURIComponent(q)}&page=${Math.ceil(page / 2)}`;
+            } else if (hasGenres) {
+              const sortedGenres = Object.entries(prefs.topGenres).sort((a, b) => b[1] - a[1]);
+              const topGenreIds = sortedGenres.slice(0, 2).map(g => g[0]).join(',');
+              fetchUrl = `${TMDB_BASE}/discover/movie?api_key=${apiKey}&language=${lang}&with_genres=${topGenreIds}&page=${page}`;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Personalization error:", e);
+      }
+
       const res = await fetch(fetchUrl, { next: { revalidate: 3600 } });
       if (res.ok) {
         const data = (await res.json()) as { results: any[] };
-        const shuffled = data.results.sort(() => 0.5 - Math.random());
-        related = shuffled.filter((r) => r.backdrop_path && (r.media_type === "movie" || r.media_type === "tv")).slice(0, 10);
+        const shuffled = data.results?.sort(() => 0.5 - Math.random()) || [];
+        related = shuffled.filter((r) => r.backdrop_path && (r.media_type === "movie" || r.media_type === "tv" || !r.media_type)).slice(0, 10);
       }
     }
 
-    // 3. Fetch trailers for related movies in parallel
-
+    // 3. Fetch trailers for ALL related movies in TRUE parallel
+    //    Use AbortController with a 4-second timeout per request to prevent hanging
     const trailerPromises = related.map(async (r) => {
       try {
         const rType = r.media_type || type || "movie";
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        
         const vRes = await fetch(
           `${TMDB_BASE}/${rType}/${r.id}?api_key=${apiKey}&language=${lang}&append_to_response=videos&include_video_language=${lang},en,null`,
-          { next: { revalidate: 3600 } }
+          { next: { revalidate: 3600 }, signal: controller.signal }
         );
+        clearTimeout(timeout);
+        
         if (!vRes.ok) return null;
         const vData = await vRes.json();
         const videos = vData.videos?.results || [];
@@ -121,7 +148,7 @@ export async function GET(request: Request) {
           return {
             key: trailer.key,
             title: (r.title ?? r.name ?? "Related") as string,
-            backdrop: `https://image.tmdb.org/t/p/w1280${r.backdrop_path}`,
+            backdrop: `https://image.tmdb.org/t/p/w780${r.backdrop_path}`,
             movie: {
               id: r.id,
               title: r.title || r.name,
@@ -131,11 +158,12 @@ export async function GET(request: Request) {
               releaseDate: r.release_date || r.first_air_date,
               voteAverage: r.vote_average,
               genreIds: r.genre_ids,
+              mediaType: rType,
             }
           };
         }
       } catch {
-        // ignore
+        // Timeout or network error — skip this item
       }
       return null;
     });
