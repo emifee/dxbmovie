@@ -43,10 +43,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icons/icon-192.png?v=2", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png?v=2", sizes: "512x512", type: "image/png" },
+      { url: "/icon-192.png?v=7", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png?v=7", sizes: "512x512", type: "image/png" },
     ],
-    apple: "/icons/apple-touch-icon.png?v=2",
+    apple: "/apple-touch-icon.png?v=7",
   },
 };
 
@@ -120,6 +120,16 @@ export default function RootLayout({
             })(window, document, "clarity", "script", "xesvhedfdd");
           `}
         </Script>
+        {/* Detect Android early to apply scaling */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (/Android/i.test(navigator.userAgent)) {
+                document.documentElement.classList.add('is-android');
+              }
+            `,
+          }}
+        />
       </head>
       <body className="bg-background font-sans text-text-primary antialiased">
         <Providers>

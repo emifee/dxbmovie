@@ -143,7 +143,7 @@ export function MovieDetailDrawer() {
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col justify-end lg:items-center lg:justify-center lg:p-6">
+    <div className="fixed inset-0 z-[70] flex flex-col justify-end lg:items-center lg:justify-center lg:p-6">
       {/* Scrim */}
       <button
         aria-label="Close"
@@ -208,7 +208,65 @@ export function MovieDetailDrawer() {
                   </span>
                 ))}
               </div>
+          </div>
+        </div>
+
+          {/* Trailer */}
+          {trailerKey === undefined ? (
+            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm text-text-secondary animate-pulse">
+              <Play size={16} />
+              Loading trailer…
             </div>
+          ) : trailerKey ? (
+            <button
+              type="button"
+              onClick={() => openTrailer(trailerKey, movie.title, movie.id, movie.mediaType)}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm font-medium text-white transition hover:border-primary/60"
+            >
+              <Play size={16} className="fill-white" />
+              Watch trailer
+            </button>
+          ) : null}
+
+          {/* Actions */}
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={addToWatchlist}
+              disabled={watchlistState !== "idle"}
+              className={`flex items-center justify-center gap-2 rounded-full border py-3 text-sm font-medium transition ${
+                watchlistState === "added"
+                  ? "border-green-500/60 bg-green-500/10 text-green-400"
+                  : "border-border bg-surface-raised text-white hover:border-primary/60"
+              }`}
+            >
+              {watchlistState === "adding" ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Adding…
+                </>
+              ) : watchlistState === "added" ? (
+                <>
+                  <Check size={16} />
+                  Added ✓
+                </>
+              ) : (
+                <>
+                  <Plus size={16} />
+                  Watchlist
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                close();
+                openChat(movie);
+              }}
+              className="flex items-center justify-center gap-2 rounded-full bg-gradient-primary py-3 text-sm font-medium text-white transition active:scale-[0.98]"
+            >
+              <Sparkles size={16} />
+              Ask AI about this
+            </button>
           </div>
 
           {/* Overview */}
@@ -269,82 +327,25 @@ export function MovieDetailDrawer() {
               <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 Where to watch
               </p>
-              <div className="mt-3 flex flex-wrap gap-3">
+              <div className="mt-3 no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5 pb-4 scrollbar-hide">
                 {fullDetails.providers.map((p: any) => (
                   <div
                     key={p.name}
-                    className="flex items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1.5 pr-4"
+                    className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1.5 pr-4"
                   >
                     {p.logoPath && (
-                      <div className="relative h-5 w-5 overflow-hidden rounded-full">
+                      <div className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full">
                         <Image src={p.logoPath} alt={p.name} fill className="object-cover" />
                       </div>
                     )}
-                    <span className="text-xs font-medium text-white">{p.name}</span>
+                    <span className="whitespace-nowrap text-xs font-medium text-white">{p.name}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Trailer */}
-          {trailerKey === undefined ? (
-            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm text-text-secondary animate-pulse">
-              <Play size={16} />
-              Loading trailer…
-            </div>
-          ) : trailerKey ? (
-            <button
-              type="button"
-              onClick={() => openTrailer(trailerKey, movie.title, movie.id, movie.mediaType)}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm font-medium text-white transition hover:border-primary/60"
-            >
-              <Play size={16} className="fill-white" />
-              Watch trailer
-            </button>
-          ) : null}
 
-          {/* Actions */}
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={addToWatchlist}
-              disabled={watchlistState !== "idle"}
-              className={`flex items-center justify-center gap-2 rounded-full border py-3 text-sm font-medium transition ${
-                watchlistState === "added"
-                  ? "border-green-500/60 bg-green-500/10 text-green-400"
-                  : "border-border bg-surface-raised text-white hover:border-primary/60"
-              }`}
-            >
-              {watchlistState === "adding" ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  Adding…
-                </>
-              ) : watchlistState === "added" ? (
-                <>
-                  <Check size={16} />
-                  Added ✓
-                </>
-              ) : (
-                <>
-                  <Plus size={16} />
-                  Watchlist
-                </>
-              )}
-            </button>
-            <button
-              onClick={() => {
-                close();
-                openChat(movie);
-              }}
-              className="flex items-center justify-center gap-2 rounded-full bg-gradient-primary py-3 text-sm font-medium text-white transition active:scale-[0.98]"
-            >
-              <Sparkles size={16} />
-              Ask AI about this
-            </button>
-          </div>
-          
           <button 
             type="button"
             onClick={handleNotInterested}

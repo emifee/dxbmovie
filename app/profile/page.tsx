@@ -12,9 +12,10 @@ import { MovieDetailDrawer } from "@/components/movie-detail-drawer";
 import { TrailerModal } from "@/components/trailer-modal";
 import { Sparkle } from "@/components/ui/sparkle";
 import { GoogleGate } from "@/components/auth/google-gate";
+import { ListManager } from "@/components/lists/list-manager";
 import { useUIStore } from "@/lib/store";
 import { useAccountStore } from "@/lib/account-store";
-import type { CompanionGender, CompanionRace, Movie, ChatSessionSummary } from "@/lib/types";
+import type { CompanionGender, CompanionRace, Movie, ChatSessionSummary, UserList } from "@/lib/types";
 import { tmdbImage, cn, getTasteTitle } from "@/lib/utils";
 import { STREAMING_SERVICES, GENRES } from "@/lib/constants";
 import { COMPANION_RACE_OPTIONS } from "@/lib/ai-companion";
@@ -53,6 +54,7 @@ export default function ProfilePage() {
   const [dnaEditing, setDnaEditing] = useState(false);
   const [dnaWorking, setDnaWorking] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [userLists, setUserLists] = useState<UserList[]>([]);
 
   const [services, setServices] = useState<string[]>(["netflix", "prime"]);
 
@@ -78,11 +80,17 @@ export default function ProfilePage() {
 
     setLoadingProfile(true);
     try {
-      const [profileRes, watchlistRes, conversationsRes] = await Promise.all([
+      const [profileRes, watchlistRes, conversationsRes, listsRes] = await Promise.all([
         fetch("/api/user/profile"),
         fetch("/api/user/watchlist"),
         fetch("/api/user/conversations"),
+        fetch("/api/user/lists"),
       ]);
+
+      if (listsRes.ok) {
+        const data = await listsRes.json();
+        if (Array.isArray(data)) setUserLists(data);
+      }
 
       if (profileRes.ok) {
         const data = await profileRes.json();
@@ -124,7 +132,11 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfileData();
-  }, [loadProfileData]);
+    // Heartbeat on profile page too
+    if (session?.user) {
+      fetch("/api/user/heartbeat", { method: "POST" }).catch(() => {});
+    }
+  }, [loadProfileData, session?.user]);
 
   const displayName = session?.user?.name?.split(" ")[0] ?? "Guest";
   const fullName = session?.user?.name ?? "Guest";
@@ -817,6 +829,13 @@ export default function ProfilePage() {
             </div>
           )}
         </section>
+
+        {/* My Lists */}
+        {signedIn && (
+          <div className="px-5">
+            <ListManager lists={userLists} onChange={setUserLists} />
+          </div>
+        )}
 
         {/* Recent conversations — real data */}
         <section className="mt-6">

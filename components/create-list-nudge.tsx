@@ -1,53 +1,49 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Sparkles } from "lucide-react";
+import { X, ListPlus } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useUIStore } from "@/lib/store";
 
-const NUDGE_DELAY_MS = 15000; // 15 seconds
-const DISMISSED_KEY = "dxb_guest_cta_dismissed_v2";
+const NUDGE_DELAY_MS = 3000; // 3 seconds
+const DISMISSED_KEY = "dxb_create_list_nudge_dismissed";
 
-/**
- * Sticky Guest AI Trial CTA — shows a beautiful bottom banner for unauthenticated
- * users inviting them to try the AI. Dismissible for the session.
- */
-export function EngagementNudge() {
-  const { status } = useSession();
+export function CreateListNudge({ listOwnerEmail }: { listOwnerEmail: string | null }) {
+  const { data: session, status } = useSession();
   const [visible, setVisible] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
-  const openChat = useUIStore((s) => s.openChat);
+  const router = useRouter();
 
   useEffect(() => {
-    // Don't show for authenticated users
-    if (status === "authenticated") return;
-    
-    // Don't show if dismissed in this session
+    // If the viewer is the owner of this list, don't show the nudge.
+    if (status === "authenticated" && session?.user?.email === listOwnerEmail) {
+      return;
+    }
+
     if (typeof window !== "undefined") {
-      const dismissed = localStorage.getItem(DISMISSED_KEY);
+      const dismissed = sessionStorage.getItem(DISMISSED_KEY);
       if (dismissed) return;
     }
 
     const timer = setTimeout(() => {
-      if (status === "unauthenticated") {
-        setVisible(true);
-      }
+      setVisible(true);
     }, NUDGE_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [status]);
+  }, [status, session, listOwnerEmail]);
 
   if (!visible) return null;
 
   function dismiss() {
     setAnimateOut(true);
-    localStorage.setItem(DISMISSED_KEY, "true");
+    sessionStorage.setItem(DISMISSED_KEY, "true");
     setTimeout(() => setVisible(false), 300);
   }
 
-  function handleTrySonia() {
+  function handleCreateList() {
     dismiss();
-    openChat();
+    router.push("/profile");
   }
 
   return (
@@ -70,14 +66,14 @@ export function EngagementNudge() {
         {/* Content */}
         <div className="flex items-center gap-4">
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-gradient-primary shadow-glow animate-pulse-glow">
-            <Sparkles size={22} className="text-white" />
+            <ListPlus size={22} className="text-white" />
           </div>
           <div className="flex-1 min-w-0 pr-6">
             <h3 className="text-[15px] font-bold text-white leading-tight">
-              Not sure what to watch?
+              Create your own list
             </h3>
             <p className="mt-0.5 text-[13px] text-white/70 leading-relaxed">
-              Ask our AI for a personalized movie pick.
+              Curate and share your favorite movies or TV shows with friends.
             </p>
           </div>
         </div>
@@ -85,13 +81,12 @@ export function EngagementNudge() {
         {/* CTA */}
         <button
           type="button"
-          onClick={handleTrySonia}
+          onClick={handleCreateList}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-[15px] font-bold text-black transition duration-200 hover:shadow-glow-lg active:scale-[0.98]"
         >
-          Try Recommendation
+          Create List
         </button>
       </div>
     </div>
   );
 }
-

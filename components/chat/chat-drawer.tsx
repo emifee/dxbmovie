@@ -525,6 +525,20 @@ export function ChatDrawer() {
     }
   }
 
+  function handleEditMessage(index: number) {
+    const messageToEdit = messages[index];
+    if (!messageToEdit || messageToEdit.role !== "user") return;
+    
+    // Set the draft to the message content
+    setDraft(messageToEdit.content);
+    
+    // Trim messages to remove this message and everything after it
+    setMessages((prev) => prev.slice(0, index));
+    
+    // Focus the textarea if possible
+    textareaRef.current?.focus();
+  }
+
   function attemptSend(text: string, imageDataUrl: string | null = null) {
     const value = text.trim();
     const hasImage = Boolean(imageDataUrl);
@@ -741,8 +755,12 @@ export function ChatDrawer() {
           <div ref={scrollRef} className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-5">
             {hasMessages || aiRecording ? (
               <div className="space-y-5">
-                {messages.map((m) => (
-                  <MessageBubble key={m.id} message={m} />
+                {messages.map((m, idx) => (
+                  <MessageBubble 
+                    key={m.id} 
+                    message={m} 
+                    onEdit={m.role === "user" ? () => handleEditMessage(idx) : undefined} 
+                  />
                 ))}
                 
                 {aiRecording && (

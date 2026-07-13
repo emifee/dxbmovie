@@ -68,3 +68,28 @@ export interface ChatSessionSummary {
   title: string;
   timeAgo: string;
 }
+
+export interface UserListItem {
+  id: number;
+  title: string;
+  posterPath: string | null;
+  mediaType: "movie" | "tv";
+  year: string;
+  rating?: number;
+}
+
+export interface UserList {
+  _id: string;
+  userId: string;
+  userName: string | null;
+  name: string;
+  slug: string;
+  description?: string;
+  items: UserListItem[];
+  published: boolean;
+  creatorOnline?: boolean; // populated at query time
+  upvotes?: number;
+  downvotes?: number;
+  createdAt: string;
+  updatedAt: string;
+}

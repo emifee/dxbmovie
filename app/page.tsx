@@ -29,7 +29,7 @@ import { trackGenre, trackCountry, trackProvider, trackSearch, getTopGenre, getT
 import { cn } from "@/lib/utils";
 import { MOCK_MOVIES } from "@/lib/mock-data";
 import { STREAMING_SERVICES, PROVIDER_THEMES, GENRE_THEMES } from "@/lib/constants";
-import type { Movie } from "@/lib/types";
+import type { Movie, UserList } from "@/lib/types";
 
 const OnboardingOverlay = dynamic(
   () => import("@/components/onboarding-overlay").then((m) => ({ default: m.OnboardingOverlay })),
@@ -79,6 +79,8 @@ export default function HomePage() {
   const [dislikedIds, setDislikedIds] = useState<Set<number>>(new Set());
   
   const [dxbTrending, setDxbTrending] = useState<Movie[]>([]);
+  const [userLists, setUserLists] = useState<UserList[]>([]);
+  const [activeListId, setActiveListId] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -268,7 +270,7 @@ export default function HomePage() {
           setPage((p) => p + 1);
         }
       },
-      { threshold: 0.1, rootMargin: "400px" }
+      { threshold: 0, rootMargin: "1500px" }
     );
 
     if (loadMoreRef.current) {
@@ -358,6 +360,23 @@ export default function HomePage() {
       })
       .catch(() => {});
   }, []);
+
+  // Fetch user lists for home page pills
+  useEffect(() => {
+    fetch("/api/lists")
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setUserLists(data); })
+      .catch(() => {});
+  }, [status]);
+
+  // Heartbeat: update online status every 5 minutes while on the page
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const ping = () => fetch("/api/user/heartbeat", { method: "POST" }).catch(() => {});
+    ping(); // immediate ping on mount
+    const interval = setInterval(ping, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [status]);
 
   // Read anonymous prefs on mount to pre-select top genre/country
   const hasAutoSelectedRef = useRef(false);
@@ -599,6 +618,7 @@ export default function HomePage() {
                 onSelect={(g) => {
                   if (g !== "all") trackGenre(g);
                   setGenre(g);
+                  setActiveListId(null);
                 }} 
               />
               <div className="mt-2" />
@@ -607,8 +627,36 @@ export default function HomePage() {
                 onSelect={(c) => {
                   if (c !== "all") trackCountry(c);
                   setCountryFilter(c);
+                  setActiveListId(null);
                 }} 
               />
+              {/* User-created list pills */}
+              {userLists.length > 0 && (
+                <div className="mt-2 no-scrollbar -mx-5 flex gap-2 overflow-x-auto pb-1 px-0">
+                  {userLists.map((list) => (
+                    <button
+                      key={list._id}
+                      type="button"
+                      onClick={() => setActiveListId(activeListId === list._id ? null : list._id)}
+                      className={cn(
+                        "flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition whitespace-nowrap",
+                        activeListId === list._id
+                          ? "border-primary bg-primary/20 text-primary"
+                          : "border-white/15 bg-white/[0.05] text-white/70 hover:border-white/30 hover:text-white"
+                      )}
+                    >
+                      {list.creatorOnline && (
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                        </span>
+                      )}
+                      {list.name.length > 28 ? list.name.slice(0, 28) + "…" : list.name}
+                      <span className="text-white/30">{list.items.length}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </>
           )}
         </section>
@@ -642,12 +690,55 @@ export default function HomePage() {
         )}
 
         <section className="px-5 lg:px-10">
+          {/* Active list header */}
+          {activeListId && (() => {
+            const activeList = userLists.find(l => l._id === activeListId);
+            if (!activeList) return null;
+            return (
+              <div className="flex items-center justify-between mb-3 mt-4">
+                <div>
+                  <p className="text-xs text-white/40 uppercase tracking-widest font-semibold">Viewing List</p>
+                  <h2 className="text-sm font-bold text-white mt-0.5 leading-snug">{activeList.name}</h2>
+                </div>
+                <button
+                  onClick={() => setActiveListId(null)}
+                  className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/50 hover:text-white transition"
+                >
+                  Clear
+                </button>
+              </div>
+            );
+          })()}
+
           <div className="-mx-5 mt-4 grid grid-cols-2 gap-2 sm:mx-0 sm:gap-3 lg:mt-6 lg:grid-cols-4 lg:gap-5 xl:grid-cols-5">
-            {displayLoading
-              ? Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className="aspect-[2/3] animate-pulse rounded-2xl bg-surface" />
-                ))
-              : (isDefaultHome && !activeService && randomGridMovies.length > 0 ? randomGridMovies : displayMovies).map((m) => <MoviePosterCard key={m.id} movie={m} />)}
+            {activeListId
+              ? (() => {
+                  const activeList = userLists.find(l => l._id === activeListId);
+                  if (!activeList) return null;
+                  return activeList.items.map(item => (
+                    <MoviePosterCard
+                      key={item.id}
+                      movie={{
+                        id: item.id,
+                        title: item.title,
+                        year: item.year,
+                        rating: item.rating || 0,
+                        posterPath: item.posterPath,
+                        backdropPath: null,
+                        overview: "",
+                        genres: [],
+                        cast: [],
+                        mediaType: item.mediaType,
+                      }}
+                    />
+                  ));
+                })()
+              : displayLoading
+                ? Array.from({ length: 10 }).map((_, i) => (
+                    <div key={i} className="aspect-[2/3] animate-pulse rounded-2xl bg-surface" />
+                  ))
+                : (isDefaultHome && !activeService && randomGridMovies.length > 0 ? randomGridMovies : displayMovies).map((m) => <MoviePosterCard key={m.id} movie={m} />)
+            }
           </div>
 
           {!displayLoading && displayMovies.length === 0 && (

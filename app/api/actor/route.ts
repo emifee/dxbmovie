@@ -23,16 +23,21 @@ export async function GET(request: Request) {
     if (!res.ok) throw new Error("Failed to fetch actor");
     const data = await res.json();
 
-    // Sort credits by popularity and filter out missing posters
+    // Filter out talk shows, reality TV, missing posters, and 'self' appearances.
+    // Sort by vote_count to ensure their biggest legacy projects are shown first.
     const credits = (data.combined_credits?.cast || [])
-      .filter((c: any) => c.poster_path && c.vote_count > 10)
-      .sort((a: any, b: any) => b.popularity - a.popularity)
-      .slice(0, 20); // Get top 20 movies/shows
+      .filter((c: any) => {
+        if (!c.poster_path || c.vote_count < 50) return false;
+        const char = (c.character || "").toLowerCase();
+        if (char.includes("self") || char.includes("himself")) return false;
+        // 10767=Talk, 10763=News, 10764=Reality
+        if (c.genre_ids?.some((id: number) => [10767, 10763, 10764].includes(id))) return false;
+        return true;
+      })
+      .sort((a: any, b: any) => b.vote_count - a.vote_count)
+      .slice(0, 20);
 
-    const countryCode = request.headers.get("x-vercel-ip-country") || "US";
-    const enrichedCredits = await enrichWithProviders(credits, apiKey, countryCode);
-
-    const movies: Movie[] = enrichedCredits.map((r: any) => ({
+    const movies: Movie[] = credits.map((r: any) => ({
       id: r.id as number,
       title: (r.title ?? r.name ?? "") as string,
       year: ((r.release_date ?? r.first_air_date ?? "") as string).slice(0, 4),
@@ -43,7 +48,7 @@ export async function GET(request: Request) {
       genres: [],
       cast: [],
       mediaType: (r.media_type as "movie" | "tv") ?? "movie",
-      providers: r._providers,
+      providers: [],
     }));
 
     return NextResponse.json({

@@ -86,18 +86,7 @@ export function TypingText({
     holdAfterDelete,
   ]);
 
-  // Haptic vibration on each typed character (typing phase only).
-  useEffect(() => {
-    if (reduced) return;
-    if (phase === "typing" && text.length > prevLength.current) {
-      try {
-        navigator?.vibrate?.(8);
-      } catch {
-        // Vibration API not available — no-op.
-      }
-    }
-    prevLength.current = text.length;
-  }, [text, phase, reduced]);
+
 
   const current = phrases[phraseIndex] ?? "";
   const isChanging =
@@ -112,7 +101,6 @@ export function TypingText({
         className={cn(
           "transition-[margin] duration-150",
           text.length ? "mx-3" : "mx-0",
-          isChanging && "animate-text-vibrate",
         )}
       >
         {text}

@@ -50,14 +50,14 @@ export function ActorModal() {
       <div
         onClick={closeActor}
         className={cn(
-          "fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-300",
+          "fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm transition-opacity duration-300",
           actorId ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       />
 
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-[60] flex max-h-[90vh] flex-col rounded-t-[32px] bg-[#0A0A0A] shadow-2xl transition-transform duration-300 sm:inset-x-auto sm:right-6 sm:top-24 sm:w-[400px] sm:rounded-3xl sm:border sm:border-border",
+          "fixed inset-x-0 bottom-0 z-[80] flex max-h-[90vh] flex-col rounded-t-[32px] bg-[#0A0A0A] shadow-2xl transition-transform duration-300 sm:inset-x-auto sm:right-6 sm:top-24 sm:w-[400px] sm:rounded-3xl sm:border sm:border-border",
           actorId ? "translate-y-0 sm:translate-y-0" : "translate-y-full sm:translate-y-8 sm:opacity-0 sm:pointer-events-none"
         )}
       >

@@ -72,7 +72,7 @@ export const useUIStore = create<UIState>((set) => ({
   setPendingChatMessage: (msg) => set({ pendingChatMessage: msg }),
 
   detailMovie: null,
-  openDetail: (movie) => set({ detailMovie: movie }),
+  openDetail: (movie) => set({ detailMovie: movie, actorId: null }),
   closeDetail: () => set({ detailMovie: null }),
 
   actorId: null,

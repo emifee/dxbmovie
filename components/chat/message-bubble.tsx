@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { ThumbsUp, ThumbsDown, Volume2, Square, Play } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Volume2, Square, Play, SquarePen } from "lucide-react";
 import type { ChatMessage } from "@/lib/types";
 import { CompanionAvatar } from "@/components/ui/companion-avatar";
 import { RecommendationCards } from "./recommendation-cards";
@@ -14,7 +14,7 @@ import { useAccountStore } from "@/lib/account-store";
  * AI messages: flat left-aligned text with an avatar, animated loading dots,
  * action row (thumbs + speaker), and optional inline recommendation cards.
  */
-export function MessageBubble({ message }: { message: ChatMessage }) {
+export function MessageBubble({ message, onEdit }: { message: ChatMessage; onEdit?: () => void }) {
   const isUser = message.role === "user";
   const signedIn = useAccountStore((s) => s.signedIn);
   const companion = useAccountStore((s) => s.aiCompanion);
@@ -107,8 +107,9 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   /* ─── User message: frosted glass pill ─── */
   if (isUser) {
     return (
-      <div className="flex animate-message-in flex-col items-end gap-1">
-        <div className="max-w-[82%] space-y-2 rounded-3xl bg-white/[0.08] backdrop-blur-md px-5 py-3 text-sm font-medium text-white/90">
+      <div className="flex animate-message-in flex-col items-end gap-1 group w-full">
+        <div className="flex items-center justify-end gap-2 w-full">
+          <div className="max-w-[82%] space-y-2 rounded-3xl bg-white/[0.08] backdrop-blur-md px-5 py-3 text-sm font-medium text-white/90">
           {/* Show attached image as a visible thumbnail */}
           {message.imageUrl && (
             <div className="overflow-hidden rounded-2xl">
@@ -123,12 +124,25 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
             </div>
           )}
           {message.content}
+          </div>
         </div>
-        {message.timestamp && (
-          <span className="pr-2 text-[10px] text-white/30">
-            {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </span>
-        )}
+        <div className="flex items-center gap-3 pr-2 mt-0.5">
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="flex items-center gap-1.5 text-[10px] text-white/40 hover:text-white/80 transition"
+              title="Edit message"
+            >
+              <SquarePen size={11} />
+              <span>Edit</span>
+            </button>
+          )}
+          {message.timestamp && (
+            <span className="text-[10px] text-white/30">
+              {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          )}
+        </div>
       </div>
     );
   }
