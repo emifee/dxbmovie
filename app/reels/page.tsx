@@ -12,6 +12,7 @@ import { setPendingAction } from "@/lib/pending-actions";
 import { PROVIDER_THEMES } from "@/lib/constants";
 import { recordReelWatched, isReelUnwatched } from "@/lib/reels-history";
 import { trackReelWatch } from "@/lib/anon-prefs";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 declare global {
@@ -45,6 +46,8 @@ export default function ReelsPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [isSearchFeed, setIsSearchFeed] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const hasTrackedPlayRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     // Robust PWA detection
@@ -121,14 +124,26 @@ export default function ReelsPage() {
             if (e.data === 1) { // 1 = PLAYING
               setPlayerReady(true);
               setAutoplayBlocked(false);
+              setIsPlaying(true);
+              
+              const currentKey = e.target.getVideoData()?.video_id;
+              if (currentKey && !hasTrackedPlayRef.current.has(currentKey)) {
+                hasTrackedPlayRef.current.add(currentKey);
+                trackEvent("trailer_played", { source: "reel_body" });
+              }
+            } else if (e.data === 3) { // 3 = BUFFERING — video is loading, reset stuck timer
+              setAutoplayBlocked(false);
+              setIsPlaying(false);
+            } else if (e.data === 0) { // 0 = ENDED — auto-advance
+              setActiveIndex((prev) => prev + 1);
+              setIsPlaying(false);
+            } else if (e.data === 2 || e.data === 5 || e.data === -1) {
+              setIsPlaying(false);
             }
           },
-          onError: (e: any) => {
-            // Video removed, private, or geo-restricted — skip it
-            setReels((prev) => {
-              const filtered = prev.filter((_, i) => i !== activeIndex);
-              return filtered;
-            });
+          onError: (_e: any) => {
+            // Video removed, private, or geo-restricted — skip to next
+            setActiveIndex((prev) => prev + 1);
           }
         }
       });
@@ -175,17 +190,22 @@ export default function ReelsPage() {
     }
   }, [activeIndex, ytPlayer, status]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Failsafe: detect if autoplay is blocked by iOS Safari
+  // Failsafe: detect if autoplay is blocked (iOS Safari blocks autoplay until user interaction)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!playerReady && ytPlayerRef.current) {
-        const state = ytPlayerRef.current.getPlayerState();
+    if (playerReady) return;
+
+    // After 2.5s with no playback, show the "Tap to play" button so user knows what to do
+    const quickTimer = setTimeout(() => {
+      if (!playerReady) {
+        const state = ytPlayerRef.current?.getPlayerState?.();
+        // -1=unstarted, 2=paused, 5=cued — these all mean blocked/stuck
         if (state !== 1 && state !== 3) {
           setAutoplayBlocked(true);
         }
       }
-    }, 3000);
-    return () => clearTimeout(timer);
+    }, 2500);
+
+    return () => clearTimeout(quickTimer);
   }, [reels[activeIndex]?.key, playerReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Fetch initial reels (NO recursive loop — single fast call) ──
@@ -401,7 +421,7 @@ export default function ReelsPage() {
         ytPlayer.mute();
       } else {
         ytPlayer.unMute();
-        ytPlayer.playVideo();
+        if (!isPlaying) ytPlayer.playVideo();
       }
     }
   };
@@ -484,27 +504,51 @@ export default function ReelsPage() {
         {/* The target div that YT.Player will replace with an iframe */}
         <div id="yt-player-container" className="w-full h-full border-0 pointer-events-none" />
         
-        {/* Loading overlay masks the YouTube buffering state or shows a play button if blocked */}
-        {!playerReady && activeReel && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+        {/* Loading overlay — always shows backdrop + spinner or play button */}
+        {activeReel && (
+          <div
+            className={cn(
+              "absolute inset-0 z-10 flex items-center justify-center transition-opacity duration-500",
+              playerReady ? "opacity-0 pointer-events-none" : "opacity-100 cursor-pointer"
+            )}
+            onClick={() => {
+              // User tapped the stuck screen — force play WITH sound
+              const player = ytPlayerRef.current;
+              if (player) {
+                player.unMute();
+                player.playVideo();
+                setGlobalMuted(false);
+                setAutoplayBlocked(false);
+              }
+            }}
+          >
+            {/* Always show backdrop so screen is never pure black */}
             <img 
-              src={activeReel.backdrop || `https://i.ytimg.com/vi/${activeReel.key}/maxresdefault.jpg`}
+              src={`https://i.ytimg.com/vi/${activeReel.key}/maxresdefault.jpg`}
               alt="Loading"
-              className="absolute inset-0 w-full h-full object-cover blur-sm scale-105 brightness-50"
+              className="absolute inset-0 w-full h-full object-cover brightness-50"
               onError={(e) => {
-                e.currentTarget.src = `https://i.ytimg.com/vi/${activeReel.key}/hqdefault.jpg`;
+                const t = e.currentTarget;
+                if (t.src.includes('maxresdefault')) {
+                  t.src = `https://i.ytimg.com/vi/${activeReel.key}/hqdefault.jpg`;
+                } else if (activeReel.backdrop) {
+                  t.src = activeReel.backdrop;
+                }
               }}
             />
-            {autoplayBlocked ? (
-              <div className="flex flex-col items-center gap-3 relative z-20 animate-in zoom-in duration-300">
-                <div className="grid h-20 w-20 place-items-center rounded-full bg-primary/80 backdrop-blur-md shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.6)] border border-white/20">
-                  <Play className="h-8 w-8 text-white ml-1 fill-white" />
-                </div>
-                <span className="text-white font-semibold tracking-wide drop-shadow-md">Tap to play</span>
-              </div>
-            ) : (
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-primary relative z-20" />
-            )}
+            {/* Centered indicator */}
+            <div className="relative z-20 flex flex-col items-center gap-3 pointer-events-none">
+              {autoplayBlocked ? (
+                <>
+                  <div className="grid h-20 w-20 place-items-center rounded-full bg-primary/80 backdrop-blur-md shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.6)] border border-white/20 animate-in zoom-in duration-300">
+                    <Play className="h-8 w-8 text-white ml-1 fill-white" />
+                  </div>
+                  <span className="text-white font-semibold tracking-wide drop-shadow-md">Tap to play</span>
+                </>
+              ) : (
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-primary" />
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -662,12 +706,12 @@ export default function ReelsPage() {
                     {/* Reel Overlay Content */}
                     <div 
                       className={cn(
-                        "relative z-20 flex items-end justify-between p-4 lg:p-12 h-full",
+                        "relative z-20 flex items-end justify-between p-4 lg:p-12 h-full cursor-pointer",
                         isPWA ? "!pb-[160px]" : isInAppBrowser ? "!pb-[140px]" : "!pb-[120px]"
                       )}
                       onClick={() => {
                         if (ytPlayer) {
-                          if (ytPlayer.getPlayerState() !== 1) {
+                          if (!isPlaying) {
                             // User explicitly tapping to play a blocked video
                             // Start it WITH sound immediately!
                             setGlobalMuted(false);
@@ -683,6 +727,14 @@ export default function ReelsPage() {
                         }
                       }}
                     >
+                      {/* Play Affordance Overlay */}
+                      {!isPlaying && (
+                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pb-20 pointer-events-none">
+                          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform duration-300 scale-100 hover:scale-110">
+                            <Play className="h-10 w-10 ml-1 fill-white opacity-90" />
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Left: Info */}
                       <div className="flex flex-col items-start gap-2 max-w-[70%]">

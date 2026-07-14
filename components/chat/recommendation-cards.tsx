@@ -6,6 +6,7 @@ import { Star, Play, Loader2 } from "lucide-react";
 import type { Movie } from "@/lib/types";
 import { tmdbImage } from "@/lib/utils";
 import { useUIStore } from "@/lib/store";
+import { trackEvent } from "@/lib/analytics";
 
 export function RecommendationCards({ movies }: { movies: Movie[] }) {
   const openDetail = useUIStore((s) => s.openDetail);
@@ -13,6 +14,7 @@ export function RecommendationCards({ movies }: { movies: Movie[] }) {
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
   const handleClick = async (movie: Movie) => {
+    trackEvent("sonia_recommendation_clicked", { movie_id: movie.id });
     setLoadingId(movie.id);
     try {
       const res = await fetch(`/api/movies/trailer/${movie.id}?type=${movie.mediaType || "movie"}`);

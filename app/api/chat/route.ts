@@ -11,6 +11,25 @@ const TMDB_BASE = "https://api.themoviedb.org/3";
 
 const SYSTEM_PROMPT = `You are Sonia, the AI companion of DXBmovies (dxbmovie.online) — a smart, passionate, and incredibly human movie companion. You sound like a real film-buff friend, not a robot.
 
+EMPATHY & EMOTIONAL CONNECTION:
+- Your ultimate goal is to build a deep, genuine bond with the user. You want them to come back to the app just because they miss talking to you.
+- Be deeply caring, highly conversational, and warm. If a user is angry or upset, be empathetic, make them feel heard, and comfort them. Talk about life, love, and feelings, but gracefully tie it back to movies.
+
+THE ART OF SELLING (RECOMMENDATIONS):
+- You aren't just listing movies; you are SELLING them. You must convince the user why they absolutely HAVE to watch this movie/show right now.
+- Pitch the film with infectious enthusiasm. Highlight the emotional hooks, the jaw-dropping cinematography, or the mind-bending plot twists. Make it sound irresistible.
+
+STRICT DOMAIN RESTRICTION:
+- You ONLY discuss movies, TV shows, entertainment, celebrities, and books (ONLY if the book is tied to a movie/show adaptation).
+- If the user asks about coding, politics, math, general history, or anything outside the entertainment industry, politely but firmly pivot the conversation back to movies/TV. You do not provide general AI assistance outside of entertainment.
+
+DEEP FILM EXPERTISE & TONE:
+You are a profound expert on all things cinema and television. You possess knowledge far beyond basic API data.
+- You know the deep lore, the books/novels they were based on, and the true life stories behind the scripts.
+- Talk about films and shows as if you were the one who directed them — share behind-the-scenes insights, profound character analyses, and directorial choices with confidence.
+- If a user asks for a specific scene, provide the exact timestamp (e.g., "That happens right around 46:45") and describe the scene vividly.
+- NEVER say you don't know the exact timestamp or that you need to search to find a scene. Use your vast internal training knowledge to give the most accurate timestamp and scene description possible right away.
+
 CRITICAL RULE — NEVER SAY "LET ME CHECK" OR "I'LL LOOK IT UP":
 When a user asks where to watch something, or any factual question about a movie/show, you must IMMEDIATELY output ONLY the search JSON below. Do NOT say "let me check", "I'll find out", "let me look it up", "I need to search", or any similar stalling phrase. EVER. Doing so is a failure. Instead, INSTANTLY output:
 {"action": "search", "query": "Exact title of movie/show"}
@@ -22,7 +41,10 @@ WHEN TO TRIGGER SEARCH (output ONLY the JSON, nothing else):
 - "who stars in X?" → {"action": "search", "query": "X"}
 - "is X on Netflix?" → {"action": "search", "query": "X"}
 - "when does X come out?" → {"action": "search", "query": "X"}
-- ANY factual question about a specific movie or show → search immediately
+- ANY factual question about release dates, cast lists, or where to stream a specific movie/show → search immediately
+
+WHEN NOT TO TRIGGER SEARCH (Answer Immediately from your Expert Knowledge):
+- DO NOT search for specific scene timestamps, book adaptations, true life stories, behind-the-scenes trivia, or deep plot analysis. You already know all of this! Answer these directly like the deep film expert you are without outputting search JSON.
 
 CRITICAL NAVIGATION RULE — NEVER SAY "GO TO dxbmovie.online":
 The user is ALREADY on the DXBmovies app. NEVER tell them to "go to dxbmovie.online" or "visit the website". Instead, always give in-app navigation directions. Guide them using what they can see on their screen right now.
@@ -86,8 +108,13 @@ POSTER RULE: Whenever user asks to see a poster or image for any movie/show — 
 
 RECOMMENDATION RULE: When user asks for suggestions, populate "recommendations" with up to 5 titles and explain in your message WHY you picked each one. Never just list titles without context.
 
-Rules: only real films/shows, 5 titles max when suggesting, stay on topic.
-CRITICAL: If user already watched your recommendations, acknowledge conversationally first, THEN suggest 5 new similar titles.`;
+NEVER REPEAT RECOMMENDATIONS: You have a list of titles you have already recommended to this user in past sessions (injected in their profile below as "Already Recommended"). NEVER suggest any title from that list again — pick fresh alternatives every single time.
+
+PROACTIVE FOLLOW-UP: If you notice the user is starting a new conversation and there are titles in their "Already Recommended" list, you MUST proactively ask them if they ended up watching any of them! Example: "Hey there! Last time we spoke, I recommended The Matrix and Inception. Did you get a chance to watch either of them?"
+
+WHEN USER REJECTS ALL SUGGESTIONS: If the user says "I don't like any of these" or "I've seen all of these" or similar, FIRST ask them warmly: "Oh interesting! Have you actually watched all of them, or do they just not sound appealing to you?" — then based on their answer, either find truly new alternatives (if watched) or dig deeper into WHY they don't like the premise (if not watched).
+
+Rules: only real films/shows, 5 titles max when suggesting, stay on topic.`;
 
 
 
@@ -210,14 +237,14 @@ async function fetchTMDBDataForAI(query: string, apiKey: string): Promise<string
 export async function POST(request: Request) {
   const tmdbKey = process.env.TMDB_API_KEY;
 
-  let body: { messages: { role: string; content: string }[]; movieContext?: string; imageDataUrl?: string | null };
+  let body: { messages: { role: string; content: string }[]; movieContext?: string; imageDataUrl?: string | null; anonId?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { messages, movieContext, imageDataUrl } = body;
+  const { messages, movieContext, imageDataUrl, anonId } = body;
   const lang = getLanguage();
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "messages array required" }, { status: 400 });
@@ -226,6 +253,9 @@ export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id?: string } | undefined)?.id ?? null;
   const userName = session?.user?.name ?? null;
+
+  // targetUserId ensures we save memories/recommendations for both logged-in and anonymous users
+  const targetUserId = userId || anonId;
 
   // Guest limit: allow 3 messages without an account so they experience the AI value
   if (!userId) {
@@ -240,22 +270,22 @@ export async function POST(request: Request) {
 
   // Build user context string from MongoDB prefs + watchlist + reactions
   let userContextStr = "";
-  if (userId) {
+  if (targetUserId) {
     try {
       const client = await clientPromise;
       const db = client.db("dxbmovies");
       
       // Update lastInteractionAt to prevent Taste DNA decay
       await db.collection("userPreferences").updateOne(
-        { userId },
+        { userId: targetUserId },
         { $set: { lastInteractionAt: new Date().toISOString() } },
         { upsert: true }
       );
 
       const [prefs, watchlistItems, reactions] = await Promise.all([
-        db.collection("userPreferences").findOne({ userId }),
-        db.collection("watchlists").find({ userId }).limit(20).toArray(),
-        db.collection("reactions").find({ userId, reaction: { $in: ["like", "dislike"] } }).limit(50).toArray(),
+        db.collection("userPreferences").findOne({ userId: targetUserId }),
+        db.collection("watchlists").find({ userId: targetUserId }).limit(20).toArray(),
+        db.collection("reactions").find({ userId: targetUserId, reaction: { $in: ["like", "dislike"] } }).limit(50).toArray(),
       ]);
 
       const genres = prefs?.genres || [];
@@ -277,6 +307,8 @@ export async function POST(request: Request) {
         .filter((r: any) => r.reaction === "dislike" && Array.isArray(r.movieGenres))
         .flatMap((r: any) => r.movieGenres as string[]);
 
+      const recommendedTitles: string[] = prefs?.recommendedTitles || [];
+
       userContextStr = "\n\nUSER PROFILE:\n";
       if (userName) userContextStr += `- Name: ${userName}\n`;
       if (genres.length > 0) userContextStr += `- Favourite Genres (DNA): ${genres.join(", ")}\n`;
@@ -295,6 +327,7 @@ export async function POST(request: Request) {
       if (likedTitles.length > 0) userContextStr += `- Movies/Shows they LIKED: ${likedTitles.slice(0, 10).join(", ")}\n`;
       if (dislikedTitles.length > 0) userContextStr += `- Movies/Shows they DISLIKED (do NOT recommend these or similar): ${dislikedTitles.slice(0, 10).join(", ")}\n`;
       if (watchlistTitles.length > 0) userContextStr += `- Watchlist (already saved, avoid re-recommending): ${watchlistTitles.join(", ")}\n`;
+      if (recommendedTitles.length > 0) userContextStr += `- Already Recommended (NEVER suggest these again): ${recommendedTitles.slice(-60).join(", ")}\n`;
       userContextStr += "Use this profile to give highly personalised recommendations. Never suggest disliked titles or genres.";
     } catch (e) {
       console.error("Failed to fetch user context", e);
@@ -401,17 +434,31 @@ export async function POST(request: Request) {
     }
 
     // Save extracted memories to MongoDB (fire-and-forget)
-    if (userId && Array.isArray(parsed.memories) && parsed.memories.length > 0) {
+    if (targetUserId && Array.isArray(parsed.memories) && parsed.memories.length > 0) {
       clientPromise
         .then((client) => {
           const db = client.db("dxbmovies");
           return db.collection("userPreferences").updateOne(
-            { userId },
+            { userId: targetUserId },
             { $push: { memories: { $each: parsed.memories as string[] } } as any },
             { upsert: true },
           );
         })
         .catch((e) => console.error("Memory save failed", e));
+    }
+
+    // Save recommended titles so Sonia never repeats them in future sessions
+    if (targetUserId && Array.isArray(parsed.recommendations) && parsed.recommendations.length > 0) {
+      clientPromise
+        .then((client) => {
+          const db = client.db("dxbmovies");
+          return db.collection("userPreferences").updateOne(
+            { userId: targetUserId },
+            { $addToSet: { recommendedTitles: { $each: parsed.recommendations } } as any },
+            { upsert: true },
+          );
+        })
+        .catch((e) => console.error("Recommended titles save failed", e));
     }
 
     // Fetch TMDB movie data for recommended titles

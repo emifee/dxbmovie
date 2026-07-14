@@ -19,7 +19,7 @@ export function MovieCarousel({
 
   return (
     <section className="mb-1 w-full">
-      <div className="mb-4 flex items-center justify-between px-4 sm:px-6">
+      <div className="mb-2 flex items-center justify-between px-4 sm:px-6">
         <h2 className="text-xl font-bold tracking-tight text-white lg:text-2xl">
           {title}
         </h2>
@@ -29,7 +29,7 @@ export function MovieCarousel({
       <div className="relative w-full">
         <div
           className={cn(
-            "flex w-full gap-4 overflow-x-auto pb-4 pl-0 pr-12 pt-2 sm:pl-0",
+            "flex w-full gap-4 overflow-x-auto pb-2 pl-0 pr-12 pt-2 sm:pl-0",
             "snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           )}
         >

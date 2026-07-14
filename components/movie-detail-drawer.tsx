@@ -8,6 +8,8 @@ import { useUIStore } from "@/lib/store";
 import { tmdbImage } from "@/lib/utils";
 import { setPendingAction } from "@/lib/pending-actions";
 import { trackMovieView, trackNotInterested } from "@/lib/anon-prefs";
+import { trackEvent } from "@/lib/analytics";
+import { getWatchLink } from "@/lib/watch-links";
 import type { Movie } from "@/lib/types";
 
 /**
@@ -211,62 +213,75 @@ export function MovieDetailDrawer() {
           </div>
         </div>
 
-          {/* Trailer */}
-          {trailerKey === undefined ? (
-            <div className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm text-text-secondary animate-pulse">
-              <Play size={16} />
-              Loading trailer…
-            </div>
-          ) : trailerKey ? (
-            <button
-              type="button"
-              onClick={() => openTrailer(trailerKey, movie.title, movie.id, movie.mediaType)}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm font-medium text-white transition hover:border-primary/60"
-            >
-              <Play size={16} className="fill-white" />
-              Watch trailer
-            </button>
-          ) : null}
-
           {/* Actions */}
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={addToWatchlist}
-              disabled={watchlistState !== "idle"}
-              className={`flex items-center justify-center gap-2 rounded-full border py-3 text-sm font-medium transition ${
-                watchlistState === "added"
-                  ? "border-green-500/60 bg-green-500/10 text-green-400"
-                  : "border-border bg-surface-raised text-white hover:border-primary/60"
-              }`}
-            >
-              {watchlistState === "adding" ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  Adding…
-                </>
-              ) : watchlistState === "added" ? (
-                <>
-                  <Check size={16} />
-                  Added ✓
-                </>
-              ) : (
-                <>
-                  <Plus size={16} />
-                  Watchlist
-                </>
-              )}
-            </button>
+          <div className="mt-5 space-y-3">
+            {/* Primary: Ask AI */}
             <button
               onClick={() => {
                 close();
                 openChat(movie);
               }}
-              className="flex items-center justify-center gap-2 rounded-full bg-gradient-primary py-3 text-sm font-medium text-white transition active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-primary py-3.5 text-sm font-bold text-white transition active:scale-[0.98] shadow-glow hover:shadow-glow-lg"
             >
               <Sparkles size={16} />
               Ask AI about this
             </button>
+
+            {/* Secondary: Grid for Watchlist & Trailer */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={addToWatchlist}
+                disabled={watchlistState !== "idle"}
+                className={`flex items-center justify-center gap-2 rounded-full border py-3 text-sm font-medium transition ${
+                  watchlistState === "added"
+                    ? "border-green-500/60 bg-green-500/10 text-green-400"
+                    : "border-border bg-surface-raised text-white hover:border-primary/60"
+                }`}
+              >
+                {watchlistState === "adding" ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    Adding…
+                  </>
+                ) : watchlistState === "added" ? (
+                  <>
+                    <Check size={16} />
+                    Added ✓
+                  </>
+                ) : (
+                  <>
+                    <Plus size={16} />
+                    Watchlist
+                  </>
+                )}
+              </button>
+
+              {/* Trailer Button */}
+              {trailerKey === undefined ? (
+                <div className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm text-text-secondary animate-pulse">
+                  <Play size={16} />
+                  Trailer
+                </div>
+              ) : trailerKey ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    trackEvent("trailer_played", { source: "homepage_modal" });
+                    openTrailer(trailerKey, movie.title, movie.id, movie.mediaType);
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised py-3 text-sm font-medium text-white transition hover:border-primary/60"
+                >
+                  <Play size={16} className="fill-white" />
+                  Trailer
+                </button>
+              ) : (
+                <div className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised/50 py-3 text-sm text-text-secondary opacity-50 cursor-not-allowed">
+                  <Play size={16} />
+                  No trailer
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Overview */}
@@ -338,26 +353,49 @@ export function MovieDetailDrawer() {
                 Where to watch
               </p>
               <div className="mt-3 no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5 pb-4 scrollbar-hide">
-                {fullDetails.providers.map((p: any) => (
-                  <a
-                    key={p.name}
-                    href={`/api/outbound?provider=${encodeURIComponent(p.name)}&title=${encodeURIComponent(movie.title)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1.5 pr-4 transition hover:border-primary/60 hover:bg-surface"
-                  >
-                    {p.logoPath && (
-                      <div className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full border border-black/20">
-                        <Image src={p.logoPath} alt={p.name} fill className="object-cover" />
-                      </div>
-                    )}
-                    <span className="whitespace-nowrap text-xs font-medium text-white">{p.name}</span>
-                  </a>
-                ))}
+                {fullDetails.providers.map((p: any) => {
+                  const watchUrl = p.link ? getWatchLink(p.name, movie.id, p.link) : undefined;
+                  const Wrapper = watchUrl ? "a" : "div";
+                  return (
+                    <Wrapper
+                      key={p.name}
+                      href={watchUrl}
+                      target={watchUrl ? "_blank" : undefined}
+                      rel={watchUrl ? "noopener noreferrer" : undefined}
+                      onClick={() => {
+                        if (watchUrl) {
+                          trackEvent("watch_now_clicked", { provider: p.name });
+                          const clickData = {
+                            movieId: movie.id,
+                            title: movie.title,
+                            posterUrl: movie.posterPath,
+                            provider: p.name,
+                            clickedAt: Date.now(),
+                          };
+                          localStorage.setItem("dxb_last_watch_click", JSON.stringify(clickData));
+                          if (status === "authenticated") {
+                            fetch("/api/user/watch-click", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify(clickData),
+                            }).catch(() => {});
+                          }
+                        }
+                      }}
+                      className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1.5 pr-4 transition hover:border-primary/60"
+                    >
+                      {p.logoPath && (
+                        <div className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full border border-black/20">
+                          <Image src={p.logoPath} alt={p.name} fill className="object-cover" />
+                        </div>
+                      )}
+                      <span className="whitespace-nowrap text-xs font-medium text-white">{p.name}</span>
+                    </Wrapper>
+                  );
+                })}
               </div>
             </div>
           )}
-
 
           <button 
             type="button"

@@ -1,19 +1,10 @@
 import { NextResponse } from "next/server";
 
-// ElevenLabs built-in premade voices — available on ALL plans including free.
-// These are NOT "library" voices so they don't require a paid subscription.
-const PREMADE_VOICES = {
-  female: [
-    "EXAVITQu4vr4xnSDxMaL", // Sarah
-    "XB0fDUnXU5powFXDhCwa", // Charlotte
-    "cgSgspJ2msm6clMCkdW9", // Jessica
-  ],
-  male: [
-    "onwK4e9ZLuTAKqWW03F9", // Daniel
-    "IKne3meq5aSn9XLyUdCD", // Charlie
-    "JBFqnCBsd6RMkjVDRZzb", // George
-  ],
-};
+// Sonia's voice configuration — ElevenLabs premade voices (all plans including free).
+// Primary: Charlotte — warm, sophisticated, cinematic female storytelling narrator.
+// Backup:  Sarah — natural, engaging, conversational. Used if Charlotte fails.
+const PRIMARY_VOICE_ID = "XB0fDUnXU5powFXDhCwa"; // Charlotte (storytelling)
+const BACKUP_VOICE_ID  = "EXAVITQu4vr4xnSDxMaL"; // Sarah (backup)
 
 async function tryTTS(apiKey: string, voiceId: string, text: string): Promise<Response | null> {
   const res = await fetch(
@@ -24,7 +15,12 @@ async function tryTTS(apiKey: string, voiceId: string, text: string): Promise<Re
       body: JSON.stringify({
         text: text.slice(0, 2500),
         model_id: "eleven_turbo_v2_5",
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        voice_settings: {
+          stability: 0.55,
+          similarity_boost: 0.80,
+          style: 0.35,         // adds expressive storytelling flair
+          use_speaker_boost: true,
+        },
       }),
     },
   );
@@ -37,33 +33,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "TTS not configured" }, { status: 503 });
   }
 
-  // Support comma-separated API keys for automatic fallback
+  // Support comma-separated API keys for automatic fallback on quota limits
   const apiKeys = rawKeys.split(",").map((k) => k.trim()).filter(Boolean);
   if (apiKeys.length === 0) {
     return NextResponse.json({ error: "TTS not configured" }, { status: 503 });
   }
 
-  let body: { text: string; gender?: "female" | "male" };
+  let body: { text: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { text, gender = "female" } = body;
+  const { text } = body;
   if (!text || typeof text !== "string") {
     return NextResponse.json({ error: "text required" }, { status: 400 });
   }
 
-  const candidates = PREMADE_VOICES[gender] ?? PREMADE_VOICES.female;
-  
-  // Randomize the order of candidates so we don't always get the same voice
-  const shuffledCandidates = [...candidates].sort(() => Math.random() - 0.5);
+  // Always try Primary (George) first, then Backup (Daniel), across all API keys
+  const voicesToTry = [PRIMARY_VOICE_ID, BACKUP_VOICE_ID];
 
-  // Try each API key (fallback on quota limits)
   for (const apiKey of apiKeys) {
-    // Try each premade voice in random order
-    for (const voiceId of shuffledCandidates) {
+    for (const voiceId of voicesToTry) {
       const res = await tryTTS(apiKey, voiceId, text);
       if (res) {
         return new Response(res.body, {

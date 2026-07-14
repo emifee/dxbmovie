@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { AccountHydrator } from "@/components/account-hydrator";
+import { DelayedReturnPrompt } from "@/components/delayed-return-prompt";
 import { PWAAutoPrompt } from "@/components/pwa-auto-prompt";
 import { Providers } from "./providers";
 import { SaveProfileNudge } from "@/components/save-profile-nudge";
@@ -134,6 +135,7 @@ export default function RootLayout({
       <body className="bg-background font-sans text-text-primary antialiased">
         <Providers>
           <AccountHydrator />
+          <DelayedReturnPrompt />
           <PWAAutoPrompt />
           <SaveProfileNudge />
           {children}

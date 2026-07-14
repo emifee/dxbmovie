@@ -12,6 +12,8 @@ import {
   type AccountState,
 } from "@/lib/account-store";
 import { MODELS } from "@/lib/ai-config";
+import { getDeviceId } from "@/lib/auth";
+import { trackEvent } from "@/lib/analytics";
 import { Sparkle } from "@/components/ui/sparkle";
 import { RecommendationCards } from "./recommendation-cards";
 import { CompanionAvatar } from "@/components/ui/companion-avatar";
@@ -590,6 +592,7 @@ export function ChatDrawer() {
     setAttachedImageName(null);
 
     useAccountStore.getState().recordSend();
+    trackEvent("sonia_message_sent", { message_index: messages.length + 1 });
 
     // Build history for the API (all messages except the loading placeholder)
     const history = [...messages, userMsg].map((m) => ({
@@ -608,6 +611,7 @@ export function ChatDrawer() {
         messages: history,
         movieContext: movieContext?.title ?? null,
         imageDataUrl,
+        anonId: getDeviceId(),
       }),
     })
       .then((r) => r.json())

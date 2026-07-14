@@ -49,6 +49,15 @@ const HERO_HEADLINES = [
   { prefix: "Let's find something ", gradient: "amazing to watch" },
 ];
 
+const SONIA_PROMPTS = [
+  "I'm in the mood for a mind-bending sci-fi...",
+  "Recommend a romantic comedy like Notting Hill",
+  "What's a good thriller with a huge plot twist?",
+  "I want to watch an action movie from the 90s",
+  "Suggest a critically acclaimed foreign film",
+  "I need something light and funny right now",
+];
+
 export default function HomePage() {
   const [genre, setGenre] = useState<number | "all">("all");
   const [countryFilter, setCountryFilter] = useState<string | "all">("all");
@@ -93,13 +102,16 @@ export default function HomePage() {
   const nextRandomPageRef = useRef(2);
 
   const [heroHeadlineIndex, setHeroHeadlineIndex] = useState(0);
+  const [soniaPromptIndex, setSoniaPromptIndex] = useState(0);
 
   useEffect(() => {
     // Pick a random starting headline on mount
     setHeroHeadlineIndex(Math.floor(Math.random() * HERO_HEADLINES.length));
+    setSoniaPromptIndex(Math.floor(Math.random() * SONIA_PROMPTS.length));
     // Cycle through headlines every 7s (synced with hero slide interval)
     const interval = setInterval(() => {
       setHeroHeadlineIndex((prev) => (prev + 1) % HERO_HEADLINES.length);
+      setSoniaPromptIndex((prev) => (prev + 1) % SONIA_PROMPTS.length);
     }, 7000);
     return () => clearInterval(interval);
   }, []);
@@ -363,7 +375,7 @@ export default function HomePage() {
       .catch(() => {});
 
     // Fetch New This Week
-    fetch("/api/movies/discover?sort=Latest Release")
+    fetch("/api/movies/new-this-week")
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setNewThisWeek(data);
@@ -513,16 +525,22 @@ export default function HomePage() {
             <div className="mx-auto max-w-lg mt-6 lg:mt-10">
               {/* Eyebrow */}
               <button 
-                onClick={() => useUIStore.getState().openChat()}
-                className="group inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 mb-4 transition hover:bg-primary/20 active:scale-95 cursor-pointer"
+                onClick={() => {
+                  import("@/lib/analytics").then(({ trackEvent }) => trackEvent("sonia_chat_opened", { entry_point: "hero_pill" }));
+                  useUIStore.getState().openChat();
+                }}
+                className="group inline-flex items-center gap-2.5 rounded-full border border-primary/50 bg-primary/20 px-5 py-2 mb-4 transition hover:bg-primary/30 active:scale-95 cursor-pointer shadow-glow-sm backdrop-blur-md"
               >
-                <span className="relative flex h-2 w-2">
+                <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
                 </span>
-                <span className="text-xs font-medium text-primary flex items-center gap-1">
-                  Ask AI what to watch
-                  <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                <span 
+                  key={soniaPromptIndex} 
+                  className="text-sm font-semibold text-white flex items-center gap-2 animate-in fade-in duration-500"
+                >
+                  &quot;{SONIA_PROMPTS[soniaPromptIndex]}&quot;
+                  <span className="transition-transform group-hover:translate-x-1 text-primary">→</span>
                 </span>
               </button>
 
@@ -693,7 +711,7 @@ export default function HomePage() {
         </section>
 
         {isDefaultHome && (
-          <div className="relative z-20 mt-3 lg:mt-5 space-y-8">
+          <div className="relative z-20 mt-3 lg:mt-5 space-y-4">
             {dxbTrending.length > 0 && (
               <MovieCarousel 
                 title="Trending on DXB" 

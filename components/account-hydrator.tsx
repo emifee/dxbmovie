@@ -28,9 +28,12 @@ export function AccountHydrator() {
   // Keep the Zustand store in sync with the NextAuth session.
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
-      if (!sessionStorage.getItem("ga_login_tracked")) {
+      const email = session.user.email;
+      const trackKey = `dxb_login_tracked_${email}`;
+      
+      if (!localStorage.getItem(trackKey)) {
         trackEvent("login_success");
-        sessionStorage.setItem("ga_login_tracked", "1");
+        localStorage.setItem(trackKey, "1");
         
         const source = localStorage.getItem("dxb_signup_source");
         if (source) {
@@ -53,6 +56,16 @@ export function AccountHydrator() {
           .then(() => clearAnonPrefs())
           .catch(console.error);
         }
+
+        // Sync pending watch click from server
+        fetch("/api/user/watch-click")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.watchClick) {
+              localStorage.setItem("dxb_last_watch_click", JSON.stringify(data.watchClick));
+            }
+          })
+          .catch(console.error);
       }
       storeSignIn(session.user.email);
       

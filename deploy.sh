@@ -13,9 +13,9 @@
 #
 # What it does:
 #   1. Builds the Next.js standalone output locally
-#   2. rsyncs .next/standalone + static + public to the server
-#   3. Copies .env.local to the server
-#   4. Installs pm2 (if needed) and restarts the app
+#   2. rsyncs .next/standalone (excluding node_modules) + static + public to server
+#   3. Copies package.json and runs npm install on server (gets Linux-compatible binaries)
+#   4. Installs sharp and restarts the app via pm2
 # =============================================================================
 
 set -e
@@ -30,36 +30,37 @@ npm run build
 
 echo "▶  Syncing to Oracle ${ORACLE_IP}..."
 
-# Create remote directory
+# Create remote directories
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${ORACLE_USER}@${ORACLE_IP}" \
-  "mkdir -p ${REMOTE_DIR}/.next/static ${REMOTE_DIR}/public"
+  "mkdir -p ${REMOTE_DIR}/.next/static ${REMOTE_DIR}/public ${REMOTE_DIR}/public/icons"
 
-# Sync standalone server
-rsync -az --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
+# Sync standalone server — EXCLUDE node_modules (macOS binaries won't run on Linux)
+# The server will run npm install to get its own Linux-compatible node_modules
+rsync -azW --delete \
+  --exclude='node_modules' \
+  -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
   .next/standalone/ "${ORACLE_USER}@${ORACLE_IP}:${REMOTE_DIR}/"
 
 # Sync static assets (Next.js standalone doesn't include these)
-rsync -az --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
+rsync -azW --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
   .next/static/ "${ORACLE_USER}@${ORACLE_IP}:${REMOTE_DIR}/.next/static/"
 
 # Sync public folder
-rsync -az --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
+rsync -azW --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
   public/ "${ORACLE_USER}@${ORACLE_IP}:${REMOTE_DIR}/public/"
 
-# Copy env file
+# Copy package files and env
+scp -i "$SSH_KEY" -o StrictHostKeyChecking=no \
+  package.json package-lock.json \
+  "${ORACLE_USER}@${ORACLE_IP}:${REMOTE_DIR}/"
+
 scp -i "$SSH_KEY" -o StrictHostKeyChecking=no \
   .env.local "${ORACLE_USER}@${ORACLE_IP}:${REMOTE_DIR}/.env.local"
 
-echo "▶  Installing sharp + restarting app on server..."
+echo "▶  Installing dependencies + restarting app on server..."
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${ORACLE_USER}@${ORACLE_IP}" bash << 'REMOTE'
   set -e
   cd /home/ubuntu/dxbmovies
-
-  # Install sharp for Next.js image optimization in standalone mode
-  npm cache clean --force > /dev/null 2>&1 || true
-  rm -rf node_modules/.caniuse-lite* 2>/dev/null || true
-  npm install sharp --force
-  echo "✅  sharp installed"
 
   # Install Node.js if missing
   if ! command -v node &>/dev/null; then
@@ -74,6 +75,11 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${ORACLE_USER}@${ORACLE_IP}" bash
     sudo npm install -g pm2
   fi
 
+  # Install Linux-compatible production dependencies (including sharp for Linux)
+  echo "▶  Running npm install on server (Linux binaries)..."
+  npm install --production --force 2>&1 | tail -5
+  echo "✅  Dependencies installed"
+
   # Load env vars and start/restart
   export $(grep -v '^#' .env.local | xargs)
 
@@ -85,24 +91,21 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${ORACLE_USER}@${ORACLE_IP}" bash
     --env production \
     -- --env-file .env.local
 
-
   # Save pm2 list so it survives reboots
   pm2 save
 
-  # Enable pm2 startup (only needed once, may prompt for sudo)
+  # Enable pm2 startup (only needed once)
   pm2 startup systemd -u ubuntu --hp /home/ubuntu 2>/dev/null || true
 
   # ── Sonia push cron ────────────────────────────────────────────────────────
-  # Runs daily at 18:00 UTC (20:00 Dubai time) — calls the secured cron endpoint.
-  # Load CRON_SECRET from .env.local for the curl command.
+  # Runs daily at 18:00 UTC (20:00 Dubai time)
   CRON_SECRET_VAL=$(grep '^CRON_SECRET=' /home/ubuntu/dxbmovies/.env.local | cut -d'=' -f2)
   CRON_CMD="curl -s -X GET http://localhost:3000/api/cron/sonia-push -H \"Authorization: Bearer ${CRON_SECRET_VAL}\" >> /home/ubuntu/dxbmovies/cron.log 2>&1"
   CRON_SCHEDULE="0 18 * * *"
-  # Add to crontab only if not already there
   ( crontab -l 2>/dev/null | grep -v 'sonia-push'; echo "${CRON_SCHEDULE} ${CRON_CMD}" ) | crontab -
   echo "✅  Sonia push cron set for 18:00 UTC daily"
 
-  echo "✅  App deployed at http://${ORACLE_IP}:3000"
+  echo "✅  App deployed at http://193.123.67.157:3000"
 REMOTE
 
 echo ""
