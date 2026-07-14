@@ -3,8 +3,8 @@
 
 import { MongoClient, ObjectId } from "mongodb";
 
-const MONGODB_URI =
-  "mongodb+srv://emifeaustin09_db_user:xjeAnNYKs0SBilwH@dxbmovies.5zdflaq.mongodb.net/dxbmovies?retryWrites=true&w=majority&appName=DXBmovies";
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) throw new Error("Missing MONGODB_URI environment variable");
 const DB_NAME = "dxbmovies";
 
 async function run() {

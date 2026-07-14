@@ -1,7 +1,8 @@
 import { MongoClient, ObjectId } from "mongodb";
 
 async function run() {
-  const uri = process.env.MONGODB_URI || "mongodb+srv://dxbmovies:YVd8xQ35Yl1o5u5C@cluster0.o5hck.mongodb.net/dxbmovies?retryWrites=true&w=majority";
+  const uri = process.env.MONGODB_URI;
+  if (!uri) throw new Error("Missing MONGODB_URI");
   const client = new MongoClient(uri);
   try {
     await client.connect();
