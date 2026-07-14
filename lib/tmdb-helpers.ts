@@ -31,7 +31,14 @@ export async function enrichWithProviders(
 
         // Extract flatrate (streaming) providers, max 3 to keep badges clean
         const flatrateProviders = watchData.flatrate || [];
-        const justWatchLink = watchData.link || null;
+        // Build a direct JustWatch search link for this title.
+        // TMDB's watchData.link goes to themoviedb.org which redirects to JustWatch anyway —
+        // we skip the middleman and build the JustWatch URL directly so users land on a
+        // real page with clickable provider links rather than a TMDB wrapper.
+        const titleForUrl = (item.title || item.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        const justWatchLink = titleForUrl
+          ? `https://www.justwatch.com/us/movie/${titleForUrl}`
+          : (watchData.link || null);
 
         const providers: WatchProvider[] = flatrateProviders.slice(0, 3).map((p: any) => ({
           name: p.provider_name,
