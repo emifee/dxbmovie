@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Star } from "lucide-react";
 import type { Movie } from "@/lib/types";
@@ -16,6 +17,7 @@ export function MoviePosterCard({ movie }: { movie: Movie }) {
   const openDetail = useUIStore((s) => s.openDetail);
   const openAuthGate = useUIStore((s) => s.openAuthGate);
   const { status } = useSession();
+  const [imgError, setImgError] = useState(false);
   const poster = tmdbImage(movie.posterPath);
 
   function handleClick() {
@@ -27,14 +29,15 @@ export function MoviePosterCard({ movie }: { movie: Movie }) {
       onClick={handleClick}
       className="group relative aspect-[2/3] w-full overflow-hidden rounded-2xl border border-border bg-surface text-left transition duration-200 hover:border-primary/50 hover:shadow-glow"
     >
-      {poster ? (
+      {poster && !imgError ? (
         <Image
           src={poster}
           alt={movie.title}
           fill
-          sizes="(max-width: 430px) 50vw, 215px"
+          sizes="(max-width: 768px) 50vw, 33vw"
           loading="lazy"
           unoptimized
+          onError={() => setImgError(true)}
           className="object-cover transition duration-300 group-hover:scale-105"
         />
       ) : (

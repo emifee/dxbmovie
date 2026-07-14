@@ -41,8 +41,9 @@ export function MatchmakerModal({ username, hostName, onClose }: MatchmakerModal
   const [loading, setLoading] = useState(false);
   const [swipeAnim, setSwipeAnim] = useState<"left" | "right" | null>(null);
 
+  const MATCH_THRESHOLD = 3;
   const currentMovie = SWIPE_MOVIES[currentIndex];
-  const progress = Math.round((currentIndex / SWIPE_MOVIES.length) * 100);
+  const progress = Math.round((currentIndex / MATCH_THRESHOLD) * 100);
 
   const submitMatch = useCallback(
     async (finalSwipes: { title: string; liked: boolean }[]) => {
@@ -74,7 +75,7 @@ export function MatchmakerModal({ username, hostName, onClose }: MatchmakerModal
       setSwipes(newSwipes);
       setSwipeAnim(null);
 
-      if (currentIndex + 1 >= SWIPE_MOVIES.length) {
+      if (currentIndex + 1 >= MATCH_THRESHOLD) {
         submitMatch(newSwipes);
       } else {
         setCurrentIndex((i) => i + 1);

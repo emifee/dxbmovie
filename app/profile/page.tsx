@@ -25,6 +25,7 @@ import { CompanionAvatar } from "@/components/ui/companion-avatar";
 import { GoogleButton } from "@/components/login/google-button";
 import Link from "next/link";
 import { toPng } from "html-to-image";
+import { TasteFeedbackModal } from "@/components/taste-feedback-modal";
 
 export default function ProfilePage() {
   const openDetail = useUIStore((s) => s.openDetail);
@@ -55,6 +56,7 @@ export default function ProfilePage() {
   const [dnaWorking, setDnaWorking] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [userLists, setUserLists] = useState<UserList[]>([]);
+  const [tasteFeedbackOpen, setTasteFeedbackOpen] = useState(false);
 
   const [services, setServices] = useState<string[]>(["netflix", "prime"]);
 
@@ -724,10 +726,25 @@ export default function ProfilePage() {
                 />
               </div>
               
-              <p className="text-xs text-text-secondary leading-relaxed">
-                {accuracyMessage}
-              </p>
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-xs text-text-secondary leading-relaxed flex-1">
+                  {accuracyMessage}
+                </p>
+                <button
+                  onClick={() => setTasteFeedbackOpen(true)}
+                  className="shrink-0 text-[10px] font-medium text-white/50 underline transition hover:text-white"
+                >
+                  Sonia was wrong?
+                </button>
+              </div>
             </div>
+          )}
+
+          {tasteFeedbackOpen && (
+            <TasteFeedbackModal
+              onClose={() => setTasteFeedbackOpen(false)}
+              onRemoved={loadProfileData}
+            />
           )}
 
           {dnaEditing ? (

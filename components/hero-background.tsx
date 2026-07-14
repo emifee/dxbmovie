@@ -82,6 +82,8 @@ export function HeroBackground({
     <div className="pointer-events-none relative w-full pt-[max(2rem,env(safe-area-inset-top))] pb-16 min-h-[72vh] flex flex-col justify-between">
       {/* Background Images Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden bg-background">
+        {/* Placeholder shimmer before first image loads */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent animate-pulse" />
         {validMovies.map((movie, idx) => {
           if (!visibleIndices.has(idx)) return null;
 

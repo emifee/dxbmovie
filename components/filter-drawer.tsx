@@ -3,16 +3,8 @@
 import { useEffect, useState } from "react";
 import { X, ChevronDown, BookmarkPlus, Star } from "lucide-react";
 import { useUIStore, useFilterStore } from "@/lib/store";
+import { STREAMING_SERVICES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-
-// TMDB ID mappings
-const NETWORKS = [
-  { label: "Netflix", id: "213" },
-  { label: "Amazon Prime Video", id: "1024" },
-  { label: "Apple TV+", id: "2552" },
-  { label: "Disney Plus", id: "3904" },
-  { label: "Hulu", id: "453" },
-];
 
 const GENRES = [
   { label: "Action", id: "28" },
@@ -185,10 +177,10 @@ export function FilterDrawer() {
             {/* Networks & Country Row */}
             <div className="grid grid-cols-2 gap-3">
               <SelectBox
-                label="Networks"
+                label="Provider"
                 value={network}
                 onChange={(v) => setFilter("network", v)}
-                options={[{ label: "All Networks", value: "" }, ...NETWORKS.map(n => ({ label: n.label, value: n.id }))]}
+                options={[{ label: "All Providers", value: "" }, ...STREAMING_SERVICES.map(s => ({ label: s.label, value: String(s.tmdbProviderId) }))]}
               />
               <SelectBox
                 label="Country"

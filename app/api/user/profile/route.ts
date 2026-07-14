@@ -49,12 +49,9 @@ export async function GET() {
       joinedAt = new Date(userDoc.createdAt).toISOString();
     }
 
-    // Calculate Decaying Taste Profile Accuracy
-    const dnaCount = prefs?.dna?.length || 0;
-    // Base accuracy: 50% + 5% per DNA trait (max 95%)
-    let baseAccuracy = 50 + (dnaCount * 5);
-    if (baseAccuracy > 95) baseAccuracy = 95;
-    if (dnaCount === 0) baseAccuracy = 0; // 0 if no DNA
+    // Calculate Decaying Taste Profile Accuracy based on real engagement
+    // Base accuracy: max 95%, based on watchlist items and chat sessions
+    let baseAccuracy = Math.min(95, (watchlistCount * 5) + (chatCount * 3));
 
     let accuracyScore = baseAccuracy;
     let accuracyMessage = "Sonia is still learning about you.";
@@ -67,7 +64,8 @@ export async function GET() {
       
       // Decay: drop 1.5% per day of inactivity
       const decay = daysSince * 1.5;
-      accuracyScore = Math.max(0, Math.floor(baseAccuracy - decay));
+      // Don't drop below 10% if they have baseline activity
+      accuracyScore = Math.max(10, Math.floor(baseAccuracy - decay));
       
       if (daysSince > 2) {
         accuracyMessage = `Sonia's understanding of your taste is ${accuracyScore}% accurate. She hasn't learned anything new in ${daysSince} days — accuracy is dropping.`;
@@ -85,6 +83,10 @@ export async function GET() {
       accuracyScore,
       accuracyMessage,
       username: userDoc?.username || null,
+      country: userDoc?.country || null,
+      countryCode: userDoc?.countryCode || null,
+      city: userDoc?.city || null,
+      registeredAt: userDoc?.registeredAt || null,
     });
   } catch (err) {
     console.error("[profile GET]", err);

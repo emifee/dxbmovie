@@ -458,7 +458,20 @@ export async function POST(request: Request) {
         .catch((e) => console.error("[push] Chat notification failed:", e));
     }
 
-    return NextResponse.json({ content: parsed.message, recommendations: movies, provider });
+    let finalMessage = parsed.message;
+    if (finalMessage.toLowerCase().includes("i'm not sure") || finalMessage.toLowerCase().includes("i am not sure")) {
+      const qs = [
+        "What's the last movie you watched that made you cry?",
+        "If you could live in any movie universe, which would it be?",
+        "Are you more into fast-paced action or slow-burn mysteries?",
+        "What's a movie everyone loves but you just couldn't get into?",
+        "Do you prefer movies that make you think, or movies that help you turn off your brain?"
+      ];
+      const q = qs[Math.floor(Math.random() * qs.length)];
+      finalMessage = `${finalMessage} To help me get to know your taste better... ${q}`;
+    }
+
+    return NextResponse.json({ content: finalMessage, recommendations: movies, provider });
   } catch (err) {
     console.error("[api/chat] All providers failed:", err);
     return NextResponse.json(

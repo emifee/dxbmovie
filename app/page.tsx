@@ -79,6 +79,8 @@ export default function HomePage() {
   const [dislikedIds, setDislikedIds] = useState<Set<number>>(new Set());
   
   const [dxbTrending, setDxbTrending] = useState<Movie[]>([]);
+  const [popularLocal, setPopularLocal] = useState<{ label: string, movies: Movie[] } | null>(null);
+  const [newThisWeek, setNewThisWeek] = useState<Movie[]>([]);
   const [userLists, setUserLists] = useState<UserList[]>([]);
   const [activeListId, setActiveListId] = useState<string | null>(null);
 
@@ -359,6 +361,34 @@ export default function HomePage() {
         if (Array.isArray(data)) setDxbTrending(data);
       })
       .catch(() => {});
+
+    // Fetch New This Week
+    fetch("/api/movies/discover?sort=Latest Release")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setNewThisWeek(data);
+      })
+      .catch(() => {});
+
+    // Fetch Popular in Region
+    import("@/lib/anon-prefs").then((mod) => {
+      const topCountry = mod.getTopCountry();
+      if (!topCountry) return; // Skip if we don't have a regional preference yet
+      
+      let cLabel = topCountry;
+      try {
+        cLabel = new Intl.DisplayNames(['en'], { type: 'region' }).of(topCountry) || topCountry;
+      } catch (e) {
+        // Fallback
+      }
+      
+      fetch(`/api/movies/discover?sort=Popular&country=${topCountry}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setPopularLocal({ label: `Popular in ${cLabel}`, movies: data });
+        })
+        .catch(() => {});
+    });
   }, []);
 
   // Fetch user lists for home page pills
@@ -529,8 +559,8 @@ export default function HomePage() {
                 />
                 <button
                   type="button"
-                  onClick={searchQuery ? clearSearch : collapseSearch}
-                  aria-label={searchQuery ? "Clear search" : "Close search"}
+                  onClick={collapseSearch}
+                  aria-label="Close search"
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white"
                 >
                   <X size={15} />
@@ -584,6 +614,7 @@ export default function HomePage() {
                     <button
                       key={s.slug}
                       type="button"
+                      title={`Filter by ${s.label}`}
                       onClick={() => {
                         trackProvider(s.slug);
                         setActiveService(active ? null : s.slug);
@@ -668,6 +699,18 @@ export default function HomePage() {
                 title="Trending on DXB" 
                 movies={dxbTrending.filter(m => !dislikedIds.has(m.id))} 
                 />
+            )}
+            {popularLocal && popularLocal.movies.length > 0 && (
+              <MovieCarousel 
+                title={popularLocal.label} 
+                movies={popularLocal.movies.filter(m => !dislikedIds.has(m.id))} 
+              />
+            )}
+            {newThisWeek.length > 0 && (
+              <MovieCarousel 
+                title="New This Week" 
+                movies={newThisWeek.filter(m => !dislikedIds.has(m.id))} 
+              />
             )}
             <MovieCarousel 
               title="Global Hits" 

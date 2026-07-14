@@ -7,7 +7,7 @@ import { routeChat, type AIChatMessage } from "@/lib/ai-router";
  * POST /api/match
  * Body: { username: string, swipes: { title: string, liked: boolean }[] }
  *
- * Compares the visitor's 10 quick swipes against the host user's Movie DNA,
+ * Compares the visitor's 3 quick swipes against the host user's Movie DNA,
  * returning a percentage match and a witty one-liner from the AI.
  */
 export async function POST(request: Request) {

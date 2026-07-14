@@ -88,9 +88,11 @@ export async function GET(request: Request) {
 
   if (country) params.append("with_origin_country", country);
   
-  // Networks only really apply to TV in TMDB, but we pass it anyway
-  if (network) params.append("with_networks", network);
-  
+  // Map our network (provider) filter to TMDB watch providers
+  if (network) {
+    params.append("with_watch_providers", network);
+    params.append("watch_region", process.env.TMDB_WATCH_REGION ?? "US");
+  }
   if (rating) {
     // Rating comes in as "9", "8", etc.
     params.append("vote_average.gte", rating);

@@ -1,5 +1,5 @@
 const STORAGE_KEY = "dxb:search-history";
-const MAX_HISTORY = 8;
+const MAX_HISTORY = 5;
 
 export function getSearchHistory(): string[] {
   if (typeof window === "undefined") return [];

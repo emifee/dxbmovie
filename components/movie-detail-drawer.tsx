@@ -322,24 +322,37 @@ export function MovieDetailDrawer() {
           </div>
 
           {/* Where to watch */}
-          {fullDetails?.providers && fullDetails.providers.length > 0 && (
+          {!fullDetails ? (
+            <div className="mt-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                Where to watch
+              </p>
+              <div className="mt-3 flex gap-3 px-1">
+                <div className="h-8 w-24 rounded-full bg-surface-raised animate-pulse border border-border" />
+                <div className="h-8 w-24 rounded-full bg-surface-raised animate-pulse border border-border" />
+              </div>
+            </div>
+          ) : fullDetails.providers && fullDetails.providers.length > 0 && (
             <div className="mt-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 Where to watch
               </p>
               <div className="mt-3 no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5 pb-4 scrollbar-hide">
                 {fullDetails.providers.map((p: any) => (
-                  <div
+                  <a
                     key={p.name}
-                    className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1.5 pr-4"
+                    href={`/api/outbound?provider=${encodeURIComponent(p.name)}&title=${encodeURIComponent(movie.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-surface-raised px-3 py-1.5 pr-4 transition hover:border-primary/60 hover:bg-surface"
                   >
                     {p.logoPath && (
-                      <div className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full">
+                      <div className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full border border-black/20">
                         <Image src={p.logoPath} alt={p.name} fill className="object-cover" />
                       </div>
                     )}
                     <span className="whitespace-nowrap text-xs font-medium text-white">{p.name}</span>
-                  </div>
+                  </a>
                 ))}
               </div>
             </div>
@@ -358,7 +371,7 @@ export function MovieDetailDrawer() {
           {(relatedMovies.length > 0 || relatedLoading) && (
             <div className="mt-8 border-t border-border/50 pt-6">
               <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                More like this
+                Related Movies
               </p>
               <div className="no-scrollbar -mx-5 mt-3 flex gap-3 overflow-x-auto px-5 pb-2">
                 {relatedLoading ? (

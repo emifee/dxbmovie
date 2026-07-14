@@ -56,22 +56,24 @@ export function MenuDrawer() {
         </div>
 
         {/* Nav */}
-        <nav className="mt-6 space-y-1">
-          <MenuLink href="/" active={pathname === "/"} icon={<Home size={20} />} label="Home" onClick={close} />
-          <button
-            onClick={() => {
-              close();
-              openChat();
-            }}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-text-secondary transition hover:bg-surface-raised hover:text-white"
-          >
-            <Sparkles size={20} />
-            <span className="text-sm font-medium">Chat with AI</span>
-          </button>
-          <MenuLink href="/profile" active={pathname === "/profile"} icon={<User size={20} />} label="Profile" onClick={close} />
-        </nav>
+        <div className="mt-6 flex-1 overflow-y-auto pb-4">
+          <nav className="space-y-1">
+            <MenuLink href="/" active={pathname === "/"} icon={<Home size={20} />} label="Home" onClick={close} />
+            <button
+              onClick={() => {
+                close();
+                openChat();
+              }}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-text-secondary transition hover:bg-surface-raised hover:text-white"
+            >
+              <Sparkles size={20} />
+              <span className="text-sm font-medium">Chat with AI</span>
+            </button>
+            <MenuLink href="/profile" active={pathname === "/profile"} icon={<User size={20} />} label="Profile" onClick={close} />
+          </nav>
+        </div>
 
-        <div className="mt-auto space-y-1 border-t border-border pt-4">
+        <div className="mt-auto space-y-1 border-t border-border pt-4 shrink-0">
           <MenuLink href="/profile" active={false} icon={<Settings size={20} />} label="Settings" onClick={close} />
           {signedIn && (
             <button

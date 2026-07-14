@@ -20,6 +20,7 @@ import { MessageBubble } from "./message-bubble";
 import { NotificationPrompt } from "@/components/notification-prompt";
 import { loadPushState } from "@/lib/notifications";
 import type { ChatMessage, ChatSessionSummary } from "@/lib/types";
+import { getDeviceId } from "@/lib/device-id";
 import { cn } from "@/lib/utils";
 
 // crypto.randomUUID() requires a secure context (HTTPS). Fall back to a
@@ -284,8 +285,16 @@ export function ChatDrawer() {
 
       // Fallback: load from localStorage.
       try {
-        const raw = localStorage.getItem(CHAT_STORAGE_KEY);
-        if (!raw) return;
+        const raw = localStorage.getItem(`dxb:chat-sessions:${getDeviceId()}`);
+        if (!raw) {
+          // Check for legacy global key to migrate
+          const legacyRaw = localStorage.getItem("dxb:chat-sessions");
+          if (legacyRaw) {
+             const parsed = JSON.parse(legacyRaw) as StoredChatSession[];
+             if (Array.isArray(parsed)) setSessions(parsed);
+          }
+          return;
+        }
         const parsed = JSON.parse(raw) as StoredChatSession[];
         if (Array.isArray(parsed)) setSessions(parsed);
       } catch {
@@ -300,7 +309,7 @@ export function ChatDrawer() {
   // Persist sessions to localStorage whenever they change.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(sessions));
+    localStorage.setItem(`dxb:chat-sessions:${getDeviceId()}`, JSON.stringify(sessions));
   }, [sessions]);
 
   useEffect(() => {

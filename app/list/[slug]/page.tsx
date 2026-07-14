@@ -8,6 +8,7 @@ import { Share2, CheckCircle2, ArrowLeft, ListVideo, User, ThumbsUp, ThumbsDown 
 import { MoviePosterCard } from "@/components/movie-poster-card";
 import { MovieDetailDrawer } from "@/components/movie-detail-drawer";
 import { TrailerModal } from "@/components/trailer-modal";
+import { ChatDrawer } from "@/components/chat/chat-drawer";
 import { BottomNav } from "@/components/bottom-nav";
 import { tmdbImage, cn } from "@/lib/utils";
 import type { UserList } from "@/lib/types";
@@ -238,6 +239,7 @@ export default function PublicListPage({ params }: { params: { slug: string } })
 
       <BottomNav />
       <MovieDetailDrawer />
+      <ChatDrawer />
       <TrailerModal />
       <CreateListNudge listOwnerEmail={list.userId} />
     </div>
