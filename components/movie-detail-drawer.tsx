@@ -354,7 +354,7 @@ export function MovieDetailDrawer() {
               </p>
               <div className="mt-3 no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5 pb-4 scrollbar-hide">
                 {fullDetails.providers.map((p: any) => {
-                  const watchUrl = getWatchLink(p.name, movie.id, movie.title);
+                  const watchUrl = getWatchLink(p.name, movie.id, movie.title) ?? undefined;
                   const Wrapper = watchUrl ? "a" : "div";
                   return (
                     <Wrapper
