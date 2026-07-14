@@ -12,7 +12,7 @@ import {
   type AccountState,
 } from "@/lib/account-store";
 import { MODELS } from "@/lib/ai-config";
-import { getDeviceId } from "@/lib/auth";
+
 import { trackEvent } from "@/lib/analytics";
 import { Sparkle } from "@/components/ui/sparkle";
 import { RecommendationCards } from "./recommendation-cards";
