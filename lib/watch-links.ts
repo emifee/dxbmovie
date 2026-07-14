@@ -8,32 +8,44 @@
  */
 
 // Map TMDB provider_name → a function that returns the direct platform search URL.
+// NOTE: Hulu content appears under Disney+ in international markets (incl. UAE) because
+// Disney acquired Hulu. So seeing Disney+ instead of Hulu is correct TMDB behaviour.
 const PROVIDER_MAP: Record<string, (title: string) => string> = {
-  // --- Subscription (flatrate) ---
-  "Netflix":          (t) => `https://www.netflix.com/search?q=${encodeURIComponent(t)}`,
-  "Amazon Prime Video": (t) => `https://www.amazon.com/s?k=${encodeURIComponent(t)}&i=instant-video`,
-  "Prime Video":      (t) => `https://www.amazon.com/s?k=${encodeURIComponent(t)}&i=instant-video`,
-  "Disney Plus":      (t) => `https://www.disneyplus.com/search/${encodeURIComponent(t)}`,
-  "Disney+":          (t) => `https://www.disneyplus.com/search/${encodeURIComponent(t)}`,
-  "Apple TV Plus":    (t) => `https://tv.apple.com/search?term=${encodeURIComponent(t)}`,
-  "Apple TV+":        (t) => `https://tv.apple.com/search?term=${encodeURIComponent(t)}`,
-  "Max":              (t) => `https://www.max.com/search?q=${encodeURIComponent(t)}`,
-  "HBO Max":          (t) => `https://www.max.com/search?q=${encodeURIComponent(t)}`,
-  "Hulu":             (t) => `https://www.hulu.com/search?q=${encodeURIComponent(t)}`,
-  "Paramount Plus":   (t) => `https://www.paramountplus.com/search/?query=${encodeURIComponent(t)}`,
-  "Paramount+":       (t) => `https://www.paramountplus.com/search/?query=${encodeURIComponent(t)}`,
-  "Peacock":          (t) => `https://www.peacocktv.com/search?q=${encodeURIComponent(t)}`,
-  "Peacock Premium":  (t) => `https://www.peacocktv.com/search?q=${encodeURIComponent(t)}`,
-  "Crunchyroll":      (t) => `https://www.crunchyroll.com/search?q=${encodeURIComponent(t)}`,
-  "Mubi":             (t) => `https://mubi.com/en/films?search=${encodeURIComponent(t)}`,
-  "BritBox":          (t) => `https://www.britbox.com/us/searchresults?q=${encodeURIComponent(t)}`,
-  "Showtime":         (t) => `https://www.sho.com/search#${encodeURIComponent(t)}`,
-  "Starz":            (t) => `https://www.starz.com/us/en/search?q=${encodeURIComponent(t)}`,
-  "fuboTV":           (t) => `https://www.fubo.tv/welcome/search?q=${encodeURIComponent(t)}`,
-  "Shudder":          (t) => `https://www.shudder.com/search/${encodeURIComponent(t)}`,
-  "Tubi TV":          (t) => `https://tubitv.com/search/${encodeURIComponent(t)}`,
-  "Tubi":             (t) => `https://tubitv.com/search/${encodeURIComponent(t)}`,
-  "Pluto TV":         (t) => `https://pluto.tv/search?query=${encodeURIComponent(t)}`,
+  // --- Global Tier 1 ---
+  "Netflix":              (t) => `https://www.netflix.com/search?q=${encodeURIComponent(t)}`,
+  "Amazon Prime Video":   (t) => `https://www.amazon.com/s?k=${encodeURIComponent(t)}&i=instant-video`,
+  "Prime Video":          (t) => `https://www.amazon.com/s?k=${encodeURIComponent(t)}&i=instant-video`,
+  "Disney Plus":          (t) => `https://www.disneyplus.com/search/${encodeURIComponent(t)}`,
+  "Disney+":              (t) => `https://www.disneyplus.com/search/${encodeURIComponent(t)}`,
+  "Apple TV Plus":        (t) => `https://tv.apple.com/search?term=${encodeURIComponent(t)}`,
+  "Apple TV+":            (t) => `https://tv.apple.com/search?term=${encodeURIComponent(t)}`,
+  "Max":                  (t) => `https://www.max.com/search?q=${encodeURIComponent(t)}`,
+  "HBO Max":              (t) => `https://www.max.com/search?q=${encodeURIComponent(t)}`,
+  "Hulu":                 (t) => `https://www.hulu.com/search?q=${encodeURIComponent(t)}`,
+
+  // --- Global Tier 2 ---
+  "Paramount Plus":       (t) => `https://www.paramountplus.com/search/?query=${encodeURIComponent(t)}`,
+  "Paramount+":           (t) => `https://www.paramountplus.com/search/?query=${encodeURIComponent(t)}`,
+  "Peacock":              (t) => `https://www.peacocktv.com/search?q=${encodeURIComponent(t)}`,
+  "Peacock Premium":      (t) => `https://www.peacocktv.com/search?q=${encodeURIComponent(t)}`,
+  "Crunchyroll":          (t) => `https://www.crunchyroll.com/search?q=${encodeURIComponent(t)}`,
+  "Mubi":                 (t) => `https://mubi.com/en/films?search=${encodeURIComponent(t)}`,
+  "BritBox":              (t) => `https://www.britbox.com/us/searchresults?q=${encodeURIComponent(t)}`,
+  "Showtime":             (t) => `https://www.sho.com/search?q=${encodeURIComponent(t)}`,
+  "Starz":                (t) => `https://www.starz.com/us/en/search?q=${encodeURIComponent(t)}`,
+  "fuboTV":               (t) => `https://www.fubo.tv/welcome/search?q=${encodeURIComponent(t)}`,
+  "Shudder":              (t) => `https://www.shudder.com/search/${encodeURIComponent(t)}`,
+  "Tubi TV":              (t) => `https://tubitv.com/search/${encodeURIComponent(t)}`,
+  "Tubi":                 (t) => `https://tubitv.com/search/${encodeURIComponent(t)}`,
+  "Pluto TV":             (t) => `https://pluto.tv/search?query=${encodeURIComponent(t)}`,
+
+  // --- MENA / UAE platforms ---
+  "Shahid":               (t) => `https://shahid.mbc.net/en/search?q=${encodeURIComponent(t)}`,
+  "OSN+":                 (t) => `https://osnplus.com/en-ae/search?q=${encodeURIComponent(t)}`,
+  "OSN Plus":             (t) => `https://osnplus.com/en-ae/search?q=${encodeURIComponent(t)}`,
+  "StarzPlay":            (t) => `https://www.starzplay.com/en/search?q=${encodeURIComponent(t)}`,
+  "Starz Play Arabia":    (t) => `https://www.starzplay.com/en/search?q=${encodeURIComponent(t)}`,
+  "Lionsgate Play":       (t) => `https://www.lionsgateplay.com/search?q=${encodeURIComponent(t)}`,
 };
 
 /**
