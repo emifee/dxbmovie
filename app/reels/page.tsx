@@ -703,39 +703,33 @@ export default function ReelsPage() {
                     {/* Gradient to make text readable */}
                     <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
 
-                    {/* Reel Overlay Content */}
                     <div 
                       className={cn(
                         "relative z-20 flex items-end justify-between p-4 lg:p-12 h-full cursor-pointer",
                         isPWA ? "!pb-[160px]" : isInAppBrowser ? "!pb-[140px]" : "!pb-[120px]"
                       )}
                       onClick={() => {
-                        if (ytPlayer) {
+                        const player = ytPlayerRef.current;
+                        if (player) {
                           if (!isPlaying) {
                             // User explicitly tapping to play a blocked video
                             // Start it WITH sound immediately!
                             setGlobalMuted(false);
-                            ytPlayer.unMute();
-                            ytPlayer.playVideo();
+                            player.unMute();
+                            player.playVideo();
+                            // Optimistically update UI so the poster hides instantly
+                            setAutoplayBlocked(false);
+                            setPlayerReady(true);
                           } else {
                             // Video is already playing, toggle mute
                             const newMuted = !globalMuted;
                             setGlobalMuted(newMuted);
-                            if (newMuted) ytPlayer.mute();
-                            else ytPlayer.unMute();
+                            if (newMuted) player.mute();
+                            else player.unMute();
                           }
                         }
                       }}
                     >
-                      {/* Play Affordance Overlay */}
-                      {!isPlaying && (
-                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pb-20 pointer-events-none">
-                          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white transition-transform duration-300 scale-100 hover:scale-110">
-                            <Play className="h-10 w-10 ml-1 fill-white opacity-90" />
-                          </div>
-                        </div>
-                      )}
-                      
                       {/* Left: Info */}
                       <div className="flex flex-col items-start gap-2 max-w-[70%]">
                         <h2 className="text-2xl lg:text-4xl font-bold text-white drop-shadow-lg leading-tight">
