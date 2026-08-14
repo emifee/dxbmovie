@@ -77,7 +77,7 @@ export function EngagementNudge() {
               Not sure what to watch?
             </h3>
             <p className="mt-0.5 text-[13px] text-white/70 leading-relaxed">
-              Ask our AI for a personalized movie pick.
+              Ask Sonia for a personalized movie pick.
             </p>
           </div>
         </div>

@@ -93,3 +93,28 @@ export interface UserList {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface MovieProduct {
+  id: string;
+  movieId: string | number;
+  title: string;
+  description?: string;
+  image: string;
+  category: string;
+  price: number;
+  currency: string;
+  originalPrice?: number;
+  rating?: number;
+  reviewCount?: number;
+  merchant: string;
+  productUrl?: string;
+  affiliateUrl: string;
+  asin?: string;
+  availability?: "in_stock" | "out_of_stock" | "preorder";
+  region?: string;
+  lastUpdated?: string;
+  featured?: boolean;
+  priority?: number;
+  enabled?: boolean;
+  fulfillmentType?: "affiliate" | "dropship" | "owned_inventory" | "marketplace";
+}

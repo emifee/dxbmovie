@@ -816,7 +816,7 @@ export default function ReelsPage() {
                             e.stopPropagation(); 
                             if (reel.movie) useUIStore.getState().openChat(reel.movie); 
                           }}
-                          aria-label="Ask AI about this title"
+                          aria-label="Ask Sonia about this title"
                           className="group flex flex-col items-center gap-1 transition-transform hover:scale-110 active:scale-95"
                         >
                           <div className="flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-md border bg-black/40 border-white/20 text-white group-hover:bg-black/60">

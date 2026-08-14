@@ -237,14 +237,14 @@ async function fetchTMDBDataForAI(query: string, apiKey: string): Promise<string
 export async function POST(request: Request) {
   const tmdbKey = process.env.TMDB_API_KEY;
 
-  let body: { messages: { role: string; content: string }[]; movieContext?: string; imageDataUrl?: string | null; anonId?: string };
+  let body: { messages: { role: string; content: string }[]; movieContext?: string; attachedTitle?: string | null; anonId?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { messages, movieContext, imageDataUrl, anonId } = body;
+  const { messages, movieContext, attachedTitle, anonId } = body;
   const lang = getLanguage();
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "messages array required" }, { status: 400 });
@@ -365,15 +365,15 @@ export async function POST(request: Request) {
     }
   }
 
-  // Append image description to last user message if present
-  if (imageDataUrl && chatMessages.length > 0) {
+  // Attachments are movie/TV posters, so the *title* is what we hand the model.
+  // Previously an arbitrary image produced "[User attached an image for
+  // analysis...]" — but the image itself was never sent, so these text-only
+  // models could only reply that they can't see pictures. Naming the title
+  // gives them something answerable.
+  if (attachedTitle && chatMessages.length > 0) {
     const last = chatMessages[chatMessages.length - 1];
     if (last.role === "user") {
-      if (movieContext && last.content.startsWith("Tell me about ")) {
-        last.content += `\n[System Context: The user attached the poster for ${movieContext}.]`;
-      } else {
-        last.content += "\n[User attached an image for analysis — describe and discuss it in the context of movies/TV.]";
-      }
+      last.content += `\n[System Context: The user attached the poster for "${attachedTitle}". Discuss that title. Do not say you cannot see images.]`;
     }
   }
 

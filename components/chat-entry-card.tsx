@@ -56,7 +56,7 @@ export function ChatEntryCard() {
 
       {/* Social proof */}
       <p className="text-center text-xs text-white/40 -mt-2">
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-400 mr-1.5 animate-pulse align-middle" />
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse align-middle" />
         Join 50+ movie lovers getting personalized AI picks
       </p>
     </button>

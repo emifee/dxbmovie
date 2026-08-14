@@ -60,7 +60,7 @@ export function FilterDrawer() {
       {/* Drawer */}
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-[32px] border-t border-border bg-[#0A0A0A] shadow-2xl transition-transform duration-300 sm:inset-auto sm:right-6 sm:top-24 sm:w-96 sm:rounded-3xl sm:border",
+          "fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-3xl border-t border-border bg-[#0A0A0A] shadow-2xl transition-transform duration-300 sm:inset-auto sm:right-6 sm:top-24 sm:w-96 sm:rounded-3xl sm:border",
           filterOpen ? "translate-y-0 sm:translate-y-0" : "translate-y-full sm:translate-y-8 sm:opacity-0 sm:pointer-events-none"
         )}
       >
@@ -93,7 +93,7 @@ export function FilterDrawer() {
               />
               {/* Keywords */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
                   Keywords (Comma separated)
                 </label>
                 <input
@@ -108,7 +108,7 @@ export function FilterDrawer() {
 
             {/* Genres (Multi-select) */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
                 Genres
               </label>
               <div className="flex flex-wrap gap-2">
@@ -149,7 +149,7 @@ export function FilterDrawer() {
                 ]}
               />
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
                   Years
                 </label>
                 <div className="flex items-center gap-2">

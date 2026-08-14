@@ -7,6 +7,7 @@ import { useUIStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import type { Movie } from "@/lib/types";
 import { MoviePosterCard } from "@/components/movie-poster-card";
+import { SectionLabel } from "@/components/ui/section-label";
 
 interface ActorProfile {
   id: number;
@@ -50,22 +51,23 @@ export function ActorModal() {
       <div
         onClick={closeActor}
         className={cn(
-          "fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm transition-opacity duration-300",
+          "fixed inset-0 z-[80] bg-black/80 backdrop-blur-md transition-opacity duration-300",
           actorId ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       />
 
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-[80] flex max-h-[90vh] flex-col rounded-t-[32px] bg-[#0A0A0A] shadow-2xl transition-transform duration-300 sm:inset-x-auto sm:right-6 sm:top-24 sm:w-[400px] sm:rounded-3xl sm:border sm:border-border",
+          "fixed inset-x-0 bottom-0 z-[80] flex max-h-[90vh] flex-col overflow-hidden rounded-t-3xl bg-[#0A0A0A] shadow-2xl shadow-black/60 transition-transform duration-300 sm:inset-x-auto sm:right-6 sm:top-24 sm:w-[400px] sm:rounded-3xl sm:border sm:border-white/10",
           actorId ? "translate-y-0 sm:translate-y-0" : "translate-y-full sm:translate-y-8 sm:opacity-0 sm:pointer-events-none"
         )}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-white/10 p-5 pb-4">
-          <h2 className="text-lg font-bold text-white">Profile</h2>
+        {/* Floating close — sits over the hero */}
+        <div className="absolute right-4 top-4 z-20">
           <button
             onClick={closeActor}
-            className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-white/70 transition hover:bg-white/20 hover:text-white"
+            aria-label="Close"
+            className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-black/50 text-white/80 backdrop-blur-md transition hover:bg-black/70 hover:text-white"
           >
             <X size={18} />
           </button>
@@ -76,52 +78,85 @@ export function ActorModal() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         ) : actor ? (
-          <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
-            <div className="p-5">
-              <div className="flex gap-4">
-                <div className="relative h-32 w-24 shrink-0 overflow-hidden rounded-xl bg-surface-raised border border-white/10 shadow-lg">
-                  {actor.profilePath ? (
-                    <Image src={actor.profilePath} alt={actor.name} fill unoptimized className="object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-white/20">
-                      {actor.name.charAt(0)}
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col justify-center">
-                  <h1 className="text-2xl font-bold text-white leading-tight">{actor.name}</h1>
-                  <p className="mt-1 text-sm font-medium text-primary">{actor.knownForDepartment}</p>
-                  
-                  {(actor.birthday || actor.placeOfBirth) && (
-                    <div className="mt-3 flex flex-col gap-1.5 text-xs text-text-secondary">
-                      {actor.birthday && (
-                        <div className="flex items-center gap-1.5">
-                          <Calendar size={12} className="text-white/40" />
-                          <span>{new Date(actor.birthday).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                      {actor.placeOfBirth && (
-                        <div className="flex items-center gap-1.5">
-                          <MapPin size={12} className="text-white/40 shrink-0" />
-                          <span className="line-clamp-1">{actor.placeOfBirth}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+          <div className="no-scrollbar flex-1 overflow-y-auto scrollbar-hide pb-10">
+            {/* Full-bleed portrait cover — name sits on the image over a gradient fade.
+                Height is tuned to TMDB's 2:3 portraits: at sheet width the image scales
+                to ~1.5x its width, so a taller hero renders more frame *below* the
+                subject's face, keeping the name clear of it instead of on the chin. */}
+            <div className="relative h-[440px] w-full overflow-hidden">
+              {actor.profilePath ? (
+                <Image
+                  src={actor.profilePath}
+                  alt={actor.name}
+                  fill
+                  unoptimized
+                  priority
+                  className="object-cover object-top"
+                />
+              ) : (
+                <>
+                  <div className="absolute inset-0 bg-gradient-primary opacity-25" />
+                  <div className="absolute inset-0 grid place-items-center text-7xl font-bold text-white/20">
+                    {actor.name.charAt(0)}
+                  </div>
+                </>
+              )}
+
+              {/* Scrim: solid at the base so the name always reads, but confined to the
+                  lower 45% and fading late, so it lands on shoulders — not the face. */}
+              <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/80 to-transparent" />
+              <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/40 to-transparent" />
+
+              <span className="pointer-events-none absolute left-1/2 top-3 h-1 w-10 -translate-x-1/2 rounded-full bg-white/50 sm:hidden" />
+
+              <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
+                <h1 className="text-[30px] font-bold leading-[1.1] tracking-tight text-white drop-shadow-lg">
+                  {actor.name}
+                </h1>
+                {actor.knownForDepartment && (
+                  <p className="mt-1.5 text-[14px] leading-snug text-white/65">
+                    Known for {actor.knownForDepartment.toLowerCase()}
+                    {actor.movies?.length > 0 && ` · ${actor.movies.length} titles`}
+                  </p>
+                )}
               </div>
+            </div>
+
+            <div className="relative px-5 pt-5">
+              {(actor.birthday || actor.placeOfBirth) && (
+                <div className="flex flex-wrap gap-2">
+                  {actor.birthday && (
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11.5px] text-white/70">
+                      <Calendar size={12} className="text-white/40" />
+                      <span>
+                        {new Date(actor.birthday).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  )}
+                  {actor.placeOfBirth && (
+                    <div className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11.5px] text-white/70">
+                      <MapPin size={12} className="shrink-0 text-white/40" />
+                      <span className="line-clamp-1">{actor.placeOfBirth}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {actor.biography && (
-                <div className="mt-6">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary mb-2">Biography</h3>
-                  <div className="relative">
-                    <p className={cn("text-sm leading-relaxed text-white/80", !bioExpanded && "line-clamp-4")}>
+                <div className="mt-7">
+                  <SectionLabel>Biography</SectionLabel>
+                  <div className="relative mt-3">
+                    <p className={cn("text-[13.5px] leading-relaxed text-white/70", !bioExpanded && "line-clamp-4")}>
                       {actor.biography}
                     </p>
                     {actor.biography.length > 200 && (
-                      <button 
+                      <button
                         onClick={() => setBioExpanded(!bioExpanded)}
-                        className="mt-1 text-xs font-bold text-primary hover:underline"
+                        className="mt-2 text-[11px] font-bold uppercase tracking-wide text-primary transition hover:opacity-80"
                       >
                         {bioExpanded ? "Show Less" : "Read More"}
                       </button>
@@ -132,9 +167,9 @@ export function ActorModal() {
             </div>
 
             {actor.movies?.length > 0 && (
-              <div className="mt-2 border-t border-white/5 pt-6">
-                <div className="px-5 mb-4 flex items-center justify-between">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Known For</h3>
+              <div className="mt-8 border-t border-white/[0.07] pt-6">
+                <div className="mb-4 px-5">
+                  <SectionLabel>Known For</SectionLabel>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 pb-4 scrollbar-hide no-scrollbar">
                   {actor.movies.map((m) => (

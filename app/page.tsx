@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { MOCK_MOVIES } from "@/lib/mock-data";
 import { STREAMING_SERVICES, PROVIDER_THEMES, GENRE_THEMES } from "@/lib/constants";
 import type { Movie, UserList } from "@/lib/types";
+import { SectionLabel } from "@/components/ui/section-label";
 
 const OnboardingOverlay = dynamic(
   () => import("@/components/onboarding-overlay").then((m) => ({ default: m.OnboardingOverlay })),
@@ -601,7 +602,7 @@ export default function HomePage() {
           {searchOpen && !searchQuery && searchHistory.length > 0 && (
             <div className="mb-5 animate-in fade-in slide-in-from-top-2 duration-300">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-text-secondary">Recent Searches</h3>
+                <SectionLabel>Recent Searches</SectionLabel>
                 <button 
                   onClick={() => { clearSearchHistory(); setSearchHistory([]); }}
                   className="text-xs text-text-secondary transition hover:text-white"
@@ -711,7 +712,7 @@ export default function HomePage() {
         </section>
 
         {isDefaultHome && (
-          <div className="relative z-20 mt-3 lg:mt-5 space-y-4">
+          <div className="relative z-20 mt-3 lg:mt-5 space-y-1">
             {dxbTrending.length > 0 && (
               <MovieCarousel 
                 title="Trending on DXB" 

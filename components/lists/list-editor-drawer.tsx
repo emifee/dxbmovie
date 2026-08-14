@@ -143,7 +143,7 @@ export function ListEditorDrawer({ list, onClose, onSaved }: Props) {
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
           {/* List Name */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-widest text-white/40 mb-2">List Name</label>
+            <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary mb-2">List Name</label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -155,7 +155,7 @@ export function ListEditorDrawer({ list, onClose, onSaved }: Props) {
 
           {/* Search to add */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-widest text-white/40 mb-2">Search & Add Titles</label>
+            <label className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary mb-2">Search & Add Titles</label>
             <div className="relative">
               <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
               <input
@@ -209,7 +209,7 @@ export function ListEditorDrawer({ list, onClose, onSaved }: Props) {
           {items.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold uppercase tracking-widest text-white/40">
+                <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
                   Your List ({itemCount}/{MAX_ITEMS})
                 </label>
                 {/* Progress bar */}

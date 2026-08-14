@@ -7,6 +7,10 @@ const config: Config = {
   content: [
     "./app/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
+    // lib/ historically held raw hex values (PROVIDER_THEMES etc.) so it was
+    // never scanned — but cover-theme.ts defines real class strings, and they'd
+    // be purged without this.
+    "./lib/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {
@@ -113,6 +117,11 @@ const config: Config = {
           "0%, 80%, 100%": { opacity: "0.3", transform: "scale(0.8)" },
           "40%": { opacity: "1", transform: "scale(1)" },
         },
+        // Sweeping highlight for loading skeletons — reads as "loading" rather
+        // than the hollow outlined boxes a flat pulse leaves behind.
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
       },
       animation: {
         "orb-pulse": "orb-pulse 4s ease-in-out infinite",
@@ -128,6 +137,7 @@ const config: Config = {
         "pulse-glow": "pulse-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "gemini-bg": "gemini-bg 12s ease infinite",
         "gemini-dot": "gemini-dot 1.4s ease-in-out infinite",
+        shimmer: "shimmer 1.6s infinite",
       },
     },
   },

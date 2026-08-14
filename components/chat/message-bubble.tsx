@@ -198,7 +198,7 @@ export function MessageBubble({ message, onEdit }: { message: ChatMessage; onEdi
 
         {/* Action row */}
         {message.content !== "…" && (
-          <div className="mt-2 flex items-center gap-3.5 pl-0.5 text-white/30">
+          <div className="mt-1.5 -ml-1.5 flex items-center gap-0.5 text-white/30">
             <ActionIcon 
               label="Good response" 
               onClick={() => toggleFeedback("up")}
@@ -221,10 +221,10 @@ export function MessageBubble({ message, onEdit }: { message: ChatMessage; onEdi
               {isPlaying ? <Square size={12} className="fill-current" /> : <Volume2 size={14} />}
             </ActionIcon>
             {message.timestamp && (
-              <span className={cn(
-                "ml-auto text-[10px] font-medium",
-                message.provider === "groq" ? "text-emerald-400/60" : message.provider === "openai" ? "text-sky-400/60" : "text-white/20"
-              )}>
+              /* Uniform regardless of which model served the reply — this used to be
+                 tinted per provider (groq→emerald, openai→sky), leaking backend
+                 routing into the UI as a stray colour users couldn't interpret. */
+              <span className="ml-auto text-[10px] font-medium text-white/25">
                 {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
@@ -261,7 +261,12 @@ function ActionIcon({
     <button
       aria-label={label}
       onClick={onClick}
-      className={cn("transition", active ? "text-primary" : "hover:text-white/70")}
+      /* Sized as a real touch target — the bare 14px icon was far below the
+         ~44px minimum and read as cramped clutter under every message. */
+      className={cn(
+        "grid h-8 w-8 place-items-center rounded-full transition",
+        active ? "text-primary" : "text-white/30 hover:bg-white/[0.06] hover:text-white/70"
+      )}
     >
       {children}
     </button>

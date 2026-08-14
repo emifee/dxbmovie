@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { ChevronRight, Plus, X, Sparkles, LogOut, Pencil, Check, Trash2, Smartphone, User } from "lucide-react";
+import { ChevronRight, Plus, X, Sparkles, LogOut, Pencil, Check, Trash2, Smartphone, User, Palette } from "lucide-react";
 import { useSession, signOut as nextAuthSignOut } from "next-auth/react";
 import { BottomNav } from "@/components/bottom-nav";
 import { SideNav } from "@/components/side-nav";
@@ -26,6 +26,14 @@ import { GoogleButton } from "@/components/login/google-button";
 import Link from "next/link";
 import { toPng } from "html-to-image";
 import { TasteFeedbackModal } from "@/components/taste-feedback-modal";
+import { SectionLabel } from "@/components/ui/section-label";
+import { CollapsibleSection } from "@/components/ui/collapsible-section";
+import {
+  COVER_THEMES,
+  DEFAULT_COVER_THEME,
+  resolveCoverTheme,
+  type CoverTheme,
+} from "@/lib/cover-theme";
 
 export default function ProfilePage() {
   const openDetail = useUIStore((s) => s.openDetail);
@@ -52,6 +60,10 @@ export default function ProfilePage() {
   const [usernameInput, setUsernameInput] = useState("");
   const [claimingUsername, setClaimingUsername] = useState(false);
   const [usernameError, setUsernameError] = useState("");
+  // Cover theme is server-owned; it arrives with the profile fetch and the
+  // default stands in until then.
+  const [coverTheme, setCoverThemeState] = useState<CoverTheme>(DEFAULT_COVER_THEME);
+  const [coverPickerOpen, setCoverPickerOpen] = useState(false);
   const [dnaEditing, setDnaEditing] = useState(false);
   const [dnaWorking, setDnaWorking] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -106,6 +118,7 @@ export default function ProfilePage() {
         if (data.accuracyScore !== undefined) setAccuracyScore(data.accuracyScore);
         if (data.accuracyMessage) setAccuracyMessage(data.accuracyMessage);
         if (data.username) setUsername(data.username);
+        setCoverThemeState(resolveCoverTheme(data.coverTheme));
       }
 
       if (watchlistRes.ok) {
@@ -358,20 +371,71 @@ export default function ProfilePage() {
         <div className="flex flex-col items-center text-center">
           {signedIn ? (
             <>
-              <div className="rounded-full bg-gradient-primary p-[3px] shadow-glow">
-                <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-surface">
+              {/* Cover band — full-bleed colour wash behind the avatar. */}
+              <div className="group relative -mx-5 -mt-10 h-36 self-stretch overflow-hidden lg:-mx-10">
+                <div className={cn("absolute inset-0 opacity-70", coverTheme.className)} />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+
+                <button
+                  type="button"
+                  onClick={() => setCoverPickerOpen((v) => !v)}
+                  aria-label="Change cover colour"
+                  aria-expanded={coverPickerOpen}
+                  className="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-black/40 text-white/80 backdrop-blur-md transition hover:bg-black/60 hover:text-white"
+                >
+                  <Palette size={16} />
+                </button>
+
+                {coverPickerOpen && (
+                  <div className="absolute right-4 top-16 z-20 animate-fade-in rounded-2xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur-md">
+                    <div className="flex gap-2">
+                      {COVER_THEMES.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => {
+                            const previous = coverTheme;
+                            // Optimistic: paint immediately, roll back if the
+                            // write fails so the UI never lies about what's saved.
+                            setCoverThemeState(t);
+                            setCoverPickerOpen(false);
+                            fetch("/api/user/profile", {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ coverTheme: t.id }),
+                            })
+                              .then((r) => {
+                                if (!r.ok) setCoverThemeState(previous);
+                              })
+                              .catch(() => setCoverThemeState(previous));
+                          }}
+                          aria-label={t.label}
+                          className={cn(
+                            "h-8 w-8 rounded-full ring-2 ring-offset-2 ring-offset-surface transition hover:scale-110",
+                            t.className,
+                            coverTheme.id === t.id ? "ring-white" : "ring-transparent"
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative z-10 -mt-12 rounded-full bg-gradient-primary p-[3px] shadow-glow">
+                <div className="grid h-24 w-24 place-items-center overflow-hidden rounded-full bg-surface">
                   {avatarUrl ? (
-                    <Image src={avatarUrl} alt={fullName} width={80} height={80} className="object-cover" />
+                    <Image src={avatarUrl} alt={fullName} width={96} height={96} className="h-full w-full object-cover" />
                   ) : (
-                    <span className="text-2xl font-bold text-gradient">{displayName.charAt(0)}</span>
+                    <span className="text-3xl font-bold text-gradient">{displayName.charAt(0)}</span>
                   )}
                 </div>
               </div>
-              <h1 className="mt-3 text-xl font-bold text-white">{fullName}</h1>
+              <h1 className="mt-3 text-2xl font-bold tracking-tight text-white">{fullName}</h1>
               {username ? (
-                <p className="text-sm text-primary">dxbmovie.online/card/{username}</p>
+                <p className="mt-0.5 text-sm text-primary">dxbmovie.online/card/{username}</p>
               ) : (
-                <p className="text-sm text-text-secondary">Joined {joinedDisplay}</p>
+                <p className="mt-0.5 text-sm text-text-secondary">Joined {joinedDisplay}</p>
               )}
 
               {/* Movie Fans Card Share Button */}
@@ -519,7 +583,7 @@ export default function ProfilePage() {
 
         {signedIn && !aiCompanion && (
           <section className="mt-6 rounded-2xl border border-border bg-surface p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-text-secondary">Create Your AI Character</p>
+            <SectionLabel>Create Your AI Character</SectionLabel>
 
             {wizardStep === 1 && (
               <div className="mt-3">
@@ -629,7 +693,7 @@ export default function ProfilePage() {
                 </div>
 
                 {companionError && (
-                  <p className="mt-3 text-xs text-rose-300">{companionError}</p>
+                  <p className="mt-3 text-xs text-red-400">{companionError}</p>
                 )}
               </div>
             )}
@@ -638,7 +702,7 @@ export default function ProfilePage() {
 
         {signedIn && aiCompanion && (
           <section className="mt-6 rounded-2xl border border-border bg-surface p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-text-secondary">Your AI Companion</p>
+            <SectionLabel>Your AI Companion</SectionLabel>
             <div className="mt-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <CompanionAvatar companion={aiCompanion} size={52} />
@@ -855,13 +919,16 @@ export default function ProfilePage() {
         )}
 
         {/* Recent conversations — real data */}
-        <section className="mt-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-bold text-white">Recent AI Conversations</h2>
-            {conversations.length > 0 && (
+        <CollapsibleSection
+          title="Recent AI Conversations"
+          defaultOpen
+          count={conversations.length}
+          action={
+            conversations.length > 0 ? (
               <button className="text-xs font-medium text-gradient">See all</button>
-            )}
-          </div>
+            ) : undefined
+          }
+        >
           {conversations.length > 0 ? (
             <div className="overflow-hidden rounded-2xl border border-border bg-surface">
               {conversations.map((s, i) => (
@@ -901,11 +968,10 @@ export default function ProfilePage() {
               </p>
             </div>
           )}
-        </section>
+        </CollapsibleSection>
 
         {/* Settings */}
-        <section className="mt-6">
-          <h2 className="mb-3 text-base font-bold text-white">Settings</h2>
+        <CollapsibleSection title="Settings">
           <div className="space-y-4 rounded-2xl border border-border bg-surface p-5">
             {/* Notifications */}
             <div className="flex items-center justify-between">
@@ -966,7 +1032,7 @@ export default function ProfilePage() {
             <LogOut size={16} />
             Sign out
           </button>
-        </section>
+        </CollapsibleSection>
           </>
         )}
       </div>

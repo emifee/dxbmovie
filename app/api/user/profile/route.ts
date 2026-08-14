@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { COVER_THEME_IDS } from "@/lib/cover-theme";
 
 const DB_NAME = "dxbmovies";
 
@@ -83,6 +84,7 @@ export async function GET() {
       accuracyScore,
       accuracyMessage,
       username: userDoc?.username || null,
+      coverTheme: userDoc?.coverTheme || null,
       country: userDoc?.country || null,
       countryCode: userDoc?.countryCode || null,
       city: userDoc?.city || null,
@@ -90,6 +92,44 @@ export async function GET() {
     });
   } catch (err) {
     console.error("[profile GET]", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+/**
+ * PATCH /api/user/profile — update user-editable profile fields.
+ * Body: { coverTheme: string }
+ */
+export async function PATCH(request: Request) {
+  const userId = await getUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let body: { coverTheme?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { coverTheme } = body;
+  // Validate against the known ids — the stored value is resolved into a CSS
+  // class on render, so an arbitrary client string must never reach the DB.
+  if (typeof coverTheme !== "string" || !COVER_THEME_IDS.includes(coverTheme)) {
+    return NextResponse.json({ error: "Invalid cover theme" }, { status: 400 });
+  }
+
+  try {
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    await db
+      .collection("users")
+      .updateOne({ _id: new ObjectId(userId) }, { $set: { coverTheme } });
+
+    return NextResponse.json({ ok: true, coverTheme });
+  } catch (err) {
+    console.error("[profile PATCH]", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

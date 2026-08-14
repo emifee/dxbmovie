@@ -12,6 +12,9 @@ import {
   type AccountState,
 } from "@/lib/account-store";
 import { MODELS } from "@/lib/ai-config";
+import { tmdbImage } from "@/lib/utils";
+import type { Movie } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { trackEvent } from "@/lib/analytics";
 import { Sparkle } from "@/components/ui/sparkle";
@@ -105,8 +108,14 @@ export function ChatDrawer() {
   const [draft, setDraft] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  // Attachment is always a movie/TV poster — `attachedTitle` is the part the
+  // (text-only) model actually consumes; the poster is just what the user sees.
   const [attachedImageDataUrl, setAttachedImageDataUrl] = useState<string | null>(null);
-  const [attachedImageName, setAttachedImageName] = useState<string | null>(null);
+  const [attachedTitle, setAttachedTitle] = useState<string | null>(null);
+  const [posterPickerOpen, setPosterPickerOpen] = useState(false);
+  const [posterQuery, setPosterQuery] = useState("");
+  const [posterResults, setPosterResults] = useState<Movie[]>([]);
+  const [posterLoading, setPosterLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNotifPrompt, setShowNotifPrompt] = useState(false);
   const [sessions, setSessions] = useState<StoredChatSession[]>([]);
@@ -117,7 +126,6 @@ export function ChatDrawer() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prevSessionId = useRef(activeSessionId);
   const menuRef = useRef<HTMLDivElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
   const draftRef = useRef(draft);
   const voiceTranscriptRef = useRef("");
@@ -192,6 +200,10 @@ export function ChatDrawer() {
 
         if (hoursSinceFirstVisit > 24) {
           // More than 24 hours since they first visited. Fall back to just appending the text without ElevenLabs voice.
+          // Stamp the flag here too: it used to be set only on the TTS success
+          // path below, so every returning user (who always takes this branch)
+          // left it unset and re-triggered the whole greeting on every open.
+          localStorage.setItem("dxb:last-voice-intro", Date.now().toString());
           setMessages((prev) => {
             if (prev.length > 0) return prev;
             return [
@@ -245,11 +257,32 @@ export function ChatDrawer() {
           ];
         });
       } catch (error) {
-        console.error("Proactive greeting failed:", error);
+        // TTS is best-effort. It used to just log, which meant a failed voice
+        // fetch left the user with an indicator and then silence — no greeting
+        // at all. Fall back to the same greeting as plain text.
+        console.error("Proactive greeting voice failed, falling back to text:", error);
+        if (!isCancelled) {
+          localStorage.setItem("dxb:last-voice-intro", Date.now().toString());
+          setMessages((prev) =>
+            prev.length > 0
+              ? prev
+              : [
+                  ...prev,
+                  {
+                    id: `msg-${Date.now()}`,
+                    role: "assistant",
+                    content: text,
+                    timestamp: Date.now(),
+                  },
+                ]
+          );
+        }
       } finally {
         if (!isCancelled) setAiRecording(false);
       }
-    }, 5000);
+      // Was 5000ms — a stall that existed purely to make the fake "Recording"
+      // look plausible. The indicator now covers real TTS latency instead.
+    }, 600);
 
     return () => {
       isCancelled = true;
@@ -327,7 +360,7 @@ export function ChatDrawer() {
 
   const autoSendTriggered = useRef<string | null>(null);
 
-  // When opened with a movie context ("Ask AI about this"), auto-send a prompt with the cover.
+  // When opened with a movie context ("Ask {companion} about this"), auto-send a prompt with the cover.
   useEffect(() => {
     if (open && movieContext && autoSendTriggered.current !== movieContext.title) {
       autoSendTriggered.current = movieContext.title;
@@ -392,6 +425,39 @@ export function ChatDrawer() {
       }, 300);
     }
   }, [open, pendingChatMessage, setPendingChatMessage]);
+
+  // Debounced title search for the poster picker. `cancelled` guards against a
+  // slow earlier request landing after a newer one and clobbering results.
+  useEffect(() => {
+    const q = posterQuery.trim();
+    if (!posterPickerOpen || q.length < 2) {
+      setPosterResults([]);
+      setPosterLoading(false);
+      return;
+    }
+
+    setPosterLoading(true);
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      fetch(`/api/movies/search?q=${encodeURIComponent(q)}`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data: Movie[]) => {
+          if (cancelled) return;
+          setPosterResults(Array.isArray(data) ? data.slice(0, 12) : []);
+        })
+        .catch(() => {
+          if (!cancelled) setPosterResults([]);
+        })
+        .finally(() => {
+          if (!cancelled) setPosterLoading(false);
+        });
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [posterQuery, posterPickerOpen]);
 
   if (!open) return null;
 
@@ -468,25 +534,29 @@ export function ChatDrawer() {
     cleanupRecording();
   }
 
+  /**
+   * Attach a poster instead of an arbitrary image.
+   *
+   * The chat models are text-only — an uploaded photo never reached them, the
+   * server just appended "[user attached an image]" and the assistant could only
+   * reply that it can't see pictures. A poster always carries a title, so
+   * attaching one gives the model text it can actually reason about.
+   */
   function pickImage() {
-    imageInputRef.current?.click();
+    setPosterPickerOpen((v) => !v);
   }
 
-  function onImageSelected(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) return;
+  function attachPoster(movie: Movie) {
+    setAttachedImageDataUrl(tmdbImage(movie.posterPath, "w342"));
+    setAttachedTitle(movie.year ? `${movie.title} (${movie.year})` : movie.title);
+    setPosterPickerOpen(false);
+    setPosterQuery("");
+    setPosterResults([]);
+  }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : null;
-      setAttachedImageDataUrl(result);
-      setAttachedImageName(file.name);
-    };
-    reader.readAsDataURL(file);
-
-    // Allow selecting the same file again later.
-    event.target.value = "";
+  function clearAttachment() {
+    setAttachedImageDataUrl(null);
+    setAttachedTitle(null);
   }
 
   const topic =
@@ -500,7 +570,7 @@ export function ChatDrawer() {
     setDraft("");
     setShowSuggestions(false);
     setAttachedImageDataUrl(null);
-    setAttachedImageName(null);
+    setAttachedTitle(null);
     setMenuOpen(false);
   }
 
@@ -554,7 +624,11 @@ export function ChatDrawer() {
     const value = text.trim();
     const hasImage = Boolean(imageDataUrl);
     if (!value && !hasImage) return;
-    const outboundText = value || "Analyze this image and suggest what to watch.";
+    // Attachments are posters now, so the fallback prompt names the title —
+    // the model gets something it can actually answer, instead of being asked
+    // to "analyze an image" it will never receive.
+    const outboundText =
+      value || (attachedTitle ? `Tell me about ${attachedTitle}.` : "Suggest something to watch.");
 
     const acct = useAccountStore.getState();
 
@@ -579,7 +653,7 @@ export function ChatDrawer() {
     const userMsg: ChatMessage = {
       id: genId(),
       role: "user",
-      content: text === "Analyze this image and suggest what to watch." && imageDataUrl ? "Sent an image for analysis." : text,
+      content: text,
       timestamp: Date.now(),
       ...(imageDataUrl ? { imageUrl: imageDataUrl } : {}),
     };
@@ -589,7 +663,7 @@ export function ChatDrawer() {
     setMessages((prev) => [...prev, userMsg, loadingMsg]);
     setDraft("");
     setAttachedImageDataUrl(null);
-    setAttachedImageName(null);
+    setAttachedTitle(null);
 
     useAccountStore.getState().recordSend();
     trackEvent("sonia_message_sent", { message_index: messages.length + 1 });
@@ -610,7 +684,9 @@ export function ChatDrawer() {
       body: JSON.stringify({
         messages: history,
         movieContext: movieContext?.title ?? null,
-        imageDataUrl,
+        // The title is the payload that matters — the poster is display-only.
+        // Captured before the composer resets below.
+        attachedTitle,
         anonId: getDeviceId(),
       }),
     })
@@ -725,7 +801,7 @@ export function ChatDrawer() {
                   </button>
 
                   <div className="mt-2 border-t border-white/10 pt-2">
-                    <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/30">
+                    <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
                       Previous chats
                     </p>
 
@@ -776,17 +852,16 @@ export function ChatDrawer() {
                   />
                 ))}
                 
+                {/* Greeting is on its way — a plain typing indicator. This used
+                    to read "🎤 Recording", which claimed the assistant was
+                    recording a voice note it never records; it only fetches TTS. */}
                 {aiRecording && (
                   <div className="flex animate-message-in gap-3">
                     <CompanionAvatar companion={signedIn ? aiCompanion : null} size={28} className="mt-1 shrink-0" />
-                    <div className="flex items-center gap-3 rounded-3xl bg-white/[0.08] px-5 py-3 backdrop-blur-md">
-                      <Mic size={14} className="text-primary animate-pulse" />
-                      <span className="text-[13px] font-medium text-white/80 tracking-wide">Recording</span>
-                      <div className="flex items-center gap-1 mt-1">
-                        <div className="h-1 w-1 animate-bounce rounded-full bg-white/50" style={{ animationDelay: "0ms" }} />
-                        <div className="h-1 w-1 animate-bounce rounded-full bg-white/50" style={{ animationDelay: "150ms" }} />
-                        <div className="h-1 w-1 animate-bounce rounded-full bg-white/50" style={{ animationDelay: "300ms" }} />
-                      </div>
+                    <div className="flex items-center gap-1.5 rounded-3xl bg-white/[0.08] px-4 py-3 backdrop-blur-md">
+                      <span className="h-2 w-2 rounded-full bg-white/60 animate-gemini-dot" style={{ animationDelay: "0ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-white/60 animate-gemini-dot" style={{ animationDelay: "200ms" }} />
+                      <span className="h-2 w-2 rounded-full bg-white/60 animate-gemini-dot" style={{ animationDelay: "400ms" }} />
                     </div>
                   </div>
                 )}
@@ -799,36 +874,76 @@ export function ChatDrawer() {
 
           {/* ─── Input bar ─── */}
           <div className="relative px-2 sm:px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept="image/*"
-              aria-label="Attach an image"
-              className="hidden"
-              onChange={onImageSelected}
-            />
+            {/* Poster picker — search titles, attach the poster plus its name */}
+            {posterPickerOpen && !isListening && (
+              <div className="mb-3 animate-fade-in rounded-2xl border border-white/10 bg-[#1C1C1E]/95 p-3 backdrop-blur-md">
+                <input
+                  autoFocus
+                  value={posterQuery}
+                  onChange={(e) => setPosterQuery(e.target.value)}
+                  placeholder="Search a movie or show…"
+                  className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:border-primary/60 focus:outline-none"
+                />
+
+                <div className="mt-3 min-h-[96px]">
+                  {posterLoading ? (
+                    <div className="flex gap-2">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-24 w-16 shrink-0 rounded-lg" />
+                      ))}
+                    </div>
+                  ) : posterResults.length > 0 ? (
+                    <div className="no-scrollbar flex gap-2 overflow-x-auto">
+                      {posterResults.map((m) => {
+                        const p = tmdbImage(m.posterPath, "w185");
+                        return (
+                          <button
+                            key={`${m.mediaType}-${m.id}`}
+                            type="button"
+                            onClick={() => attachPoster(m)}
+                            className="group relative grid h-24 w-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-surface-raised ring-1 ring-white/10 transition hover:ring-primary/70"
+                            aria-label={`Attach ${m.title}`}
+                          >
+                            {p ? (
+                              <Image src={p} alt={m.title} fill sizes="64px" unoptimized className="object-cover" />
+                            ) : (
+                              <span className="line-clamp-3 p-1 text-[9px] font-bold text-white/50">{m.title}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="pt-7 text-center text-xs text-white/30">
+                      {posterQuery.trim().length > 1 ? "No titles found" : "Type to find a title"}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
 
             {attachedImageDataUrl && !isListening && (
-              <div className="mb-3 relative inline-block">
-                <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm">
+              <div className="mb-3 inline-flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.06] p-1.5 pr-3">
+                <div className="relative h-12 w-9 shrink-0 overflow-hidden rounded-lg bg-surface-raised">
                   <Image
                     src={attachedImageDataUrl}
-                    alt="Attached preview"
+                    alt={attachedTitle ?? "Attached poster"}
                     fill
+                    sizes="36px"
                     className="object-cover"
                     unoptimized
                   />
                 </div>
+                <span className="max-w-[180px] truncate text-xs font-medium text-white/80">
+                  {attachedTitle}
+                </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    setAttachedImageDataUrl(null);
-                    setAttachedImageName(null);
-                  }}
-                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/80 border border-white/10 text-white/50 hover:text-white shadow-md transition-colors"
-                  aria-label="Remove image"
+                  onClick={clearAttachment}
+                  className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-black/50 text-white/50 transition hover:text-white"
+                  aria-label="Remove attached title"
                 >
-                  <X size={14} />
+                  <X size={13} />
                 </button>
               </div>
             )}
@@ -898,7 +1013,15 @@ export function ChatDrawer() {
               </div>
             ) : (
               /* ─── Normal text input ─── */
-              <div className="flex items-end gap-2 rounded-3xl bg-[#1C1C1E]/90 backdrop-blur-md px-3 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.5)] ring-1 ring-primary/40 focus-within:ring-2 focus-within:ring-primary transition-shadow">
+              /* Gradient edge on focus: a brand-gradient layer sits behind the bar
+                 and fades in via focus-within. The wrapper's padding is what
+                 reveals it as a border — CSS can't put a gradient on border-color. */
+              <div className="group relative rounded-3xl p-[1.5px]">
+                <div
+                  aria-hidden
+                  className="absolute inset-0 rounded-3xl bg-gradient-primary opacity-40 blur-[2px] transition-opacity duration-300 group-focus-within:opacity-100 group-focus-within:blur-[6px] motion-reduce:transition-none"
+                />
+                <div className="relative flex items-end gap-2 rounded-[calc(1.5rem-1px)] bg-[#1C1C1E] px-3 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
                 <button
                   type="button"
                   aria-label="Quick suggestions"
@@ -932,9 +1055,13 @@ export function ChatDrawer() {
                 />
                 <button
                   type="button"
-                  aria-label="Attach image"
+                  aria-label="Attach a movie or show poster"
+                  aria-expanded={posterPickerOpen}
                   onClick={pickImage}
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-white/40 transition hover:text-white/70"
+                  className={cn(
+                    "grid h-10 w-10 shrink-0 place-items-center rounded-full transition",
+                    posterPickerOpen ? "text-primary" : "text-white/40 hover:text-white/70"
+                  )}
                 >
                   <ImagePlus size={20} />
                 </button>
@@ -959,6 +1086,7 @@ export function ChatDrawer() {
                     <Mic size={20} />
                   </button>
                 )}
+                </div>
               </div>
             )}
           </div>

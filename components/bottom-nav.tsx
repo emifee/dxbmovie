@@ -1,16 +1,10 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, useRef } from "react";
 import { Home, Sparkles, Clapperboard, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/lib/store";
-
-const NUDGES = [
-  "Want more like this? Ask Sonia for recommendations 🎬",
-  "Ask me anything about films ✨",
-  "Not sure what to watch? Ask Sonia 🍿",
-];
 
 /**
  * Instagram-style floating pill bottom navigation.
@@ -39,61 +33,7 @@ export function BottomNav() {
   const isProfile = pathname === "/profile" && !chatOpen && !searchOpen;
   const isHome = pathname === "/" && !isReels && !isChat;
 
-  // ── Nudge bubble ──────────────────────────────────────────────────────────
-  const [nudge, setNudge] = useState<string | null>(null);
-  const [nudgePos, setNudgePos] = useState<{ x: number; bottom: number } | null>(null);
   const chatBtnRef = useRef<HTMLButtonElement>(null);
-  const nudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function showNudge() {
-    const el = chatBtnRef.current;
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      setNudgePos({
-        x: rect.left + rect.width / 2,
-        bottom: window.innerHeight - rect.top + 10,
-      });
-    }
-    const msg = NUDGES[Math.floor(Math.random() * NUDGES.length)];
-    setNudge(msg);
-  }
-
-  useEffect(() => {
-    if (isChat) {
-      if (nudgeTimer.current) clearTimeout(nudgeTimer.current);
-      if (hideTimer.current) clearTimeout(hideTimer.current);
-      setNudge(null);
-      return;
-    }
-
-    function scheduleNext() {
-      const delay = 45_000 + Math.random() * 45_000;
-      nudgeTimer.current = setTimeout(() => {
-        showNudge();
-        hideTimer.current = setTimeout(() => {
-          setNudge(null);
-          scheduleNext();
-        }, 4000);
-      }, delay);
-    }
-
-    // First nudge: 20–40 seconds after mount
-    const firstDelay = 20_000 + Math.random() * 20_000;
-    nudgeTimer.current = setTimeout(() => {
-      showNudge();
-      hideTimer.current = setTimeout(() => {
-        setNudge(null);
-        scheduleNext();
-      }, 4000);
-    }, firstDelay);
-
-    return () => {
-      if (nudgeTimer.current) clearTimeout(nudgeTimer.current);
-      if (hideTimer.current) clearTimeout(hideTimer.current);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isChat]);
 
   function handleHome() {
     closeSearch();
@@ -126,40 +66,6 @@ export function BottomNav() {
 
   return (
     <>
-      {/* Nudge bubble — fixed to exact icon position */}
-      {nudge && nudgePos && (
-        <div
-          key={nudge}
-          onClick={handleChat}
-          className="fixed z-40 animate-nudge-in pointer-events-auto cursor-pointer transition-transform hover:scale-105 active:scale-95"
-          style={{
-            bottom: nudgePos.bottom,
-            left: nudgePos.x,
-            transform: "translateX(-50%)",
-          }}
-        >
-          <div className="relative whitespace-nowrap rounded-2xl bg-gradient-primary px-4 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.6)] animate-pulse">
-            {nudge}
-            {/* Arrow tail pointing down at the icon */}
-            <svg
-              className="absolute -bottom-2 left-1/2 -translate-x-1/2"
-              width="14"
-              height="8"
-              viewBox="0 0 14 8"
-              fill="none"
-            >
-              <path d="M7 8L0 0H14L7 8Z" fill="url(#nudge-grad)" />
-              <defs>
-                <linearGradient id="nudge-grad" x1="0" y1="0" x2="14" y2="0" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#EC4899" />
-                  <stop offset="1" stopColor="#8B5CF6" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-        </div>
-      )}
-
       <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-center pb-[max(0.5rem,env(safe-area-inset-bottom))] px-4 lg:hidden">
         <div className="flex w-full max-w-[320px] items-center justify-around rounded-[2rem] border border-white/[0.08] bg-surface-raised/70 px-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
           {/* Home */}
