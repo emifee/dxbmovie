@@ -73,9 +73,10 @@ export const authOptions: NextAuthOptions = {
 
     session({ session, user }) {
       if (session.user) {
-        (session.user as typeof session.user & { id: string; onboardingDone?: boolean }).id = user.id;
-        (session.user as typeof session.user & { id: string; onboardingDone?: boolean }).onboardingDone =
-          (user as typeof user & { onboardingDone?: boolean }).onboardingDone ?? false;
+        const u = session.user as any;
+        u.id = user.id;
+        u.onboardingDone = (user as any).onboardingDone ?? false;
+        u.role = (user as any).role ?? "USER";
       }
       return session;
     },

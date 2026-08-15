@@ -502,7 +502,7 @@ export function MovieDetailDrawer() {
                     </div>
                   ))
                 ) : (
-                  products.map((product) => (
+                  products.map((product, index) => (
                     <div
                       key={product.id}
                       className="group flex w-[200px] shrink-0 flex-col justify-between overflow-hidden rounded-2xl bg-white/[0.02] ring-1 ring-white/10 transition-all hover:bg-white/[0.04] hover:ring-white/20"
@@ -533,29 +533,42 @@ export function MovieDetailDrawer() {
                             </div>
                           )}
                           <div className="mt-1">
-                            <span className="text-lg font-bold text-white">
-                              {product.price} <span className="text-xs font-medium text-white/50">{product.currency}</span>
-                            </span>
-                            {product.originalPrice && (
+                            {product.price ? (
+                              <span className="text-lg font-bold text-white">
+                                {product.price} <span className="text-xs font-medium text-white/50">{product.currency}</span>
+                              </span>
+                            ) : null}
+                            {product.originalPrice ? (
                               <span className="ml-1.5 text-xs text-white/40 line-through">
                                 {product.originalPrice}
                               </span>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       </div>
                       <div className="mt-3 p-3 pt-0">
                         <a
-                          href={product.affiliateUrl}
+                          href={product.canonicalProductUrl || product.affiliateUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => {
+                            // Extract UTMs if present in current URL (in a real app, from session/cookies)
+                            const urlParams = new URLSearchParams(window.location.search);
+                            
                             // Track outbound click
                             const clickData = {
                               movieId: movie.id,
                               productId: product.id,
                               merchant: product.merchant,
                               source: "movie_detail_drawer",
+                              provider: product.provider,
+                              productCategory: product.category,
+                              region: product.sourceRegion || "unknown",
+                              position: index + 1,
+                              featured: product.featured || false,
+                              utmSource: urlParams.get("utm_source") || "",
+                              utmMedium: urlParams.get("utm_medium") || "",
+                              utmCampaign: urlParams.get("utm_campaign") || "",
                             };
                             trackEvent("product_clicked", clickData);
                             
