@@ -130,6 +130,95 @@ export async function sendTextMessage(
 }
 
 /**
+ * Send typing indicators
+ */
+export async function setTyping(recipientId: string, isTyping: boolean): Promise<boolean> {
+  const token = getAccessToken();
+  const url = `${GRAPH_API_BASE}/me/messages`;
+  const body = {
+    recipient: { id: recipientId },
+    sender_action: isTyping ? "typing_on" : "typing_off",
+  };
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      console.warn(`[instagram/client] typing_failed recipient=${recipientId}`);
+    }
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Fetch Instagram Media Caption via Graph API
+ */
+export async function fetchMediaCaption(mediaId: string): Promise<string | null> {
+  const token = getAccessToken();
+  const url = `${GRAPH_API_BASE}/${mediaId}?fields=caption&access_token=${token}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`[instagram/client] fetch_caption_failed mediaId=${mediaId}`);
+      return null;
+    }
+    const data = await res.json();
+    return data.caption || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch Instagram Comment via Graph API
+ */
+export async function fetchComment(commentId: string): Promise<any | null> {
+  const token = getAccessToken();
+  const url = `${GRAPH_API_BASE}/${commentId}?fields=id,text,timestamp,username&access_token=${token}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`[instagram/client] fetch_comment_failed commentId=${commentId}`);
+      return null;
+    }
+    const data = await res.json();
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch Instagram Message by MID via Graph API
+ */
+export async function fetchMessage(mid: string): Promise<any | null> {
+  const token = getAccessToken();
+  const url = `${GRAPH_API_BASE}/${mid}?fields=id,created_time,from,to,message,attachments&access_token=${token}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`[instagram/client] fetch_message_failed mid=${mid}`);
+      return null;
+    }
+    const data = await res.json();
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Reply publicly to an Instagram comment.
  *
  * @see https://developers.facebook.com/docs/instagram-api/guides/mentions-and-comments#replying-to-a-comment
@@ -259,4 +348,92 @@ export async function sendPrivateReplyToComment(
       },
     };
   }
+}
+
+// --------------- CAPABILITY HELPERS ---------------
+
+async function sendBasePayload(recipientId: string, messagePayload: any): Promise<InstagramSendResult> {
+  const token = getAccessToken();
+  const url = `${GRAPH_API_BASE}/me/messages`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        recipient: { id: recipientId },
+        message: messagePayload,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      const err = data.error || {};
+      console.error(`[instagram/client] send_failed recipient=${recipientId} type=${err.type} msg=${err.message}`);
+      return {
+        success: false,
+        error: { code: err.code ?? res.status, message: err.message ?? "Unknown error", type: err.type ?? "UnknownError" }
+      };
+    }
+    return { success: true, recipientId: data.recipient_id, messageId: data.message_id };
+  } catch (networkError: any) {
+    return { success: false, error: { code: 0, message: networkError.message, type: "NetworkError" } };
+  }
+}
+
+export async function sendImageMessage(recipientId: string, urlOrAttachmentId: string, isAttachmentId = false): Promise<InstagramSendResult> {
+  const payload: any = { attachment: { type: "image", payload: {} } };
+  if (isAttachmentId) {
+    payload.attachment.payload.attachment_id = urlOrAttachmentId;
+  } else {
+    payload.attachment.payload.url = urlOrAttachmentId;
+  }
+  return sendBasePayload(recipientId, payload);
+}
+
+export async function sendMediaShare(recipientId: string, mediaId: string): Promise<InstagramSendResult> {
+  return sendBasePayload(recipientId, {
+    attachment: {
+      type: "template",
+      payload: {
+        template_type: "media",
+        elements: [{ media_type: "image", media_id: mediaId }]
+      }
+    }
+  });
+}
+
+export async function sendQuickReplies(recipientId: string, text: string, replies: any[]): Promise<InstagramSendResult> {
+  return sendBasePayload(recipientId, {
+    text,
+    quick_replies: replies
+  });
+}
+
+export async function sendButtonTemplate(recipientId: string, text: string, buttons: any[]): Promise<InstagramSendResult> {
+  return sendBasePayload(recipientId, {
+    attachment: {
+      type: "template",
+      payload: {
+        template_type: "button",
+        text,
+        buttons
+      }
+    }
+  });
+}
+
+export async function sendGenericTemplate(recipientId: string, elements: any[]): Promise<InstagramSendResult> {
+  return sendBasePayload(recipientId, {
+    attachment: {
+      type: "template",
+      payload: {
+        template_type: "generic",
+        elements
+      }
+    }
+  });
 }

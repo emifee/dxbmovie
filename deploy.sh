@@ -49,6 +49,10 @@ rsync -azW --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
 rsync -azW --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
   public/ "${ORACLE_USER}@${ORACLE_IP}:${REMOTE_DIR}/public/"
 
+# Sync scripts folder
+rsync -azW --delete -e "ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no" \
+  scripts/ "${ORACLE_USER}@${ORACLE_IP}:${REMOTE_DIR}/scripts/"
+
 # Copy package files and env
 scp -i "$SSH_KEY" -o StrictHostKeyChecking=no \
   package.json package-lock.json \
@@ -85,9 +89,14 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${ORACLE_USER}@${ORACLE_IP}" bash
 
   # Stop existing process if running
   pm2 delete dxbmovies 2>/dev/null || true
+  pm2 delete dxbmovies-worker 2>/dev/null || true
 
   # Start fresh
   PORT=3000 pm2 start server.js --name dxbmovies \
+    --env production \
+    -- --env-file .env.local
+
+  pm2 start scripts/worker.js --name dxbmovies-worker \
     --env production \
     -- --env-file .env.local
 

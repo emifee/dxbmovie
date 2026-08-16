@@ -1,0 +1,223 @@
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
+
+// --------------- Pricing Policy ---------------
+
+export interface PricingPolicy {
+  markupPercent: number;               // e.g. 30 → newPrice = cost × 1.30
+  minimumGrossMarginPercent?: number;  // e.g. 20 → margin floor check
+  allowAutomaticReprice?: boolean;     // If true, auto-reprice when economics break
+}
+
+export const DEFAULT_PRICING_POLICY: PricingPolicy = {
+  markupPercent: 30,
+  minimumGrossMarginPercent: 20,
+  allowAutomaticReprice: true,
+};
+
+// --------------- Purchase Requirements ---------------
+
+export interface PurchaseRequirements {
+  /** Fields the customer must provide (e.g. ["quantity", "shippingAddress", "phone"]) */
+  requiredFields: string[];
+  /** Attributes already fixed by the product listing (e.g. { screenSize: '34"' }) */
+  fixedAttributes?: Record<string, string>;
+  /** Attributes the customer must choose from (e.g. { color: ["Black", "Silver"] }) */
+  selectableAttributes?: Record<string, string[]>;
+}
+
+export type CommerceProductStatus = "draft" | "active" | "hidden" | "archived";
+export type SupplierOfferStatus = "active" | "unavailable" | "stale" | "rejected";
+
+export type MovieRelationshipType = "worn_by_character" | "seen_in_scene" | "similar_style" | "general_recommendation";
+
+export interface MovieRelationship {
+  movieId?: string;
+  tmdbId?: string;
+  relationshipType: MovieRelationshipType;
+  confidence: number;
+  sceneContext?: string;
+}
+
+export interface CommerceProduct {
+  _id?: ObjectId | string;
+  instagramProductId?: string;
+  instagramMediaId?: string;
+  instagramProductTitle: string;
+  instagramSellingPrice: number;
+  currency: string;
+  preferredSupplierOfferId?: string;
+  
+  // Intelligent order requirements
+  purchaseRequirements?: PurchaseRequirements;
+  pricingPolicy?: PricingPolicy;
+  
+  // Legacy / other fields preserved for app use
+  id: string; // Friendly ID
+  title?: string;
+  description: string;
+  category: string;
+  images: string[];
+  movieRelationship?: MovieRelationship;
+  status: CommerceProductStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SupplierOffer {
+  _id?: ObjectId | string;
+  commerceProductId: string;
+  
+  supplier: string; // e.g., "amazon"
+  marketplace: string; // e.g., "www.amazon.com", "www.amazon.ae"
+  partnerTag?: string; // Amazon Associates Partner Tag
+  
+  supplierProductTitle: string;
+  supplierProductUrl?: string;
+  supplierProductId?: string; // ASIN or SKU
+  
+  supplierPriceAtListing: number;
+  currency: string;
+  
+  supportedVariants?: {
+    sizes?: string[];
+    colors?: string[];
+  };
+  
+  destinationAvailability?: string[];
+  
+  lastVerifiedAt?: Date;
+  status: SupplierOfferStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SupplierCheckResult {
+  offerId: string;
+  matched: boolean;
+  matchConfidence: number;
+  requestedVariantAvailable: boolean;
+  livePrice: number;
+  currency: string;
+  destinationSupported: boolean;
+  checkedAt: Date;
+}
+
+// ---------------- Commerce Products ----------------
+
+async function getCommerceProductsCollection() {
+  const client = await clientPromise;
+  const db = client.db("dxbmovies");
+  return db.collection<CommerceProduct>("commerce_products");
+}
+
+export async function getCommerceProduct(id: string): Promise<CommerceProduct | null> {
+  const col = await getCommerceProductsCollection();
+  return col.findOne({ id });
+}
+
+export async function searchCommerceProducts(query: string, maxPrice?: number, category?: string): Promise<CommerceProduct[]> {
+  const col = await getCommerceProductsCollection();
+  
+  // In a real implementation, we would use MongoDB Atlas Search or a text index.
+  // For now, doing a basic regex or text search.
+  const filter: any = { status: "active" };
+  
+  if (query) {
+    filter.$text = { $search: query };
+  }
+  if (category) {
+    filter.category = category;
+  }
+  
+  // maxPrice requires joining SupplierOffers. 
+  // For the MVP interface, we'll return products and Sonia will check offers.
+  // Or we do an aggregation. To keep it simple, we just return products here.
+  return col.find(filter).limit(10).toArray();
+}
+
+export async function upsertCommerceProduct(productData: Partial<CommerceProduct> & { id: string }): Promise<CommerceProduct> {
+  const col = await getCommerceProductsCollection();
+  const now = new Date();
+  
+  const updateDoc = {
+    ...productData,
+    updatedAt: now,
+  };
+
+  const result = await col.findOneAndUpdate(
+    { id: productData.id },
+    { 
+      $set: updateDoc,
+      $setOnInsert: { createdAt: now } 
+    },
+    { upsert: true, returnDocument: "after" }
+  );
+
+  return (result?.value || result) as unknown as CommerceProduct;
+}
+
+// ---------------- Supplier Offers ----------------
+
+async function getSupplierOffersCollection() {
+  const client = await clientPromise;
+  const db = client.db("dxbmovies");
+  return db.collection<SupplierOffer>("supplier_offers");
+}
+
+export async function getSupplierOffersForProduct(commerceProductId: string): Promise<SupplierOffer[]> {
+  const col = await getSupplierOffersCollection();
+  return col.find({ commerceProductId, status: "active" }).toArray();
+}
+
+export function validateProductForActivation(product: CommerceProduct, offers: SupplierOffer[]) {
+  if (!product.instagramProductTitle) throw new Error("Missing instagramProductTitle");
+  if (!product.instagramSellingPrice) throw new Error("Missing instagramSellingPrice");
+  if (!product.currency) throw new Error("Missing currency");
+  
+  if (!offers || offers.length === 0) {
+    throw new Error("Product must have at least one supplier offer before activation.");
+  }
+  
+  // Verify at least one offer has the mandatory Amazon fields
+  const validOffer = offers.find(o => 
+    o.supplier && 
+    o.marketplace && 
+    o.supplierProductUrl && 
+    o.supplierPriceAtListing !== undefined
+  );
+  
+  if (!validOffer) {
+    throw new Error("Product must have a supplier offer with supplier, marketplace, supplierProductUrl, and supplierPriceAtListing.");
+  }
+  
+  return true;
+}
+
+export async function upsertSupplierOffer(offerData: Partial<SupplierOffer> & { commerceProductId: string, supplierName: string, supplierProductId?: string, supplierProductTitle: string }): Promise<SupplierOffer> {
+  const col = await getSupplierOffersCollection();
+  const now = new Date();
+  
+  const { supplierName, ...rest } = offerData;
+  
+  const updateDoc = {
+    ...rest,
+    supplier: supplierName,
+    updatedAt: now,
+  };
+
+  const result = await col.findOneAndUpdate(
+    { 
+      commerceProductId: offerData.commerceProductId,
+      supplier: offerData.supplierName,
+      supplierProductId: offerData.supplierProductId
+    },
+    { 
+      $set: updateDoc,
+      $setOnInsert: { createdAt: now } 
+    },
+    { upsert: true, returnDocument: "after" }
+  );
+
+  return (result?.value || result) as unknown as SupplierOffer;
+}

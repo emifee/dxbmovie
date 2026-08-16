@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import clientPromise from "@/lib/mongodb";
 import { handleNormalizedEvent, NormalizedInstagramEvent } from "@/lib/instagram/handlers";
+import { fetchMessage } from "@/lib/instagram/client";
+import { createCommerceOrder, runOrderOrchestrator } from "@/lib/db/commerce-orders";
 
 // ---------------------------------------------------------------------------
 // GET — Meta Webhook Verification
@@ -155,12 +157,96 @@ async function handleRawDMEvent(event: any, accountId: string, eventsCol: any) {
     return;
   }
 
+  let synthesizedText = messageObj.text || "";
+  let isOrderRequest = false;
+  let templateType: "none" | "order_request" | "contact_card" | "unknown" = "none";
+
+  // Intercept native order-request templates
+  if (
+    messageObj.attachments &&
+    messageObj.attachments.length > 0 &&
+    messageObj.attachments[0].type === "template"
+  ) {
+    templateType = "unknown";
+    const templatePayload = messageObj.attachments[0].payload;
+    // The elements array is usually empty in the webhook for non-Commerce accounts
+    if (templatePayload && templatePayload.generic && (!templatePayload.generic.elements || templatePayload.generic.elements.length === 0)) {
+      console.log(`[webhook/instagram] detected empty template attachment for mid=${messageId}, fetching full message...`);
+      
+      const fullMessage = await fetchMessage(messageId);
+      if (fullMessage && fullMessage.attachments && fullMessage.attachments.data && fullMessage.attachments.data.length > 0) {
+        const attachment = fullMessage.attachments.data[0];
+        const genericTemplate = attachment.generic_template;
+        if (genericTemplate && genericTemplate.title) {
+          templateType = "order_request";
+          isOrderRequest = true;
+          const title = genericTemplate.title || "Order placed"; // e.g. "Order placed" (in local language)
+          const subtitle = genericTemplate.subtitle || ""; // e.g. "Next\nUS$ 0.00"
+          
+          // Simple parsing of subtitle (assumes Format: "ProductTitle\nPrice")
+          const lines = subtitle.split('\n');
+          const productTitle = lines[0] || "Unknown Product";
+          const price = lines.length > 1 ? lines[1] : undefined;
+
+          console.log(`[webhook/instagram] parsed order request: title="${title}", product="${productTitle}", price="${price}"`);
+
+          // 1. Try to auto-match product to internal catalog
+          let matchedProductId: string | undefined;
+          try {
+            const { searchCommerceProducts } = await import("@/lib/db/commerce-products");
+            // Since we don't have the instagramProductId in the webhook template payload,
+            // we rely on exact normalized title match for now.
+            const matches = await searchCommerceProducts(productTitle);
+            
+            // Only accept exact or highly confident matches to prevent incorrect linkage
+            const bestMatch = matches.find(m => m.instagramProductTitle.toLowerCase() === productTitle.toLowerCase());
+            
+            if (bestMatch) {
+              matchedProductId = bestMatch.id;
+              console.log(`[webhook/instagram] exact-matched product: "${productTitle}" -> ${matchedProductId}`);
+            } else {
+              console.log(`[webhook/instagram] no exact match found for product: "${productTitle}". Will require manual linkage/review.`);
+            }
+          } catch (matchErr) {
+            console.error(`[webhook/instagram] product matching error:`, matchErr);
+          }
+
+          // 2. Create internal commerce_order
+          const orderId = await createCommerceOrder({
+            customer_igsid: senderId,
+            native_message_id: messageId,
+            displayed_product_title: productTitle,
+            displayed_price: price,
+            status: "ORDER_REQUESTED",
+            collected_info: {},
+            commerceProductId: matchedProductId,
+          });
+
+          // 3. Trigger Orchestrator
+          await runOrderOrchestrator(orderId.toString());
+
+          // 4. Synthesize system signal text so Sonia knows
+          synthesizedText = `[System Signal: The user just placed a native Instagram order request for product: "${productTitle}". The order is created. Do NOT ask them to place an order. Collect missing information.]`;
+        } else {
+          // If there's no title, or it's a fallback, it's likely a contact card
+          templateType = "contact_card";
+          console.log(`[webhook/instagram] classified empty template as contact_card for mid=${messageId}`);
+        }
+      }
+    }
+  }
+
+  let eventType: NormalizedInstagramEvent["event_type"] = "instagram.dm.received";
+  if (templateType === "contact_card" || templateType === "unknown") {
+    eventType = "instagram.unknown";
+  }
+
   const normalized: NormalizedInstagramEvent = {
-    event_type: "instagram.dm.received",
+    event_type: eventType,
     event_id: messageId,
     sender_id: senderId,
     instagram_account_id: accountId,
-    text: messageObj.text || "",
+    text: synthesizedText,
     payload: event,
   };
 
@@ -176,10 +262,9 @@ async function handleRawCommentEvent(value: any, accountId: string, eventsCol: a
   const senderId = value.from.id;
   const senderUsername = value.from.username;
   
-  // Ignore comments made by the page itself
+  // Note: We process self-comments now for Human Takeover detection
   if (senderId === accountId) {
-    console.log(`[webhook/instagram] self_comment_skipped commentId=${commentId}`);
-    return;
+    console.log(`[webhook/instagram] processing_self_comment for takeover detection commentId=${commentId}`);
   }
 
   const normalized: NormalizedInstagramEvent = {
