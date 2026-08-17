@@ -51,6 +51,9 @@ export interface CommerceProduct {
   currency: string;
   preferredSupplierOfferId?: string;
   
+  orderingEnabled?: boolean;
+  customerVisible?: boolean;
+  
   // Intelligent order requirements
   purchaseRequirements?: PurchaseRequirements;
   pricingPolicy?: PricingPolicy;
@@ -91,6 +94,25 @@ export interface SupplierOffer {
   destinationAvailability?: string[];
   
   lastVerifiedAt?: Date;
+  status: SupplierOfferStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface DigitalSupplierOffer {
+  _id?: ObjectId | string;
+  commerceProductId: string;
+  
+  supplier: string;
+  supplierProductId?: string;
+  supplierUrl?: string;
+  
+  wholesaleCost: number;
+  currency: string;
+  
+  fulfillmentMethod: 'download_url' | 'license_key' | 'account_access' | 'API_delivery' | 'manual_delivery';
+  resaleAuthorized: boolean;
+  
   status: SupplierOfferStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -189,7 +211,7 @@ export async function getSupplierOffersForProduct(commerceProductId: string): Pr
   return col.find({ commerceProductId, status: "active" }).toArray();
 }
 
-export function validateProductForActivation(product: CommerceProduct, offers: SupplierOffer[]) {
+export function validateProductForActivation(product: CommerceProduct, offers: (SupplierOffer | DigitalSupplierOffer)[]) {
   if (!product.instagramProductTitle) throw new Error("Missing instagramProductTitle");
   if (!product.instagramSellingPrice) throw new Error("Missing instagramSellingPrice");
   if (!product.currency) throw new Error("Missing currency");
@@ -198,16 +220,27 @@ export function validateProductForActivation(product: CommerceProduct, offers: S
     throw new Error("Product must have at least one supplier offer before activation.");
   }
   
-  // Verify at least one offer has the mandatory Amazon fields
-  const validOffer = offers.find(o => 
-    o.supplier && 
-    o.marketplace && 
-    o.supplierProductUrl && 
-    o.supplierPriceAtListing !== undefined
-  );
-  
-  if (!validOffer) {
-    throw new Error("Product must have a supplier offer with supplier, marketplace, supplierProductUrl, and supplierPriceAtListing.");
+  if (product.fulfillmentType === "digital") {
+    const validDigitalOffer = offers.find(o => 
+      o.supplier && 
+      'fulfillmentMethod' in o &&
+      (o as DigitalSupplierOffer).resaleAuthorized === true
+    );
+    if (!validDigitalOffer) {
+      throw new Error("Digital product must have a digital supplier offer with resaleAuthorized=true to be enabled.");
+    }
+  } else {
+    // Verify at least one offer has the mandatory physical/Amazon fields
+    const validOffer = offers.find(o => 
+      o.supplier && 
+      'marketplace' in o && 
+      'supplierProductUrl' in o && 
+      o.supplierPriceAtListing !== undefined
+    );
+    
+    if (!validOffer) {
+      throw new Error("Physical product must have a supplier offer with supplier, marketplace, supplierProductUrl, and supplierPriceAtListing.");
+    }
   }
   
   return true;

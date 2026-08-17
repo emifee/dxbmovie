@@ -82,7 +82,7 @@ export function resolveProductRequirements(
       const categoryFields = CATEGORY_REQUIREMENTS[category] || CATEGORY_REQUIREMENTS["generic"];
       fields = [...categoryFields];
     } else if (fulfillmentType === "digital") {
-      fields = ["quantity"];
+      fields = ["quantity", "email"];
     } else if (fulfillmentType === "service") {
       fields = ["customerName"];
     }
@@ -163,6 +163,12 @@ export async function validateFieldAsync(field: string, value: any, context?: an
         return { valid: false, resolution: "invalid", reason: "quantity_must_be_positive_integer", rawValue: value };
       }
       return { valid: true, resolution: "provided", rawValue: value, normalizedValue: value };
+
+    case "email":
+      if (typeof value !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        return { valid: false, resolution: "invalid", reason: "invalid_email", rawValue: value };
+      }
+      return { valid: true, resolution: "provided", rawValue: value, normalizedValue: value.trim().toLowerCase() };
 
     case "phone":
       if (typeof value !== "string" && typeof value !== "number") {

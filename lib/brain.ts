@@ -75,6 +75,20 @@ export async function processMessage(req: ProcessMessageRequest): Promise<SoniaR
     if (activeOrder) {
       await runOrderOrchestrator(activeOrder._id!.toString());
       activeOrder = await getActiveOrderForCustomer(req.userId);
+
+      if (activeOrder && activeOrder.status === "INFORMATION_REQUIRED" && activeOrder.missingFields && activeOrder.missingFields.length > 0) {
+        const topField = activeOrder.missingFields[0];
+        const resolution = activeOrder.fieldResolutions?.[topField];
+        if (topField === "phone" && resolution?.resolution === "needs_clarification" && resolution.normalizedValue) {
+          soniaAction = { 
+            action: "CONFIRM_PHONE",
+            data: {
+              phone: resolution.normalizedValue,
+              country: resolution.inferredCountry
+            }
+          };
+        }
+      }
     }
   }
 

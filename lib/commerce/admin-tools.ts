@@ -21,6 +21,8 @@ export const adminTools = {
         description: { type: SchemaType.STRING },
         category: { type: SchemaType.STRING },
         fulfillmentType: { type: SchemaType.STRING, description: "physical, digital, or service" },
+        orderingEnabled: { type: SchemaType.BOOLEAN, description: "Can this product be ordered? Must be digital + resaleAuthorized to be true." },
+        customerVisible: { type: SchemaType.BOOLEAN, description: "Is this visible to customers?" },
       },
       required: ["instagramProductTitle", "instagramSellingPrice", "currency"],
     }

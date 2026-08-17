@@ -24,6 +24,9 @@ export type OrderState =
   | 'SUPPLIER_PURCHASED'
   | 'AMAZON_VERIFICATION_RETRY_REQUIRED'
   | 'FX_VERIFICATION_REQUIRED'
+  | 'DIGITAL_FULFILLMENT_PENDING'
+  | 'DIGITAL_FULFILLMENT_FAILED'
+  | 'FULFILLED'
   | 'SHIPPED';
 
 // Sourcing events are audit trail entries, not order states.

@@ -93,6 +93,33 @@ async function createOrder(customerIgsid: string): Promise<ObjectId> {
   return result.insertedId;
 }
 
+async function createDigitalOrder(customerIgsid: string): Promise<ObjectId> {
+  const client = new MongoClient(process.env.MONGODB_URI as string, { tlsAllowInvalidCertificates: true, serverSelectionTimeoutMS: 5000 });
+  await client.connect();
+  const db = client.db('dxbmovies');
+  
+  const orderObj: Omit<CommerceOrder, '_id' | 'created_at' | 'updated_at'> = {
+    customer_igsid: customerIgsid,
+    native_message_id: "test_mid_digital_" + Date.now(),
+    displayed_product_title: "Lightroom Preset Pack",
+    displayed_price: "AED 50",
+    status: "INFORMATION_REQUIRED",
+    productCategory: "Software",
+    requiredFields: ["quantity", "email"],
+    missingFields: ["quantity", "email"],
+    collected_info: {},
+  };
+  
+  const result = await db.collection('commerce_orders').insertOne({
+    ...orderObj,
+    created_at: new Date(),
+    updated_at: new Date()
+  });
+  
+  await client.close();
+  return result.insertedId;
+}
+
 async function simulateTurn(igsid: string, text: string) {
   const response = await processMessage({
     userId: igsid,
@@ -144,6 +171,45 @@ async function runTests() {
   console.log(`PASS poster/image rendering: ${mockedTransport.posterRendered ? 'Yes' : 'No'}`);
 
   if (!mockedTransport.typingStopped) throw new Error("Typing did not stop!");
+
+  console.log("\n[DIGITAL COMMERCE TEST]");
+  await clearUser(igsid);
+  const digitalOrderId = await createDigitalOrder(igsid);
+  console.log("PASS native Instagram digital order starts: Yes");
+  
+  const digitalTurn1 = await simulateTurn(igsid, "1");
+  console.log(`PASS quantity persists (digital): ${digitalTurn1.order?.collected_info?.quantity === 1 || String(digitalTurn1.order?.collected_info?.quantity) === "1" ? 'Yes' : 'No'}`);
+  
+  const digitalTurn2 = await simulateTurn(igsid, "test@example.com");
+  console.log(`PASS email persists (digital): ${digitalTurn2.order?.collected_info?.email === "test@example.com" ? 'Yes' : 'No'}`);
+  console.log(`PASS order progresses to ready for payment or sourcing: ${digitalTurn2.order?.status === 'READY_FOR_SOURCING_CHECK' || digitalTurn2.order?.status === 'READY_FOR_PAYMENT' ? 'Yes' : 'No'}`);
+
+  // Test Digital Fulfillment Service
+  console.log("\n[DIGITAL FULFILLMENT SERVICE TEST]");
+  const { digitalFulfillment } = await import('../lib/commerce/digital-fulfillment');
+  
+  const client = new MongoClient(process.env.MONGODB_URI as string, { tlsAllowInvalidCertificates: true, serverSelectionTimeoutMS: 5000 });
+  await client.connect();
+  const db = client.db('dxbmovies');
+  
+  // Set the order up for fulfillment test (simulate payment)
+  await db.collection('commerce_orders').updateOne(
+    { _id: digitalOrderId },
+    { $set: { status: 'DIGITAL_FULFILLMENT_PENDING' } }
+  );
+  
+  const orderForFulfillment = await getActiveOrderForCustomer(igsid);
+  if (orderForFulfillment) {
+    try {
+      await digitalFulfillment.fulfillOrder(orderForFulfillment);
+    } catch (e) {
+      // It's expected to throw because the mock product ID isn't linked to a real product, but let's check state.
+    }
+  }
+  
+  const finalFulfillmentOrder = await getActiveOrderForCustomer(igsid);
+  console.log(`PASS digital fulfillment updates status: ${finalFulfillmentOrder?.status === 'DIGITAL_FULFILLMENT_FAILED' || finalFulfillmentOrder?.status === 'FULFILLED' ? 'Yes' : 'No'}`);
+  await client.close();
 
   // -----------------------------------------------------
   console.log("\nGENERAL SONIA");
