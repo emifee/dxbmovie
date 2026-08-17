@@ -865,6 +865,13 @@ Do not decide if the order is complete or valid; the backend will validate the f
     const posterIntentDetected = isPosterRequest(userText);
     let fallbackTriggered = false;
 
+    if (parsed.presentation && (parsed.presentation.type === "image" || parsed.presentation.type === "movie_card")) {
+      if (!parsed.presentation.tmdbId && activeMediaContext) {
+        parsed.presentation.tmdbId = activeMediaContext.tmdbId;
+        parsed.presentation.mediaType = parsed.presentation.mediaType || activeMediaContext.mediaType;
+      }
+    }
+
     if (
       !parsed.presentation &&
       userText &&
