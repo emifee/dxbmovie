@@ -828,19 +828,20 @@ Do not decide if the order is complete or valid; the backend will validate the f
 
       if (movies.length > 0 && targetUserId) {
         const primary = movies[0];
+        
+        // Update local context for this turn's rendering
+        activeMediaContext = {
+          title: primary.title,
+          tmdbId: primary.id,
+          mediaType: primary.mediaType,
+          source: "sonia_recommendation",
+          setAt: new Date().toISOString()
+        };
+
         clientPromise.then(client => {
           client.db("dxbmovies").collection("userPreferences").updateOne(
             { userId: targetUserId },
-            { $set: { 
-                activeMediaContext: {
-                  title: primary.title,
-                  tmdbId: primary.id,
-                  mediaType: primary.mediaType,
-                  source: "sonia_recommendation",
-                  setAt: new Date().toISOString()
-                }
-              }
-            }
+            { $set: { activeMediaContext } }
           );
         }).catch(e => console.error("[ai/sonia] activeMediaContext save failed", e));
       }
@@ -866,7 +867,8 @@ Do not decide if the order is complete or valid; the backend will validate the f
     let fallbackTriggered = false;
 
     if (parsed.presentation && (parsed.presentation.type === "image" || parsed.presentation.type === "movie_card")) {
-      if (!parsed.presentation.tmdbId && activeMediaContext) {
+      if (activeMediaContext) {
+        // ALWAYS trust our backend TMDB search over the LLM's hallucinated TMDB ID
         parsed.presentation.tmdbId = activeMediaContext.tmdbId;
         parsed.presentation.mediaType = parsed.presentation.mediaType || activeMediaContext.mediaType;
       }
