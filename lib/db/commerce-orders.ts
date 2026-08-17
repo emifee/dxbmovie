@@ -5,6 +5,7 @@ export type OrderState =
   | 'ORDER_REQUESTED'
   | 'INFORMATION_REQUIRED'
   | 'READY_FOR_SOURCING_CHECK'
+  | 'PRODUCT_LINKAGE_REQUIRED'
   | 'PRODUCT_MATCH_REVIEW_REQUIRED'
   | 'VARIANT_UNAVAILABLE'
   | 'VARIANT_VERIFICATION_REQUIRED'
@@ -14,14 +15,15 @@ export type OrderState =
   | 'AVAILABILITY_UNKNOWN'
   | 'PRICE_REVIEW_REQUIRED'
   | 'PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED'
-  | 'PREFLIGHT_TEST_PASSED'
-  | 'LIVE_PREFLIGHT_PASSED'
+  | 'LIVE_WEB_CHECK_PASSED'
   | 'READY_FOR_PAYMENT'
   | 'PAYMENT_PENDING'
   | 'PAID'
   | 'SOURCING'
   | 'AWAITING_HUMAN_APPROVAL'
   | 'SUPPLIER_PURCHASED'
+  | 'AMAZON_VERIFICATION_RETRY_REQUIRED'
+  | 'FX_VERIFICATION_REQUIRED'
   | 'SHIPPED';
 
 // Sourcing events are audit trail entries, not order states.
@@ -42,6 +44,67 @@ export interface ShippingAddress {
   country?: string;
 }
 
+export interface LocationContext {
+  rawAddress: string;
+  normalizedAddress?: string;
+  countryCode?: string;
+  countryName?: string;
+  callingCode?: string;
+  administrativeArea?: string;
+  locality?: string;
+  postalCode?: string;
+  latitude?: number;
+  longitude?: number;
+  placeId?: string;
+  confidence: "high" | "medium" | "low";
+  validationStatus: "verified" | "partially_verified" | "needs_clarification" | "unverified";
+  validationProvider?: "google_geocoding" | "google_address_validation" | "combined";
+}
+
+export interface PhoneContext {
+  rawPhone: string;
+  normalizedPhone?: string;
+  countryCode?: string;
+  callingCode?: string;
+  isPossible?: boolean;
+  isValid?: boolean;
+  resolution: "missing" | "needs_clarification" | "inferred" | "confirmed" | "invalid" | "country_conflict";
+}
+
+export type CustomerIntent =
+  | 'buying'
+  | 'considering'
+  | 'hesitating'
+  | 'asking_question'
+  | 'price_concern'
+  | 'comparison'
+  | 'cancel_intent'
+  | 'confirmed';
+
+export type FieldResolution = 
+  | 'missing'
+  | 'provided'
+  | 'needs_clarification'
+  | 'confirmed'
+  | 'invalid';
+
+export interface OrderFieldResolution {
+  field: string;
+  resolution: FieldResolution;
+  reason?: string;
+  rawValue?: any;
+  normalizedValue?: any;
+  inferredCountry?: string;
+}
+
+export interface ConversationRequestRecord {
+  field?: string;
+  action: string;
+  valueReceived?: string;
+  outcome?: string;
+  timestamp: string;
+}
+
 export interface OrderCollectedFields {
   quantity?: number;
   size?: string;
@@ -58,15 +121,23 @@ export interface CommerceOrder {
   displayed_product_title: string; // e.g. "Next"
   displayed_price?: string; // e.g. "US$ 0.00"
   
+  commerceProductId?: string; // Internal catalog ID once matched
+  supplierOfferId?: string; // Internal supplier offer ID once matched
+  
   status: OrderState;
   
   productCategory?: string;
   requiredFields?: string[];
   missingFields?: string[];
-  commerceProductId?: string; // Link to internal product catalog
+  fieldResolutions?: Record<string, OrderFieldResolution>;
   
   // Information collected by Sonia
   collected_info: OrderCollectedFields;
+  customerIntent?: CustomerIntent;
+  recentRequests?: ConversationRequestRecord[];
+  
+  // Normalized Location
+  locationContext?: LocationContext;
   
   // Sourcing audit trail (transient events, not order states)
   sourcingEvents?: SourcingEvent[];
@@ -119,13 +190,17 @@ export async function getActiveOrderForCustomer(igsid: string): Promise<Commerce
   const db = client.db("dxbmovies");
   const collection = db.collection<CommerceOrder>('commerce_orders');
   
-  // An active order is one that hasn't shipped or isn't fully completed/cancelled
-  return await collection.findOne({
+  // Find the most recent active order
+  const order = await collection.findOne({
     customer_igsid: igsid,
     status: { $in: [
       'ORDER_REQUESTED', 
       'INFORMATION_REQUIRED', 
       'READY_FOR_SOURCING_CHECK',
+      'PRODUCT_LINKAGE_REQUIRED',
+      'PRODUCT_MATCH_REVIEW_REQUIRED',
+      'LIVE_WEB_CHECK_PASSED',
+      'PRICE_REVIEW_REQUIRED',
       'PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED',
       'READY_FOR_PAYMENT', 
       'PAYMENT_PENDING', 
@@ -135,6 +210,20 @@ export async function getActiveOrderForCustomer(igsid: string): Promise<Commerce
       'SUPPLIER_PURCHASED'
     ] }
   }, { sort: { created_at: -1 } });
+
+  if (!order) return null;
+
+  // State-aware expiry:
+  // ORDER_REQUESTED and INFORMATION_REQUIRED expire after 24 hours of inactivity.
+  if (order.status === 'ORDER_REQUESTED' || order.status === 'INFORMATION_REQUIRED') {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    if (order.updated_at < twentyFourHoursAgo) {
+      return null; // Expired, so we pretend there's no active order.
+    }
+  }
+
+  // Other operational states do not expire implicitly.
+  return order;
 }
 
 export async function updateOrderCollectedInfo(orderId: string, info: Partial<CommerceOrder['collected_info']>): Promise<void> {
@@ -170,6 +259,25 @@ export async function updateOrderStatus(orderId: string, status: OrderState): Pr
   );
 }
 
+export async function appendConversationRequest(orderId: string, record: ConversationRequestRecord): Promise<void> {
+  const client = await clientPromise;
+  const db = client.db("dxbmovies");
+  const collection = db.collection<CommerceOrder>('commerce_orders');
+  
+  await collection.updateOne(
+    { _id: new ObjectId(orderId) },
+    { 
+      $push: { 
+        recentRequests: {
+          $each: [record],
+          $slice: -10 // Keep only the last 10 requests
+        }
+      } as any,
+      $set: { updated_at: new Date() } 
+    }
+  );
+}
+
 // Order Orchestrator rule engine - called whenever an order is created or updated
 export async function runOrderOrchestrator(orderId: string | ObjectId): Promise<void> {
   const { calculateOrderState } = await import('@/lib/commerce/orchestrator');
@@ -181,7 +289,7 @@ export async function runOrderOrchestrator(orderId: string | ObjectId): Promise<
   
   if (!order) return;
 
-  const { status: nextStatus, missingFields, requiredFields, productCategory } = await calculateOrderState(order);
+  const { status: nextStatus, missingFields, requiredFields, productCategory, fieldResolutions } = await calculateOrderState(order);
 
   const updates: any = {};
   let hasChanges = false;
@@ -207,6 +315,11 @@ export async function runOrderOrchestrator(orderId: string | ObjectId): Promise<
     hasChanges = true;
   }
 
+  if (JSON.stringify(fieldResolutions) !== JSON.stringify(order.fieldResolutions)) {
+    updates.fieldResolutions = fieldResolutions;
+    hasChanges = true;
+  }
+
   if (hasChanges) {
     updates.updated_at = new Date();
     await collection.updateOne(
@@ -221,56 +334,7 @@ export async function runOrderOrchestrator(orderId: string | ObjectId): Promise<
     if (updatedOrder) {
       console.log(`[orchestrator] Order ${orderId} transitioned to READY_FOR_SOURCING_CHECK. Sending Phase 1 Notification...`);
       
-      try {
-        const { getCommerceProduct, getSupplierOffersForProduct } = await import('@/lib/db/commerce-products');
-        const { sendTelegramNotification } = await import('@/lib/commerce/telegram');
-        
-        let productTitle = updatedOrder.displayed_product_title;
-        let customerPrice = "Unknown";
-        let amazonSource = "Unknown";
-        let supplierRef = "Unknown";
-        
-        if (updatedOrder.commerceProductId) {
-          const product = await getCommerceProduct(updatedOrder.commerceProductId);
-          if (product) {
-            productTitle = product.instagramProductTitle || productTitle;
-            customerPrice = `${product.currency} ${product.instagramSellingPrice}`;
-            const offers = await getSupplierOffersForProduct(product.id);
-            const offer = offers.find(o => o._id?.toString() === product.preferredSupplierOfferId) || offers[0];
-            if (offer) {
-              amazonSource = `${offer.marketplace}`;
-              supplierRef = `${offer.currency} ${offer.supplierPriceAtListing}`;
-            }
-          }
-        }
-
-        const collected = updatedOrder.collected_info || {};
-        let addressStr = "Not provided";
-        if (collected.shippingAddress) {
-          if (typeof collected.shippingAddress === "string") {
-            addressStr = collected.shippingAddress;
-          } else {
-            const a = collected.shippingAddress;
-            addressStr = [a.line1, a.city, a.region, a.country].filter(Boolean).join(", ");
-          }
-        }
-
-        const msg = [
-          `🛒 New order awaiting supplier verification`,
-          productTitle,
-          `Customer: @${updatedOrder.customer_igsid || "unknown"}`,
-          `Quantity: ${collected.quantity || "1"}`,
-          `Customer price: ${customerPrice}`,
-          `Delivery: ${addressStr}`,
-          `Phone: ${collected.phone || "N/A"}`,
-          `Amazon source: ${amazonSource}`,
-          `Registered supplier reference: ${supplierRef}`
-        ].join("\\n");
-
-        await sendTelegramNotification(msg, false);
-      } catch (err) {
-        console.error(`[orchestrator] Failed to send Phase 1 notification for order ${orderId}:`, err);
-      }
+      console.log(`[orchestrator] Order ${orderId} transitioned to READY_FOR_SOURCING_CHECK. Triggering sourcing engine...`);
 
       console.log(`[orchestrator] Triggering sourcing job for ${orderId}...`);
       import("@/lib/commerce/sourcing-engine").then(({ executeSourcingCheck }) => {

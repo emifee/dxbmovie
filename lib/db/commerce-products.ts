@@ -39,8 +39,11 @@ export interface MovieRelationship {
   sceneContext?: string;
 }
 
+export type FulfillmentType = "physical" | "digital" | "service";
+
 export interface CommerceProduct {
   _id?: ObjectId | string;
+  fulfillmentType?: FulfillmentType;
   instagramProductId?: string;
   instagramMediaId?: string;
   instagramProductTitle: string;
@@ -74,6 +77,7 @@ export interface SupplierOffer {
   
   supplierProductTitle: string;
   supplierProductUrl?: string;
+  canonicalSupplierUrl?: string; // Resolved exact URL for sourcing checks
   supplierProductId?: string; // ASIN or SKU
   
   supplierPriceAtListing: number;
@@ -116,15 +120,30 @@ export async function getCommerceProduct(id: string): Promise<CommerceProduct | 
   return col.findOne({ id });
 }
 
+export async function getCommerceProductByExactTitle(title: string): Promise<CommerceProduct | null> {
+  const col = await getCommerceProductsCollection();
+  // Normalize whitespace, punctuation, and casing
+  const normalizedTitle = title.trim().replace(/\s+/g, " ");
+  
+  // Create an exact match lookup (case insensitive for safety, but functionally exact on the string)
+  // This avoids fuzzy matching other products.
+  return col.findOne({ 
+    instagramProductTitle: { $regex: `^${escapeRegex(normalizedTitle)}$`, $options: "i" } 
+  });
+}
+
+function escapeRegex(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export async function searchCommerceProducts(query: string, maxPrice?: number, category?: string): Promise<CommerceProduct[]> {
   const col = await getCommerceProductsCollection();
   
-  // In a real implementation, we would use MongoDB Atlas Search or a text index.
-  // For now, doing a basic regex or text search.
+  // Use regex for Admin search instead of $text to avoid index requirements
   const filter: any = { status: "active" };
   
   if (query) {
-    filter.$text = { $search: query };
+    filter.instagramProductTitle = { $regex: escapeRegex(query), $options: "i" };
   }
   if (category) {
     filter.category = category;

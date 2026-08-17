@@ -190,22 +190,22 @@ async function handleRawDMEvent(event: any, accountId: string, eventsCol: any) {
 
           console.log(`[webhook/instagram] parsed order request: title="${title}", product="${productTitle}", price="${price}"`);
 
-          // 1. Try to auto-match product to internal catalog
+          // 1. Try to auto-match product using our mapping layer
           let matchedProductId: string | undefined;
+          let matchedSupplierOfferId: string | undefined;
+          
           try {
-            const { searchCommerceProducts } = await import("@/lib/db/commerce-products");
-            // Since we don't have the instagramProductId in the webhook template payload,
-            // we rely on exact normalized title match for now.
-            const matches = await searchCommerceProducts(productTitle);
+            const { resolveProductMapping } = await import("@/lib/db/instagram-mappings");
+            // The Graph API generic_template payload for orders often lacks the actual product ID.
+            // We'll pass undefined for ID and rely on normalized title matching for now.
+            const mapping = await resolveProductMapping(productTitle, undefined, undefined);
             
-            // Only accept exact or highly confident matches to prevent incorrect linkage
-            const bestMatch = matches.find(m => m.instagramProductTitle.toLowerCase() === productTitle.toLowerCase());
-            
-            if (bestMatch) {
-              matchedProductId = bestMatch.id;
-              console.log(`[webhook/instagram] exact-matched product: "${productTitle}" -> ${matchedProductId}`);
+            if (mapping) {
+              matchedProductId = mapping.commerceProductId;
+              matchedSupplierOfferId = mapping.supplierOfferId;
+              console.log(`[webhook/instagram] matched product mapping: "${productTitle}" -> ${matchedProductId}`);
             } else {
-              console.log(`[webhook/instagram] no exact match found for product: "${productTitle}". Will require manual linkage/review.`);
+              console.log(`[webhook/instagram] no product mapping found for: "${productTitle}". Will require manual linkage/review.`);
             }
           } catch (matchErr) {
             console.error(`[webhook/instagram] product matching error:`, matchErr);
@@ -220,6 +220,7 @@ async function handleRawDMEvent(event: any, accountId: string, eventsCol: any) {
             status: "ORDER_REQUESTED",
             collected_info: {},
             commerceProductId: matchedProductId,
+            supplierOfferId: matchedSupplierOfferId,
           });
 
           // 3. Trigger Orchestrator

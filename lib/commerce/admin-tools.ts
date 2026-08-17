@@ -20,6 +20,7 @@ export const adminTools = {
         currency: { type: SchemaType.STRING },
         description: { type: SchemaType.STRING },
         category: { type: SchemaType.STRING },
+        fulfillmentType: { type: SchemaType.STRING, description: "physical, digital, or service" },
       },
       required: ["instagramProductTitle", "instagramSellingPrice", "currency"],
     }
@@ -114,6 +115,18 @@ export const adminTools = {
       },
       required: ["productId", "markupPercent"]
     }
+  },
+
+  link_order_product: {
+    description: "Link an active order to a commerce product if the automatic product linkage failed (PRODUCT_LINKAGE_REQUIRED). This securely looks up the preferred supplier offer and resumes sourcing.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        orderId: { type: SchemaType.STRING },
+        commerceProductId: { type: SchemaType.STRING },
+      },
+      required: ["orderId", "commerceProductId"]
+    }
   }
 };
 
@@ -178,6 +191,19 @@ export async function executeAdminTool(toolName: string, args: any, context: Adm
         // Enforce strict validation
         const offers = await getSupplierOffersForProduct(productId);
         validateProductForActivation(product, offers);
+
+        // Auto-create or update mapping when activated
+        const { createOrUpdateMapping } = await import("@/lib/db/instagram-mappings");
+        const offer = offers.find(o => o._id?.toString() === product.preferredSupplierOfferId) || offers[0];
+        if (product.instagramProductTitle && offer) {
+          await createOrUpdateMapping(
+            product.id,
+            offer._id!.toString(),
+            product.instagramProductTitle,
+            product.instagramProductId,
+            product.instagramMediaId
+          );
+        }
       }
 
       const updated = await upsertCommerceProduct({
@@ -331,6 +357,66 @@ export async function executeAdminTool(toolName: string, args: any, context: Adm
       return {
         message: `Pricing policy set for product ${productId}.`,
         policy,
+      };
+    }
+
+    case "link_order_product": {
+      const { orderId, commerceProductId } = args;
+      const order = await getCommerceOrder(orderId);
+      if (!order) return { error: "Order not found" };
+
+      const product = await getCommerceProduct(commerceProductId);
+      if (!product) return { error: "Commerce product not found" };
+
+      const offers = await getSupplierOffersForProduct(commerceProductId);
+      const offer = offers.find(o => o._id?.toString() === product.preferredSupplierOfferId) || offers[0];
+      
+      if (!offer) {
+        return { error: "Commerce product has no supplier offers. Add a supplier offer to the product first." };
+      }
+
+      // 1. Update the order with the explicit mapping
+      const { runOrderOrchestrator } = await import("@/lib/db/commerce-orders");
+      const client = await clientPromise;
+      const db = client.db("dxbmovies");
+      await db.collection("commerce_orders").updateOne(
+        { _id: new ObjectId(orderId) },
+        { 
+          $set: { 
+            commerceProductId: product.id,
+            supplierOfferId: offer._id?.toString(),
+            updated_at: new Date()
+          } 
+        }
+      );
+
+      // 2. Also update the instagram mappings DB so future orders link automatically
+      const { createOrUpdateMapping } = await import("@/lib/db/instagram-mappings");
+      await createOrUpdateMapping(
+        product.id,
+        offer._id!.toString(),
+        order.displayed_product_title // Save the normalized title
+      );
+
+      // 3. Write audit log
+      await createAuditLog({
+        adminId,
+        action: "link_order_product",
+        targetCollection: "commerce_orders",
+        targetId: orderId,
+        newValue: { commerceProductId: product.id, supplierOfferId: offer._id?.toString() },
+        requiredConfirmation: false,
+      });
+
+      // 4. Resume the orchestrator. If it was blocked on PRODUCT_LINKAGE_REQUIRED,
+      // it should ideally transition back to READY_FOR_SOURCING_CHECK.
+      // Wait, runOrderOrchestrator doesn't automatically move from PRODUCT_LINKAGE_REQUIRED to READY_FOR_SOURCING_CHECK.
+      // Let's manually set it to READY_FOR_SOURCING_CHECK.
+      await updateOrderStatus(orderId, "READY_FOR_SOURCING_CHECK");
+      await runOrderOrchestrator(orderId);
+
+      return {
+        message: `Successfully linked order ${orderId} to product ${product.instagramProductTitle}. Sourcing check resumed.`,
       };
     }
 

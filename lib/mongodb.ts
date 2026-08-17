@@ -14,12 +14,12 @@ if (process.env.NODE_ENV === "development") {
     _mongoClientPromise?: Promise<MongoClient>;
   };
   if (!globalWithMongo._mongoClientPromise) {
-    const client = new MongoClient(uri!);
+    const client = new MongoClient(uri!, { tlsAllowInvalidCertificates: true });
     globalWithMongo._mongoClientPromise = client.connect();
   }
   clientPromise = globalWithMongo._mongoClientPromise;
 } else {
-  const client = new MongoClient(uri!);
+  const client = new MongoClient(uri!, { tlsAllowInvalidCertificates: true });
   clientPromise = client.connect();
 }
 

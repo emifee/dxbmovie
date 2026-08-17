@@ -1,6 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import { routeChat, type AIChatMessage, type RouterResult } from "@/lib/ai-router";
 import type { Movie } from "@/lib/types";
+import { detectCountryFromAddress, validateFieldAsync, runOrderOrchestrator } from '@/lib/commerce/orchestrator';
 import { getCommerceSession } from "@/lib/db/commerce-sessions";
 import { executeCommerceTool } from "@/lib/commerce/tools";
 import { getActiveOrderForCustomer } from "@/lib/db/commerce-orders";
@@ -27,6 +28,7 @@ export interface SoniaRequest {
   attachedTitle?: string | null;
   lang?: string;
   commerceSessionId?: string;
+  contextMode?: "commerce" | "movie";
 }
 
 export interface SoniaResponse {
@@ -86,8 +88,16 @@ The backend will render this into the correct format for Instagram, Web, or Tele
 
 JSON SCHEMA:
 {
-  "intent": "MOVIE_DISCUSSION",
+  "intent": "MOVIE_DISCUSSION", // One of the allowed intents
+  "customerIntent": "buying", // Use to track attitude: "buying", "considering", "hesitating", "asking_question", "price_concern", "comparison", "cancel_intent", "confirmed"
   "message": "Your conversational text reply here.",
+  "extractedOrderFields": {
+    // ONLY include this object if the user provides order details (quantity, address, phone)
+    "quantity": 1,
+    "shippingAddress": { "line1": "Dubai Marina", "city": "Dubai" },
+    "phone": "0551994544"
+  },
+  "explicitAction": "CANCEL_ORDER", // ONLY include this if the user gives a strict command to cancel the order
   "recommendations": ["Title 1"],
   "memories": ["Fact 1"],
   "presentation": {
@@ -127,13 +137,15 @@ JSON SCHEMA:
 - "text_then_media": Send the text message separately before the media.
 - "media_only": Send only the media (ignores "message" field).
 
-When NOT recommending titles or sending media, omit "presentation" or leave empty:
-{"intent":"MOVIE_DISCUSSION","message":"Your reply here","recommendations":[],"memories":[]}
+When NOT recommending titles or sending media, simply omit the "presentation" field from your JSON output.
 
 ORDER INFORMATION EXTRACTION:
-If the user provides information to fulfill an active order (like their address, phone number, size, color, or quantity), you must extract it into an "extractedOrderFields" object alongside your message:
-{"intent":"PRODUCT_SELECTION","message":"Got it! What about the color?","extractedOrderFields":{"quantity":2,"shippingAddress":{"line1":"123 Fake St","city":"Dubai"}}}
-Only extract fields the user actually provided. For shipping address, try to structure it with line1, city, country, etc. if provided, otherwise put the raw text in line1.
+If the user provides information to fulfill an active order (like their address, phone number, size, color, or quantity), you MUST extract it into the "extractedOrderFields" object at the ROOT level of your JSON response.
+Do not put this inside the "message" field. Extract ONLY the fields the user actually provided in their latest message.
+
+EXPLICIT ACTIONS (CANCELLATION):
+If the user's intent is "cancel_intent" (e.g., they are hesitating or unsure), ONLY output an explicit action if they give a direct, actionable instruction to cancel (e.g., "Cancel my order"). If they are just hesitating ("I'm not sure I want it anymore"), do NOT output the action, so you can naturally respond and address their objection.
+If an explicit instruction is given, add the "explicitAction" property at the ROOT level of your JSON response and set it to "CANCEL_ORDER". Do not put this inside the "message" field. Your "message" field should just be a natural conversational confirmation like "Okay, I've cancelled your order."
 
 INTENT CLASSIFICATION:
 You must determine the user's current intent in the "intent" field.
@@ -148,7 +160,7 @@ If the user's intent is PRODUCT_DISCOVERY, PRODUCT_SEARCH, or PRODUCT_SELECTION,
 Instead of "message", output ONLY the action JSON:
 {"intent":"PRODUCT_SEARCH","action":"search_catalog","query":"sunglasses"}
 {"intent":"PRODUCT_SELECTION","action":"get_supplier_offers","commerceProductId":"123"}
-If the user reaches CHECKOUT_INTENT, do NOT say "checkout module coming soon". Reply neutrally: "Purchasing is not currently enabled for this item, but I've noted your interest!"
+If the user reaches CHECKOUT_INTENT and there is no active order, do NOT say "checkout module coming soon". Reply neutrally: "Purchasing is not currently enabled for this item, but I've noted your interest!" If an order is currently active and you are collecting fields, ignore this rule and collect the fields naturally.
 
 DM TRANSITION (For Instagram Comments only):
 If you are replying in a public Instagram Comment ("channel": "instagram_comment") and the intent is Commerce-related, DO NOT conduct a long product search publicly. Acknowledge it briefly and DO NOT say "I sent you a DM" (we cannot send unsolicited DMs yet). Say something like: "I have some great options for that, I'll keep an eye out for a DM from you!"
@@ -486,6 +498,15 @@ When you use commerce tools, provide the precise Commerce Product ID from this c
               }
             }
           }
+          
+          productContext = `\nPRODUCT FACTS (Use these verified facts naturally to sound like a product expert):\n`;
+          productContext += `- Title: ${product.instagramProductTitle || 'Unknown'}\n`;
+          if (product.instagramSellingPrice && product.currency) {
+            productContext += `- Price: ${product.currency} ${product.instagramSellingPrice}\n`;
+          }
+          if (product.supplierFeatures && product.supplierFeatures.length > 0) {
+            productContext += `- Features: ${product.supplierFeatures.slice(0, 5).join(" | ")}\n`;
+          }
         } catch (e) {
           console.error("[ai/sonia] Failed to load product requirements for prompt", e);
         }
@@ -509,39 +530,57 @@ If the customer says no or wants to cancel, extract: {"extractedOrderFields": {"
 
 Do NOT proceed to any other topic until the customer responds.`;
       } else {
-        // Standard order collection mode
-        commerceContextStr += `\n\nIf there is an active order, you are in ORDER COLLECTION MODE.
-Your primary job is to collect the required fields from the user.
+        // Conversational Strategy Mode
+        commerceContextStr += `\n\nCONVERSATIONAL STRATEGY & ORDER STATE:
+You are a helpful sales assistant, product expert, and order concierge for this active order.
 
-CRITICAL RULES:
-1. Do NOT infer which fields have been collected from the conversation history. The ONLY source of truth for missing fields is the list provided below.
-2. You MUST ask for the EXACT field requested below, even if you think the user already provided it (they may have provided it in an invalid format, so you must ask again).
-3. Ask for ONLY ONE field at a time.
-4. Keep your responses extremely natural, brief, and conversational.
-5. NEVER use robotic synonym rotations (like "Got it", "Perfect", "Great"). Instead, vary your approach. Sometimes acknowledge context ("Green and white works. How many pairs should I put down?"), sometimes just ask directly ("How many pairs would you like?"), and sometimes acknowledge briefly ("Perfect — how many pairs?").
-
-QUANTITY VALIDATION:
-- When asking for quantity, you MUST get an actual number from the customer.
-- If the customer responds with "yes", "sure", "okay", "yeah", or any non-numeric answer when you ask about quantity, do NOT extract it as 1 or any number.
-- Instead, ask again clearly: "How many would you like? Just give me the number."
-- ONLY extract quantity when the customer provides an explicit number (like "1", "2", "one", "two", etc).
-
-ACTIVE ORDER STATE:
+CURRENT ORDER STATE:
 - Internal Order ID: ${activeOrder._id}
-- Instagram Customer IGSID: ${activeOrder.customer_igsid}
-- Native Message ID: ${activeOrder.native_message_id}
-- Displayed Product Title: ${activeOrder.displayed_product_title}
-- Category: ${activeOrder.productCategory || 'unknown'}
 - Order Status: ${activeOrder.status}
-- Missing Fields: ${activeOrder.missingFields?.join(', ') || 'None'}
+${productContext}
 ${fixedInfo}${selectableInfo}
-If the status is INFORMATION_REQUIRED, you must ask the user for the NEXT required field.
-The very next field you should ask for is: **${activeOrder.missingFields?.[0] || 'None'}**
 
-When asking for a selectable attribute, present the available options naturally. For example: "What color would you like? I have Black, Silver, and Gold available."
+KNOWN INFORMATION (Already Collected):
+${Object.entries(activeOrder.collected_info || {}).map(([k, v]) => `- ${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join("\n") || "None"}
 
-If the user provides information, extract it into the "extractedOrderFields" JSON object.
-Do not decide if the order is complete or valid; the backend will validate the fields you extract and update the list of missing fields.`;
+RECENT REQUESTS (Do NOT repeat these blindly):
+${(activeOrder.recentRequests || []).map(r => `- You asked for '${r.field}' and the outcome was '${r.outcome}'.`).join("\n") || "None"}
+
+UNRESOLVED FIELDS:
+${activeOrder.missingFields?.join(", ") || "None"}
+`;
+
+        if (activeOrder.missingFields && activeOrder.missingFields.length > 0) {
+          const topField = activeOrder.missingFields[0];
+          const resolution = activeOrder.fieldResolutions?.[topField];
+          
+          if (resolution?.resolution === "needs_clarification") {
+            commerceContextStr += `
+YOUR NEXT GOAL: Clarify '${topField}'
+The customer provided '${resolution.rawValue}' but it needs clarification (${resolution.reason}).
+Candidate Normalized Value: ${resolution.normalizedValue || "None"}
+INSTRUCTION: Do NOT ask for the ${topField} from scratch. Instead, infer the likely value and ask for a short confirmation (e.g. "Just confirming — ${resolution.normalizedValue}, right?").`;
+          } else {
+            commerceContextStr += `
+YOUR NEXT GOAL: Collect '${topField}'
+INSTRUCTION: Naturally ask the user for their ${topField}. Do not be robotic.`;
+          }
+        }
+
+        commerceContextStr += `
+
+BEHAVIORAL RULES:
+1. Be a salesperson, not a form. Keep the conversation commercially helpful and natural.
+2. Soft Persuasion: If the customer hesitates or casually wants to abandon the purchase, make ONE brief, relevant recovery attempt (e.g. ask if it's the price and offer to check alternatives). If they give an explicit final instruction to cancel, stop attempting to persuade and cancel immediately.
+3. Upselling/Cross-selling: Do not invent accessories. If there is a potential upselling opportunity, use actual commerce tools to search the active catalog. Offer only after the core checkout flow is stable.
+4. Don't over-confirm. Avoid saying "Got it" or "Perfect" on every single message.
+5. Interruptions: If the customer asks a question, answer from PRODUCT FACTS first (or admit lack thereof), then gently steer back to the flow.
+6. Never request information already supplied. If supplied information is incomplete, clarify only the missing component based on the YOUR NEXT GOAL above.
+
+EXTRACTION:
+Extract whatever the user provides into "extractedOrderFields".
+If the user confirms a "needs_clarification" value (like saying "yes" to a normalized phone number), extract it exactly as the candidate normalized value.
+`;
       }
     }
   }
@@ -563,9 +602,23 @@ Do not decide if the order is complete or valid; the backend will validate the f
   
   let systemContent = BASE_SYSTEM_PROMPT + "\n\n" + channelPolicy + movieDataContext + userContextStr + commerceContextStr;
 
+  if (req.contextMode === "commerce") {
+    systemContent += `\n\n[STRICT COMMERCE MODE ENABLED]\nAn active order exists. You must absolutely NOT reset the conversation to generic movie chat. If the user says "Hello" or asks a general question, acknowledge it and immediately steer them back to the active order status. Your priority is finishing this transaction. DO NOT output search intent for movies while an order is active.`;
+  }
+
   const chatMessages: AIChatMessage[] = [{ role: "system", content: systemContent }];
 
-  for (const m of req.messageHistory) {
+  let orderStartIndex = 0;
+  for (let i = req.messageHistory.length - 1; i >= 0; i--) {
+    if (req.messageHistory[i].content.includes("[System Signal: The user just placed a native Instagram order request")) {
+      orderStartIndex = i;
+      break;
+    }
+  }
+
+  const slicedHistory = req.messageHistory.slice(orderStartIndex);
+
+  for (const m of slicedHistory) {
     if (m.role === "user" || m.role === "assistant") {
       chatMessages.push({ role: m.role, content: m.content });
     }
@@ -598,9 +651,11 @@ Do not decide if the order is complete or valid; the backend will validate the f
   let hasExtractedFields = false;
 
   try {
-    const routerResult = await routeChat(chatMessages);
-    text = routerResult.text;
-    provider = routerResult.provider;
+    const { text: rawText, provider: routeProvider } = await routeChat(chatMessages);
+    text = rawText;
+    provider = routeProvider;
+    
+    console.log(`\n=== RAW AI OUTPUT (${provider}) ===\n${text}\n=================================\n`);
 
     try {
       const stripped = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
@@ -730,9 +785,19 @@ Do not decide if the order is complete or valid; the backend will validate the f
               if (value === undefined || value === null || value === "") continue;
               if (key === "priceApproved") continue; // handled above
               
-              const validation = validateField(key, value);
-              if (validation.valid) {
-                validatedFields[key] = value;
+              const validation = await validateFieldAsync(key, value, activeOrder.collected_info, activeOrder);
+              
+              const { appendConversationRequest } = await import("@/lib/db/commerce-orders");
+              await appendConversationRequest(activeOrder._id!.toString(), {
+                field: key,
+                action: "extracted",
+                valueReceived: String(value),
+                outcome: validation.resolution,
+                timestamp: new Date().toISOString()
+              });
+
+              if (validation.valid || validation.resolution === "confirmed") {
+                validatedFields[key] = validation.normalizedValue !== undefined ? validation.normalizedValue : value;
               } else {
                 invalidReasons.push(`Field ${key} was invalid: ${validation.reason}`);
               }
@@ -749,13 +814,28 @@ Do not decide if the order is complete or valid; the backend will validate the f
                 let systemPromptAddon = "";
                 if (freshOrder.status === 'READY_FOR_SOURCING_CHECK') {
                   systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The order is now complete — all information has been collected! (Status: READY_FOR_SOURCING_CHECK). Tell the customer: "Thanks — I have everything I need. I'm checking availability now." The sourcing check is running in the background. Do not ask for any more information. Do NOT say "Order confirmed". Remember to output ONLY valid JSON.`;
-                } else if (freshOrder.status === 'PREFLIGHT_TEST_PASSED') {
-                  systemPromptAddon = `[SYSTEM] The order is currently in PREFLIGHT_TEST_PASSED state. A live supplier verification is required by a human admin before payment can be authorized. If the customer is asking for an update, tell them gracefully: "I'm still checking with our suppliers to confirm availability and price. I'll get back to you shortly!" Do NOT say the order is confirmed yet. Remember to output ONLY valid JSON.`;
+                } else if (freshOrder.status === 'LIVE_WEB_CHECK_PASSED') {
+                  systemPromptAddon = `[SYSTEM] The order is currently in LIVE_WEB_CHECK_PASSED state. A live supplier verification is required by a human admin before payment can be authorized. If the customer is asking for an update, tell them gracefully: "I'm still checking with our suppliers to confirm availability and price. I'll get back to you shortly!" Do NOT say the order is confirmed yet. Remember to output ONLY valid JSON.`;
                 } else if (freshOrder.status === 'READY_FOR_PAYMENT') {
                   systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The order is ready for payment! (Status: ${freshOrder.status}). Acknowledge that the order details are confirmed and you have everything you need. Do not ask for any more information. Remember to output ONLY valid JSON.`;
                 } else if (freshOrder.missingFields && freshOrder.missingFields.length > 0) {
                   const nextField = freshOrder.missingFields[0];
-                  systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The very next field you must ask for is: **${nextField}**. Naturally weave this question into the conversation. Sometimes acknowledge briefly, sometimes jump straight into the question, sometimes reference context. Do not be robotic. Remember to output ONLY valid JSON.`;
+                  const resolution = freshOrder.fieldResolutions?.[nextField];
+                  if (resolution?.resolution === "needs_clarification") {
+                     if (resolution.reason === "confirm_inferred_international_number") {
+                       systemPromptAddon = `[SYSTEM] The extracted phone was parsed to a valid format using the delivery country context. The next goal is to clarify '${nextField}'. Ask naturally: "Just confirming — ${resolution.normalizedValue}, right?" Remember to output ONLY valid JSON.`;
+                     } else if (resolution.reason === "country_conflict") {
+                       systemPromptAddon = `[SYSTEM] The extracted phone was parsed but its country code doesn't match the delivery address. The next goal is to clarify '${nextField}'. Ask something like: "Your delivery address is in a different country, but this looks like a different country's number. Is this the best number to reach you on?" Remember to output ONLY valid JSON.`;
+                     } else if (resolution.reason === "incomplete_address_details" && resolution.normalizedValue) {
+                       const loc = resolution.normalizedValue;
+                       const knownStr = [loc.locality, loc.administrativeArea, loc.countryName].filter(Boolean).join(", ");
+                       systemPromptAddon = `[SYSTEM] The extracted address is incomplete. The next goal is to clarify '${nextField}'. We resolved it to: ${knownStr}. Ask ONLY for the missing street/house number naturally: "I've got ${knownStr}. What street and house/building number should I use for delivery?" Do NOT ask them to repeat the whole address. Remember to output ONLY valid JSON.`;
+                     } else {
+                       systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The next goal is to clarify '${nextField}'. (Candidate: ${JSON.stringify(resolution.normalizedValue)}). Ask for a short confirmation. Remember to output ONLY valid JSON.`;
+                     }
+                  } else {
+                     systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The very next field you must ask for is: **${nextField}**. Naturally weave this question into the conversation. Sometimes acknowledge briefly, sometimes jump straight into the question, sometimes reference context. Do not be robotic. Remember to output ONLY valid JSON.`;
+                  }
                 }
 
                 if (systemPromptAddon) {
@@ -765,6 +845,7 @@ Do not decide if the order is complete or valid; the backend will validate the f
                   
                   const secondPass = await routeChat(chatMessages);
                   text = secondPass.text;
+                  console.log(`\n=== RAW AI OUTPUT (SECOND PASS) ===\n${text}\n=================================\n`);
                   
                   try {
                     const stripped = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
@@ -790,6 +871,40 @@ Do not decide if the order is complete or valid; the backend will validate the f
         }
       } catch (e) {
         console.error("[ai/sonia] Failed to process extracted fields", e);
+      }
+    }
+    
+    // Process explicit actions
+    if (targetUserId && parsed.explicitAction === "CANCEL_ORDER") {
+      try {
+        const { getActiveOrderForCustomer, updateOrderStatus } = await import("@/lib/db/commerce-orders");
+        const activeOrder = await getActiveOrderForCustomer(targetUserId);
+        if (activeOrder) {
+          console.log(`[ai/sonia] Cancelling order ${activeOrder._id} due to explicitAction: CANCEL_ORDER`);
+          await updateOrderStatus(activeOrder._id!.toString(), "CANCELLED" as any); // Or a specific cancelled state
+        }
+      } catch (e) {
+        console.error("[ai/sonia] Failed to process CANCEL_ORDER explicit action", e);
+      }
+    }
+
+    // Log the field we requested at the end of the turn
+    if (targetUserId) {
+      try {
+        const { getActiveOrderForCustomer, appendConversationRequest } = await import("@/lib/db/commerce-orders");
+        const freshOrder = await getActiveOrderForCustomer(targetUserId);
+        if (freshOrder && freshOrder.status === 'INFORMATION_REQUIRED' && freshOrder.missingFields && freshOrder.missingFields.length > 0) {
+          const topField = freshOrder.missingFields[0];
+          const resolution = freshOrder.fieldResolutions?.[topField];
+          await appendConversationRequest(freshOrder._id!.toString(), {
+            field: topField,
+            action: "requested",
+            outcome: resolution?.resolution || "missing",
+            timestamp: new Date().toISOString()
+          });
+        }
+      } catch (e) {
+        console.error("[ai/sonia] Failed to log requested field", e);
       }
     }
 
