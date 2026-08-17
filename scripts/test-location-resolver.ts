@@ -17,7 +17,7 @@ async function runTests() {
     {
       name: "UK (Address Validation Supported)",
       address: "10 Downing Street, London",
-      phone: "07700 900077"
+      phone: "07712 345678"
     },
     {
       name: "US (Address Validation Supported)",
@@ -32,7 +32,7 @@ async function runTests() {
     {
       name: "Country Conflict",
       address: "53 Salami, Oworonshoki, Lagos State",
-      phone: "+447700900077" // UK number for NG delivery
+      phone: "+16502530000" // US number for NG delivery
     }
   ];
 

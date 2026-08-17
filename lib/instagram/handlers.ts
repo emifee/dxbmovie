@@ -1,10 +1,8 @@
-import { sendTextMessage, replyToComment, setTyping } from "./client";
+import { sendTextMessage, replyToComment, setTyping, markSeen } from "./client";
 import { renderPresentation } from "./renderer";
 import { resolveThreadRoot, appendCommentToThread, setThreadPausedUntil, getDailyUserReplyCount } from "@/lib/db/comments";
-import { getConversation, saveConversation } from "@/lib/db/conversations";
 import { scheduleCommentJob, CommentIntent } from "@/lib/db/comment-jobs";
-import { generateSoniaResponse } from "@/lib/ai/sonia";
-import type { AIChatMessage } from "@/lib/ai-router";
+import { processMessage } from "@/lib/brain";
 
 export interface NormalizedInstagramEvent {
   event_type: "instagram.dm.received" | "instagram.comment.created" | "instagram.unknown";
@@ -47,50 +45,20 @@ async function handleDM(event: NormalizedInstagramEvent) {
   }
 
   try {
+    await markSeen(event.sender_id);
     await setTyping(event.sender_id, true);
 
-    const { getActiveOrderForCustomer } = await import("@/lib/db/commerce-orders");
-    const activeOrder = await getActiveOrderForCustomer(event.sender_id);
-
-    // 1. Fetch conversation history for this IGSID
-    const history = await getConversation(event.sender_id, "instagram_dm");
-
-    // 2. Append the new message
-    history.push({ role: "user", content: event.text });
-
-    const contextMode = activeOrder ? "commerce" : "movie";
-
-    if (activeOrder && activeOrder.status) {
-      // Inject system message to force the LLM to know the exact active state immediately before the user message.
-      const lastIndex = history.length - 1;
-      history[lastIndex].content = `[System Signal: The user has an active order in state ${activeOrder.status}. Proceed accordingly.]\n${history[lastIndex].content}`;
-    }
-
-    // 3. Call Sonia
-    const response = await generateSoniaResponse({
+    const response = await processMessage({
+      userId: event.sender_id,
       channel: "instagram_dm",
-      anonId: event.sender_id, // Use IGSID as the anonId for memory tracking
-      messageHistory: history,
-      contextMode, // Let generateSoniaResponse know to use strict commerce context
+      text: event.text,
     });
 
-    // 4. Send the reply
-    if (!response.content?.trim() && !response.presentation) {
-      return;
+    if (response.content?.trim() || response.presentation) {
+      await renderPresentation(event.sender_id, response);
+      console.log(`[instagram/handlers] dm_reply_rendered to=${event.sender_id}`);
     }
-    
-    await renderPresentation(event.sender_id, response);
-    console.log(`[instagram/handlers] dm_reply_rendered to=${event.sender_id}`);
-    
-    // 5. Append Sonia's response to history and save
-    if (response.content?.trim()) {
-      // Clean system signal from saved history
-      if (activeOrder && history.length > 0) {
-          history[history.length - 1].content = event.text; 
-      }
-      history.push({ role: "assistant", content: response.content });
-      await saveConversation(event.sender_id, "instagram_dm", history);
-    }
+
   } catch (err) {
     console.error(`[instagram/handlers] dm_processing_failed to=${event.sender_id}`, err);
   } finally {

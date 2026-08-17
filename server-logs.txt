@@ -1,0 +1,1005 @@
+[TAILING] Tailing last 500 lines for [dxbmovies] process (change the value with --lines option)
+/home/ubuntu/.pm2/logs/dxbmovies-error.log last 500 lines:
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "4j". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "4j". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "4j". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | [telegram/sender] Telegram API response error: {"ok":false,"error_code":400,"description":"Bad Request: message text is empty"}
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderPageComponent (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3016:16)
+0|dxbmovie |     at async NextNodeServer.renderToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3078:24)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | [ai/sonia] User provided invalid order info:  [ 'Field quantity was invalid: quantity_must_be_positive_integer' ]
+0|dxbmovie | [instagram/client] send_failed recipient=914795504483114 type=IGApiException msg=بيانات الرسالة غير صالحة
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — Groq timeout after 8000ms
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99966, Requested 4532. Please try again in 1h4m46.272s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99259, Requested 4520. Please try again in 54m25.055999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99226, Requested 4499. Please try again in 53m38.399999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99211, Requested 4490. Please try again in 53m17.664s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99174, Requested 4493. Please try again in 52m48.288s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99160, Requested 4483. Please try again in 52m27.551999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99135, Requested 4496. Please try again in 52m17.184s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [webhook/instagram] product matching error: MongoServerError: text index required for $text query
+0|dxbmovie |     at Connection.onMessage (/home/ubuntu/dxbmovies/node_modules/mongodb/lib/cmap/connection.js:202:26)
+0|dxbmovie |     at MessageStream.<anonymous> (/home/ubuntu/dxbmovies/node_modules/mongodb/lib/cmap/connection.js:61:60)
+0|dxbmovie |     at MessageStream.emit (node:events:524:28)
+0|dxbmovie |     at processIncomingData (/home/ubuntu/dxbmovies/node_modules/mongodb/lib/cmap/message_stream.js:124:16)
+0|dxbmovie |     at MessageStream._write (/home/ubuntu/dxbmovies/node_modules/mongodb/lib/cmap/message_stream.js:33:9)
+0|dxbmovie |     at writeOrBuffer (node:internal/streams/writable:572:12)
+0|dxbmovie |     at _write (node:internal/streams/writable:501:10)
+0|dxbmovie |     at Writable.write (node:internal/streams/writable:510:10)
+0|dxbmovie |     at TLSSocket.ondata (node:internal/streams/readable:1009:22)
+0|dxbmovie |     at TLSSocket.emit (node:events:524:28) {
+0|dxbmovie |   ok: 0,
+0|dxbmovie |   code: 27,
+0|dxbmovie |   codeName: 'IndexNotFound',
+0|dxbmovie |   '$clusterTime': {
+0|dxbmovie |     clusterTime: new Timestamp({ t: 1786928073, i: 44 }),
+0|dxbmovie |     signature: {
+0|dxbmovie |       hash: Binary.createFromBase64("46hPfEJ3Stmes6dK1HlJhZwpmS8=", 0),
+0|dxbmovie |       keyId: new Long("7616432520095072308")
+0|dxbmovie |     }
+0|dxbmovie |   },
+0|dxbmovie |   operationTime: new Timestamp({ t: 1786928073, i: 44 }),
+0|dxbmovie |   [Symbol(errorLabels)]: Set(0) {}
+0|dxbmovie | }
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98903, Requested 4610. Please try again in 50m35.232s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98891, Requested 4621. Please try again in 50m34.368s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98890, Requested 4735. Please try again in 52m12s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98834, Requested 4616. Please try again in 49m40.8s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98832, Requested 4762. Please try again in 51m45.216s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98804, Requested 4611. Please try again in 49m10.56s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98802, Requested 4795. Please try again in 51m47.808s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [SourcingEngine] Exception during sourcing check for order 6a825bc90d3d3c3005994f6c: MongoServerError: text index required for $text query
+0|dxbmovie |     at Connection.onMessage (/home/ubuntu/dxbmovies/node_modules/mongodb/lib/cmap/connection.js:202:26)
+0|dxbmovie |     at MessageStream.<anonymous> (/home/ubuntu/dxbmovies/node_modules/mongodb/lib/cmap/connection.js:61:60)
+0|dxbmovie |     at MessageStream.emit (node:events:524:28)
+0|dxbmovie |     at processIncomingData (/home/ubuntu/dxbmovies/node_modules/mongodb/lib/cmap/message_stream.js:124:16)
+0|dxbmovie |     at MessageStream._write (/home/ubuntu/dxbmovies/node_modules/mongodb/lib/cmap/message_stream.js:33:9)
+0|dxbmovie |     at writeOrBuffer (node:internal/streams/writable:572:12)
+0|dxbmovie |     at _write (node:internal/streams/writable:501:10)
+0|dxbmovie |     at Writable.write (node:internal/streams/writable:510:10)
+0|dxbmovie |     at TLSSocket.ondata (node:internal/streams/readable:1009:22)
+0|dxbmovie |     at TLSSocket.emit (node:events:524:28) {
+0|dxbmovie |   ok: 0,
+0|dxbmovie |   code: 27,
+0|dxbmovie |   codeName: 'IndexNotFound',
+0|dxbmovie |   '$clusterTime': {
+0|dxbmovie |     clusterTime: new Timestamp({ t: 1786928163, i: 4 }),
+0|dxbmovie |     signature: {
+0|dxbmovie |       hash: Binary.createFromBase64("1gDOR0dikc4leBeciPp9XGoxq/I=", 0),
+0|dxbmovie |       keyId: new Long("7616432520095072308")
+0|dxbmovie |     }
+0|dxbmovie |   },
+0|dxbmovie |   operationTime: new Timestamp({ t: 1786928163, i: 4 }),
+0|dxbmovie |   [Symbol(errorLabels)]: Set(0) {}
+0|dxbmovie | }
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderPageComponent (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3016:16)
+0|dxbmovie |     at async NextNodeServer.renderToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3078:24)
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95787, Requested 4684. Please try again in 6m46.943999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95785, Requested 4862. Please try again in 9m19.008s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95763, Requested 4673. Please try again in 6m16.704s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95717, Requested 4735. Please try again in 6m30.527999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95715, Requested 4927. Please try again in 9m14.688s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97951, Requested 5099. Please try again in 43m55.2s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | TypeError: Cannot read properties of null (reading 'digest')
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/create-error-handler.js:22:18)
+0|dxbmovie |     at AsyncLocalStorage.run (node:async_hooks:346:14)
+0|dxbmovie |     at N (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:52:119)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/compiled/react-server-dom-webpack/cjs/react-server-dom-webpack-server.edge.production.min.js:36:468)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | node: .env.local: not found
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — Groq timeout after 8000ms
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95064, Requested 5196. Please try again in 3m44.64s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98432, Requested 4386. Please try again in 40m34.752s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98431, Requested 4519. Please try again in 42m28.799999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96050, Requested 4519. Please try again in 8m11.616s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98369, Requested 4426. Please try again in 40m14.88s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95988, Requested 4426. Please try again in 5m57.696s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98367, Requested 4595. Please try again in 42m39.168s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95986, Requested 4157. Please try again in 2m3.552s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98346, Requested 4460. Please try again in 40m24.384s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98314, Requested 4510. Please try again in 40m39.936s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99958, Requested 4510. Please try again in 1h4m20.352s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98312, Requested 4241. Please try again in 36m45.792s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99956, Requested 4255. Please try again in 1h0m38.304s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95815, Requested 4345. Please try again in 2m18.24s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97459, Requested 4345. Please try again in 25m58.656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95798, Requested 4378. Please try again in 2m32.064s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97442, Requested 4378. Please try again in 26m12.48s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95796, Requested 4506. Please try again in 4m20.928s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97440, Requested 4506. Please try again in 28m1.344s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95739, Requested 4421. Please try again in 2m18.24s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97383, Requested 4421. Please try again in 25m58.656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95738, Requested 4580. Please try again in 4m34.752s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97382, Requested 4580. Please try again in 28m15.168s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95727, Requested 4455. Please try again in 2m37.248s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97371, Requested 4455. Please try again in 26m17.663999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95725, Requested 4631. Please try again in 5m7.584s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97369, Requested 4631. Please try again in 28m48s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — Groq timeout after 8000ms
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95680, Requested 4491. Please try again in 2m27.744s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97324, Requested 4491. Please try again in 26m8.159999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 95678, Requested 4635. Please try again in 4m30.432s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97322, Requested 4635. Please try again in 28m10.848s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — Groq timeout after 8000ms
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97022, Requested 4574. Please try again in 22m58.944s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96976, Requested 4051. Please try again in 14m47.328s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96975, Requested 4219. Please try again in 17m11.616s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96922, Requested 4090. Please try again in 14m34.368s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 99118, Requested 4126. Please try again in 46m42.816s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai/sonia] User provided invalid order info:  [ 'Field phone was invalid: phone_missing_country_code' ]
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96803, Requested 4553. Please try again in 19m31.583999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98999, Requested 4105. Please try again in 44m41.856s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96801, Requested 4297. Please try again in 15m48.672s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98997, Requested 4735. Please try again in 53m44.448s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai/sonia] User provided invalid order info:  [ 'Field phone was invalid: phone_missing_country_code' ]
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96748, Requested 4163. Please try again in 13m7.104s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98944, Requested 4201. Please try again in 45m17.279999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96746, Requested 4322. Please try again in 15m22.752s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98943, Requested 4358. Please try again in 47m32.064s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai/sonia] User provided invalid order info:  [ 'Field phone was invalid: phone_missing_country_code' ]
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96711, Requested 4635. Please try again in 19m22.944s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98907, Requested 4635. Please try again in 51m0.288s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96709, Requested 4367. Please try again in 15m29.664s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98906, Requested 4405. Please try again in 47m40.704s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai/sonia] User provided invalid order info:  [ 'Field phone was invalid: phone_missing_country_code' ]
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96681, Requested 4668. Please try again in 19m25.536s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98877, Requested 4668. Please try again in 51m2.88s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96679, Requested 4828. Please try again in 21m42.048s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98876, Requested 4428. Please try again in 47m34.656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — Groq timeout after 8000ms
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98184, Requested 4346. Please try again in 36m25.92s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97706, Requested 4346. Please try again in 29m32.928s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky05ecf4v8zy0wj5k72z23` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98083, Requested 4346. Please try again in 34m58.656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky3kz4e1f8ewvzwtw49qyn` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98590, Requested 4346. Please try again in 42m16.704s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98149, Requested 4375. Please try again in 36m20.735999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97672, Requested 4375. Please try again in 29m28.608s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky05ecf4v8zy0wj5k72z23` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98049, Requested 4375. Please try again in 34m54.336s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky3kz4e1f8ewvzwtw49qyn` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98556, Requested 4375. Please try again in 42m12.384s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98147, Requested 4475. Please try again in 37m45.408s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97670, Requested 4475. Please try again in 30m53.28s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky05ecf4v8zy0wj5k72z23` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98047, Requested 4475. Please try again in 36m19.007999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky3kz4e1f8ewvzwtw49qyn` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98554, Requested 4475. Please try again in 43m37.056s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98071, Requested 4407. Please try again in 35m40.992s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97594, Requested 4407. Please try again in 28m48.864s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky05ecf4v8zy0wj5k72z23` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97971, Requested 4407. Please try again in 34m14.592s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky3kz4e1f8ewvzwtw49qyn` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98478, Requested 4407. Please try again in 41m32.64s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98042, Requested 4453. Please try again in 35m55.679999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97564, Requested 4453. Please try again in 29m2.688s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky05ecf4v8zy0wj5k72z23` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97941, Requested 4453. Please try again in 34m28.416s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky3kz4e1f8ewvzwtw49qyn` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98448, Requested 4453. Please try again in 41m46.464s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98038, Requested 4596. Please try again in 37m55.776s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97560, Requested 4596. Please try again in 31m2.784s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky05ecf4v8zy0wj5k72z23` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97937, Requested 4596. Please try again in 36m28.511999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky3kz4e1f8ewvzwtw49qyn` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98444, Requested 4596. Please try again in 43m46.56s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai/sonia] User provided invalid order info:  [ 'Field phone was invalid: phone_missing_country_code' ]
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97991, Requested 4479. Please try again in 35m34.08s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97514, Requested 4479. Please try again in 28m41.952s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky05ecf4v8zy0wj5k72z23` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97891, Requested 4479. Please try again in 34m7.679999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky3kz4e1f8ewvzwtw49qyn` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98398, Requested 4479. Please try again in 41m25.728s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kghr0vx1f53vmb0z6n18awdt` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97987, Requested 4688. Please try again in 38m31.2s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvkxxgydfwz890pfptr9jqnf` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97510, Requested 4688. Please try again in 31m39.072s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky05ecf4v8zy0wj5k72z23` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 97887, Requested 4688. Please try again in 37m4.799999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 429 {"error":{"message":"Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kvky3kz4e1f8ewvzwtw49qyn` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 98394, Requested 4688. Please try again in 44m22.848s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderPageComponent (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3016:16)
+0|dxbmovie |     at async NextNodeServer.renderToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3078:24)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai-router] Groq key failed, trying next key or switching to OpenAI — 404 {"error":{"message":"The model `llama-3.3-70b-versatile` does not exist or you do not have access to it.","type":"invalid_request_error","code":"model_not_found"}}
+0|dxbmovie | [ai/sonia] User provided invalid order info:  [ 'Field phone was invalid: invalid_phone' ]
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderErrorToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3398:16)
+0|dxbmovie |     at async pipe.req.req (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3237:26)
+0|dxbmovie | Error: Failed to find Server Action "x". This request might be from an older or newer deployment. Original error: Cannot read properties of undefined (reading 'workers')
+0|dxbmovie |     at getActionModIdOrError (webpack://next/dist/esm/server/app-render/action-handler.js:599:15)
+0|dxbmovie |     at <anonymous> (webpack://next/dist/esm/server/app-render/action-handler.js:463:46)
+0|dxbmovie |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+0|dxbmovie |     at async rE (webpack://next/dist/esm/server/app-render/action-handler.js:316:9)
+0|dxbmovie |     at async r7 (webpack://next/dist/esm/server/app-render/app-render.js:888:33)
+0|dxbmovie |     at async doRender (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2330:20)
+0|dxbmovie |     at async cacheEntry.responseCache.get.routeKind (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2569:24)
+0|dxbmovie |     at async NextNodeServer.renderToResponseWithComponentsImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:2432:24)
+0|dxbmovie |     at async NextNodeServer.renderPageComponent (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3016:16)
+0|dxbmovie |     at async NextNodeServer.renderToResponseImpl (/home/ubuntu/dxbmovies/node_modules/next/src/server/base-server.ts:3078:24)
+
+/home/ubuntu/.pm2/logs/dxbmovies-out.log last 500 lines:
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [ai-router] provider=groq model=llama-3.3-70b-versatile
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NDIyMzk2NDM4OTg2Njg4MzI2ODAxMTM2MDI1NgZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NDIyMzk2NDM4OTg2Njg4MzI2ODAxMTM2MDI1NgZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NDcyMjU1ODU1Nzc0MzEwMzIzOTk1MDE3MjE2MAZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] detected empty template attachment for mid=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NDczMDQzNTMzNTkwOTMyMTI5MjE5OTc1NTc3NgZDZD, fetching full message...
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] ignored_event_type type=instagram.unknown id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NDczMDQzNTMzNTkwOTMyMTI5MjE5OTc1NTc3NgZDZD
+0|dxbmovie | [ai-router] provider=groq model=llama-3.3-70b-versatile
+0|dxbmovie | [ai/sonia] Saving validated order fields:  {
+0|dxbmovie |   quantity: 1,
+0|dxbmovie |   shippingAddress: {
+0|dxbmovie |     line1: '58 20a street',
+0|dxbmovie |     area: 'al Badaa satwa',
+0|dxbmovie |     city: 'dubai',
+0|dxbmovie |     country: 'UAE'
+0|dxbmovie |   }
+0|dxbmovie | }
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [ai-router] provider=groq model=llama-3.3-70b-versatile
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NDgxNDgzODc2MzkwNjcxNjc0NjEwMDI0NDQ4MAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NDgxNDgzODc2MzkwNjcxNjc0NjEwMDI0NDQ4MAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NTIwNDg2MjMxMzY5NDEwOTkzODMwOTEzNjM4NAZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] detected empty template attachment for mid=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NTIxMjcwMzcyOTQ1MTkzODY4OTM0ODI3MjEyOAZDZD, fetching full message...
+0|dxbmovie | [instagram/handlers] ignored_event_type type=instagram.unknown id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NTIxMjcwMzcyOTQ1MTkzODY4OTM0ODI3MjEyOAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=groq model=llama-3.3-70b-versatile
+0|dxbmovie | [ai/sonia] Saving validated order fields:  { phone: '+971551994544' }
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [orchestrator] Order 6a82ad256c7a050fa90938ea transitioned to READY_FOR_SOURCING_CHECK. Sending Phase 1 Notification...
+0|dxbmovie | [orchestrator] Order 6a82ad256c7a050fa90938ea transitioned to READY_FOR_SOURCING_CHECK. Triggering sourcing engine...
+0|dxbmovie | [orchestrator] Triggering sourcing job for 6a82ad256c7a050fa90938ea...
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [telegram/sender] Telegram API response success
+0|dxbmovie | {
+0|dxbmovie |   tag: 'SOURCING_VERIFIER_TRACE',
+0|dxbmovie |   buildId: '2026-08-17-v1',
+0|dxbmovie |   verifierClass: 's',
+0|dxbmovie |   verifierVersion: 'amazon-curl-v1',
+0|dxbmovie |   transport: 'curl_execFile',
+0|dxbmovie |   orderId: '6a82ad256c7a050fa90938ea',
+0|dxbmovie |   supplierOfferId: '6a81fd529699e71c112b12c9',
+0|dxbmovie |   supplierUrl: 'https://amzn.to/4zEgNhl',
+0|dxbmovie |   canonicalUrl: 'unknown',
+0|dxbmovie |   asin: 'unknown'
+0|dxbmovie | }
+0|dxbmovie | [telegram/sender] Telegram API response success
+0|dxbmovie | [ai-router] provider=groq model=llama-3.3-70b-versatile
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NTQ0MTExMjM2NjAzNzAyMjU1ODkwMjAyNjI0MAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzM5NTQ0MTExMjM2NjAzNzAyMjU1ODkwMjAyNjI0MAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18155351665496276 sender=iamchiz_
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=iamchiz_
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18123445783830161 sender=massimobullo
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=massimobullo
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17948427609253744 sender=goos.e808786
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=goos.e808786
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18059578007589869 sender=mo_hossein_parsapour
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=mo_hossein_parsapour
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] detected empty template attachment for mid=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NTI3NTMyNjY4NjQ0MDcwNzY1ODcxMTMwMjE0NAZDZD, fetching full message...
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] parsed order request: title="تم تقديم الطلب", product="Samsung 34" Odyssey G5 Ultra-Wide Gaming Monitor with 1000R Curved Screen 165Hz, 1ms, FreeSync Premium, Large Display, Eye Comfort, Multiple Ports, WQHD (LC34G55TWWNXZA)", price="US$ ٥٤٠٫٠٠"
+0|dxbmovie | [webhook/instagram] matched product mapping: "Samsung 34" Odyssey G5 Ultra-Wide Gaming Monitor with 1000R Curved Screen 165Hz, 1ms, FreeSync Premium, Large Display, Eye Comfort, Multiple Ports, WQHD (LC34G55TWWNXZA)" -> 6a81fd50742a56928611d78e
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NTI3NTMyNjY4NjQ0MDcwNzY1ODcxMTMwMjE0NAZDZD sender=914795504483114
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NTQzNDgzNTIzOTcyNDIxNjM4MjUwNTYxNTM2MAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NTQzNDgzNTIzOTcyNDIxNjM4MjUwNTYxNTM2MAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NTg2NzgzMzcwODAxMTUyODg3NDM3NTUxMjA2NAZDZD sender=914795504483114
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | [ai/sonia] Saving validated order fields:  { quantity: 1 }
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NjAyMzc3OTAxNDQyMjc4MzU2NjM0MTQ3MjI1NgZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NjAyMzc3OTAxNDQyMjc4MzU2NjM0MTQ3MjI1NgZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NzEyNzUzODQ4ODc4MDQxMjc2NDIzMDI1NDU5MgZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NzIyMzk0NTM3OTE2NzI2NzY4Njc1MzIzOTA0MAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NzIyMzk0NTM3OTE2NzI2NzY4Njc1MzIzOTA0MAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2NzYxMTk5MjUyNjM0Nzg1OTU2Mzg5MjQ0MTA4OAZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | [ai/sonia] Saving validated order fields:  {
+0|dxbmovie |   shippingAddress: { line1: '53 Salami', city: 'Oworonshoki', state: 'Lagos' }
+0|dxbmovie | }
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2Nzc1OTY0MjU5MDIwMzU4NDEwMjQzMDQwODcwNAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2Nzc1OTY0MjU5MDIwMzU4NDEwMjQzMDQwODcwNAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2ODQwNDg3NTc1NTg5Mjg0ODU5MjM4MzExNTI2NAZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] detected empty template attachment for mid=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2ODQxNDUxNjg5MTM0Mjc0MDY2ODQwNjU2MjgxNgZDZD, fetching full message...
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] ignored_event_type type=instagram.unknown id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2ODQxNDUxNjg5MTM0Mjc0MDY2ODQwNjU2MjgxNgZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | [ai/sonia] Saving validated order fields:  { phone: '+2348169875198' }
+0|dxbmovie | [orchestrator] Order 6a82bd4c6c7a050fa90938fd transitioned to READY_FOR_SOURCING_CHECK. Sending Phase 1 Notification...
+0|dxbmovie | [orchestrator] Order 6a82bd4c6c7a050fa90938fd transitioned to READY_FOR_SOURCING_CHECK. Triggering sourcing engine...
+0|dxbmovie | [orchestrator] Triggering sourcing job for 6a82bd4c6c7a050fa90938fd...
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [telegram/sender] Telegram API response success
+0|dxbmovie | {
+0|dxbmovie |   tag: 'SOURCING_VERIFIER_TRACE',
+0|dxbmovie |   buildId: '2026-08-17-v1',
+0|dxbmovie |   verifierClass: 's',
+0|dxbmovie |   verifierVersion: 'amazon-curl-v1',
+0|dxbmovie |   transport: 'curl_execFile',
+0|dxbmovie |   orderId: '6a82bd4c6c7a050fa90938fd',
+0|dxbmovie |   supplierOfferId: '6a81fd529699e71c112b12c9',
+0|dxbmovie |   supplierUrl: 'https://amzn.to/4zEgNhl',
+0|dxbmovie |   canonicalUrl: 'https://www.amazon.com/dp/B08MVBYWGQ/ref=cm_sw_r_as_gl_api_gl_i_RVJYX960HAS2K1BJR586?linkCode=ml1&tag=dxbmovies-20&linkId=2c43771ce09a4df9a83a601ba350823e&gaOptInStatus=true',
+0|dxbmovie |   asin: 'B08MVBYWGQ'
+0|dxbmovie | }
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2ODU2ODMzNTU4MzMxMDIwMTgyODQyNDAyNDA2NAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzQ2ODU2ODMzNTU4MzMxMDIwMTgyODQyNDAyNDA2NAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [telegram/sender] Telegram API response success
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17913182967446111 sender=shturmovik_123
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=shturmovik_123
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18112516289284253 sender=meliana_ags
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=meliana_ags
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18126364066683846 sender=yahya__zjr
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=yahya__zjr
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17941154460340541 sender=flouradwa
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=flouradwa
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17921562420411579 sender=lorddsick
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=lorddsick
+0|dxbmovie |   ▲ Next.js 14.2.33
+0|dxbmovie |   - Local:        http://localhost:3000
+0|dxbmovie |   - Network:      http://0.0.0.0:3000
+0|dxbmovie | 
+0|dxbmovie |  ✓ Starting...
+0|dxbmovie |  ✓ Ready in 1732ms
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17920251603422194 sender=rezasamieii._
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=rezasamieii._
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17956346334210833 sender=_.crystal.mc._
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=_.crystal.mc._
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] detected empty template attachment for mid=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTEzMjMxMzEzNDUxMjUyOTY4NTAxMjgwNzY4MAZDZD, fetching full message...
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] parsed order request: title="تم تقديم الطلب", product="Samsung 34" Odyssey G5 Ultra-Wide Gaming Monitor with 1000R Curved Screen 165Hz, 1ms, FreeSync Premium, Large Display, Eye Comfort, Multiple Ports, WQHD (LC34G55TWWNXZA)", price="US$ ٥٤٠٫٠٠"
+0|dxbmovie | [webhook/instagram] matched product mapping: "Samsung 34" Odyssey G5 Ultra-Wide Gaming Monitor with 1000R Curved Screen 165Hz, 1ms, FreeSync Premium, Large Display, Eye Comfort, Multiple Ports, WQHD (LC34G55TWWNXZA)" -> 6a81fd50742a56928611d78e
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTEzMjMxMzEzNDUxMjUyOTY4NTAxMjgwNzY4MAZDZD sender=914795504483114
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"message":"To process your order for the Samsung 34\" Odyssey G5 Ultra-Wide Gaming Monitor, could you let me know how many you'd like to order?","intent":"CHECKOUT_INTENT","extractedOrderFields":{},"presentation":{}}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTI3NzUwNTcwNDY3NjAxMDU2MzM3NDk0MDE2MAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTI3NzUwNTcwNDY3NjAxMDU2MzM3NDk0MDE2MAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTQzNTUxNjQwMDc4NzQ3ODE0NTI4NzU4NTc5MgZDZD sender=914795504483114
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"extractedOrderFields":{"quantity":1},"intent":"CHECKOUT_INTENT","message":"Great! I've noted that you want 1 unit of the monitor. Could you please provide your shipping address and phone number so we can finalize your order?"}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [ai/sonia] Saving validated order fields:  { quantity: 1 }
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (SECOND PASS) ===
+0|dxbmovie | {"extractedOrderFields":{"quantity":1},"intent":"CHECKOUT_INTENT","message":"Awesome! Now, could you share your shipping address? That way, we can get the monitor sent out to you."}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTU3MDgwODQwMDQ5MjQxNDI5NjQ5MjM0MzI5NgZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTU3MDgwODQwMDQ5MjQxNDI5NjQ5MjM0MzI5NgZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTg3NjU1NDQwMjg2Mzk3MTAyODc4MDk3NDA4MAZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"extractedOrderFields":{"shippingAddress":{"line1":"53 Salami","city":"Oworonshoki","state":"Lagos State"},"phone":""}}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [ai/sonia] Saving validated order fields:  {
+0|dxbmovie |   shippingAddress: {
+0|dxbmovie |     rawAddress: '53 Salami, Oworonshoki, Lagos State',
+0|dxbmovie |     normalizedAddress: '53 Salami St, Oworosoki, Lagos 105102, Lagos, Nigeria',
+0|dxbmovie |     countryCode: 'NG',
+0|dxbmovie |     countryName: 'Nigeria',
+0|dxbmovie |     callingCode: '+234',
+0|dxbmovie |     locality: 'Lagos',
+0|dxbmovie |     administrativeArea: 'Lagos',
+0|dxbmovie |     postalCode: '105102',
+0|dxbmovie |     latitude: 6.556955100000001,
+0|dxbmovie |     longitude: 3.4008376,
+0|dxbmovie |     placeId: 'EjU1MyBTYWxhbWkgU3QsIE93b3Jvc29raSwgTGFnb3MgMTA1MTAyLCBMYWdvcywgTmlnZXJpYSIwEi4KFAoSCVtzB8xCjTsQESoiTFYJJDm1EDUqFAoSCTH1bY5CjTsQEaT-13Jdo9Ll',
+0|dxbmovie |     confidence: 'high',
+0|dxbmovie |     validationStatus: 'verified',
+0|dxbmovie |     validationProvider: 'google_geocoding'
+0|dxbmovie |   }
+0|dxbmovie | }
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (SECOND PASS) ===
+0|dxbmovie | {"message":"Great, I have your address! Could you also provide your phone number for the shipping details?","extractedOrderFields":{"phone":""}}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NjA0NzQ5OTE5OTYwMzQxNjcyNjE5NTE0MjY1NgZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NjA0NzQ5OTE5OTYwMzQxNjcyNjE5NTE0MjY1NgZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NjMzNTgzNDgxNDQzMDA2ODk4MzE4NzExMTkzNgZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"quantity":1,"shippingAddress":{"line1":"53 Salami, Oworonshoki, Lagos State","city":"Lagos","country":"Nigeria"},"phone":"08169875198"}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NjQxOTMxNTQ4MDk0ODY2NTI2NDE4NzExMzQ3MgZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NjQxOTMxNTQ4MDk0ODY2NTI2NDE4NzExMzQ3MgZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NjkxMzM1MjE1OTM0MDU0NjQwNjg4NDU3MzE4NAZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"intent":"CHECKOUT_INTENT","message":"Thank you! Your order for the Samsung 34\" Odyssey G5 Ultra-Wide Gaming Monitor is now being processed. You’ll receive confirmation shortly."}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1Njk5MjcyMTA0NjYwNTExMjgyODgyOTM2ODMyMAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1Njk5MjcyMTA0NjYwNTExMjgyODgyOTM2ODMyMAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17953432950014971 sender=3800wifey
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=3800wifey
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17913330105444877 sender=charchar.2.far
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=charchar.2.far
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] duplicate_ignored event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU1NTEzMjMxMzEzNDUxMjUyOTY4NTAxMjgwNzY4MAZDZD type=instagram.dm.received
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] processing_self_comment for takeover detection commentId=18080639888441879
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18080639888441879 sender=dxbmovies
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=dxbmovies
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzU3NDI2MDIzODc0MzEyNjE0ODM4NTMyMDQ2ODQ4MAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17867753838639698 sender=reemaalsubiy
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=reemaalsubiy
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18098788406360628 sender=yimlens
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=yimlens
+0|dxbmovie |   ▲ Next.js 14.2.33
+0|dxbmovie |   - Local:        http://localhost:3000
+0|dxbmovie |   - Network:      http://0.0.0.0:3000
+0|dxbmovie | 
+0|dxbmovie |  ✓ Starting...
+0|dxbmovie |  ✓ Ready in 932ms
+0|dxbmovie |   ▲ Next.js 14.2.33
+0|dxbmovie |   - Local:        http://localhost:3000
+0|dxbmovie |   - Network:      http://0.0.0.0:3000
+0|dxbmovie | 
+0|dxbmovie |  ✓ Starting...
+0|dxbmovie |  ✓ Ready in 1986ms
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] detected empty template attachment for mid=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNjg0Mjc3NTc0MjY3NDgyMDk1MTA3NDQwNjQwMAZDZD, fetching full message...
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] parsed order request: title="تم تقديم الطلب", product="Samsung 34" Odyssey G5 Ultra-Wide Gaming Monitor with 1000R Curved Screen 165Hz, 1ms, FreeSync Premium, Large Display, Eye Comfort, Multiple Ports, WQHD (LC34G55TWWNXZA)", price="US$ ٥٤٠٫٠٠"
+0|dxbmovie | [webhook/instagram] matched product mapping: "Samsung 34" Odyssey G5 Ultra-Wide Gaming Monitor with 1000R Curved Screen 165Hz, 1ms, FreeSync Premium, Large Display, Eye Comfort, Multiple Ports, WQHD (LC34G55TWWNXZA)" -> 6a81fd50742a56928611d78e
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNjg0Mjc3NTc0MjY3NDgyMDk1MTA3NDQwNjQwMAZDZD sender=914795504483114
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"intent":"CHECKOUT_INTENT","message":"Hey! Just need to confirm the quantity for the Samsung 34\" Odyssey G5 Ultra-Wide Gaming Monitor. How many would you like to order?","extractedOrderFields":{},"presentation":{}}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzA0MDUyOTExODc4OTYxMjQ0NTAxMzkwMTMxMgZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzA0MDUyOTExODc4OTYxMjQ0NTAxMzkwMTMxMgZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzE4NDk2MjkzNzQ3NTg1MzUwMjA5ODk2NDQ4MAZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"extractedOrderFields":{"quantity":1},"intent":"CHECKOUT_INTENT","message":"Thanks for the quantity! Could you please provide your shipping address and phone number to complete the order?"}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [ai/sonia] Saving validated order fields:  { quantity: 1 }
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (SECOND PASS) ===
+0|dxbmovie | {"extractedOrderFields":{"quantity":1},"intent":"CHECKOUT_INTENT","message":"Got it! Now, could you please share your shipping address so we can get your monitor on its way?"}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzMzMDE4ODA4NDU4OTM2ODU1MTUyOTI1MDgxNgZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzMzMDE4ODA4NDU4OTM2ODU1MTUyOTI1MDgxNgZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzQ5Mzg0NTM4NDQwMjAzMDg0ODMyMDIwODg5NgZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"extractedOrderFields":{"shippingAddress":{"line1":"53 Salami, Oworonshoki","city":"Lagos State"},"phone":""}}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [ai/sonia] Saving validated order fields:  {
+0|dxbmovie |   shippingAddress: {
+0|dxbmovie |     rawAddress: '53 Salami, Oworonshoki, Lagos State',
+0|dxbmovie |     normalizedAddress: '53 Salami St, Oworosoki, Lagos 105102, Lagos, Nigeria',
+0|dxbmovie |     countryCode: 'NG',
+0|dxbmovie |     countryName: 'Nigeria',
+0|dxbmovie |     callingCode: '+234',
+0|dxbmovie |     locality: 'Lagos',
+0|dxbmovie |     administrativeArea: 'Lagos',
+0|dxbmovie |     postalCode: '105102',
+0|dxbmovie |     latitude: 6.556955100000001,
+0|dxbmovie |     longitude: 3.4008376,
+0|dxbmovie |     placeId: 'EjU1MyBTYWxhbWkgU3QsIE93b3Jvc29raSwgTGFnb3MgMTA1MTAyLCBMYWdvcywgTmlnZXJpYSIwEi4KFAoSCVtzB8xCjTsQESoiTFYJJDm1EDUqFAoSCTH1bY5CjTsQEaT-13Jdo9Ll',
+0|dxbmovie |     confidence: 'high',
+0|dxbmovie |     validationStatus: 'verified',
+0|dxbmovie |     validationProvider: 'google_geocoding'
+0|dxbmovie |   }
+0|dxbmovie | }
+0|dxbmovie | [ai/sonia] Running second pass for dynamic order response...
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (SECOND PASS) ===
+0|dxbmovie | {"message":"Thanks for the address! Just one last thing, could you provide your phone number for the shipping details?","extractedOrderFields":{"shippingAddress":{"line1":"53 Salami, Oworonshoki","city":"Lagos State"},"phone":""}}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzgzNTQ0Mzc0MDY4NTQ4NjUxNjc0NzYzMjY0MAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzgzNTQ0Mzc0MDY4NTQ4NjUxNjc0NzYzMjY0MAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_dm event_id=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwNzk3Njc2NzM4Mjk4MDY2NzkyMjMwMTU4MzM2MAZDZD sender=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [ai-router] provider=openai model=gpt-4o-mini
+0|dxbmovie | 
+0|dxbmovie | === RAW AI OUTPUT (openai) ===
+0|dxbmovie | {"intent":"CHECKOUT_INTENT","extractedOrderFields":{"phone":"08169875198"},"message":"Thank you! Your phone number has been noted. We’re all set to process your order for the Samsung 34\" Odyssey G5 Ultra-Wide Gaming Monitor."}
+0|dxbmovie | =================================
+0|dxbmovie | 
+0|dxbmovie | [instagram/client] reply_success recipient=914795504483114 messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwODExNDA4OTUzOTEwNDYzNjE3ODIwOTQzOTc0NAZDZD
+0|dxbmovie | [instagram/handlers] dm_reply_rendered to=914795504483114
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] echo_message_skipped messageId=aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDMyNjMwNDM5NDcyOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI2MDM1NjI4NzQ0OTcxMzU3NTozMjk2MzYwODExNDA4OTUzOTEwNDYzNjE3ODIwOTQzOTc0NAZDZD
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18467444473112148 sender=markizerd
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=markizerd
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17874858939546060 sender=italiano1258
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=italiano1258
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18146703058537716 sender=peacefulweb
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=peacefulweb
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18106273664466143 sender=priyansh.classified
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=priyansh.classified
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18081253754315233 sender=itsmeprivatesophie
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=itsmeprivatesophie
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17891212179414028 sender=bartlomiej_kownacki
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=bartlomiej_kownacki
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18122087644894898 sender=wilsonabreu300
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=wilsonabreu300
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18022282451906744 sender=wilsonabreu300
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=wilsonabreu300
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18118359556923446 sender=tonyr45
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=tonyr45
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18125862118774000 sender=raymondchristopher885
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=raymondchristopher885
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18193437103377302 sender=mrdamage20
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=mrdamage20
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18105823412334417 sender=gothicnz_
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=gothicnz_
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18112706323988770 sender=azaliya_play
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=azaliya_play
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18106464944123278 sender=nouribrahimm
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=nouribrahimm
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17863555485659513 sender=nouribrahimm
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=nouribrahimm
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17982260373073922 sender=lordvader7355
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=lordvader7355
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18089156921156565 sender=tinuthomas62626
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=tinuthomas62626
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18377946847227900 sender=__anacalledaa
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=__anacalledaa
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=17911914486445930 sender=miamirob83
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=miamirob83
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18032479982844540 sender=thee_tyra
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=thee_tyra
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18456350293190227 sender=5lh.l
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=5lh.l
+0|dxbmovie | [webhook/instagram] webhook_received signature_valid
+0|dxbmovie | [instagram/handlers] handle_comment event_id=18116742604858954 sender=circe.eve
+0|dxbmovie | [instagram/handlers] comment_ignored_not_tester sender=circe.eve
+

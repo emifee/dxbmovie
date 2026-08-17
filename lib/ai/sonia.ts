@@ -1,7 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import { routeChat, type AIChatMessage, type RouterResult } from "@/lib/ai-router";
 import type { Movie } from "@/lib/types";
-import { detectCountryFromAddress, validateFieldAsync, runOrderOrchestrator } from '@/lib/commerce/orchestrator';
+import { validateFieldAsync } from '@/lib/commerce/orchestrator';
 import { getCommerceSession } from "@/lib/db/commerce-sessions";
 import { executeCommerceTool } from "@/lib/commerce/tools";
 import { getActiveOrderForCustomer } from "@/lib/db/commerce-orders";
@@ -29,6 +29,7 @@ export interface SoniaRequest {
   lang?: string;
   commerceSessionId?: string;
   contextMode?: "commerce" | "movie";
+  soniaAction?: any;
 }
 
 export interface SoniaResponse {
@@ -37,6 +38,8 @@ export interface SoniaResponse {
   provider: string;
   intent?: string;
   presentation?: any;
+  extractedOrderFields?: any;
+  explicitAction?: string;
 }
 
 const BASE_SYSTEM_PROMPT = `You are Sonia, the AI companion of DXBmovies (dxbmovie.online) — a smart, passionate, and incredibly human movie companion. You sound like a real film-buff friend, not a robot.
@@ -141,7 +144,7 @@ When NOT recommending titles or sending media, simply omit the "presentation" fi
 
 ORDER INFORMATION EXTRACTION:
 If the user provides information to fulfill an active order (like their address, phone number, size, color, or quantity), you MUST extract it into the "extractedOrderFields" object at the ROOT level of your JSON response.
-Do not put this inside the "message" field. Extract ONLY the fields the user actually provided in their latest message.
+Do not put this inside the "message" field. Extract ONLY the fields the user actually provided in their latest message. You MUST STILL include the "message" field with a natural text reply.
 
 EXPLICIT ACTIONS (CANCELLATION):
 If the user's intent is "cancel_intent" (e.g., they are hesitating or unsure), ONLY output an explicit action if they give a direct, actionable instruction to cancel (e.g., "Cancel my order"). If they are just hesitating ("I'm not sure I want it anymore"), do NOT output the action, so you can naturally respond and address their objection.
@@ -481,31 +484,33 @@ When you use commerce tools, provide the precise Commerce Product ID from this c
         try {
           const { getCommerceProduct } = await import("@/lib/db/commerce-products");
           const product = await getCommerceProduct(activeOrder.commerceProductId);
-          if (product?.purchaseRequirements) {
-            const pr = product.purchaseRequirements;
-            
-            if (pr.fixedAttributes && Object.keys(pr.fixedAttributes).length > 0) {
-              fixedInfo = `\nFIXED ATTRIBUTES (already determined by the product — do NOT ask the customer about these):\n`;
-              for (const [key, val] of Object.entries(pr.fixedAttributes)) {
-                fixedInfo += `  - ${key}: ${val}\n`;
+          if (product) {
+            if (product.purchaseRequirements) {
+              const pr = product.purchaseRequirements;
+              
+              if (pr.fixedAttributes && Object.keys(pr.fixedAttributes).length > 0) {
+                fixedInfo = `\nFIXED ATTRIBUTES (already determined by the product — do NOT ask the customer about these):\n`;
+                for (const [key, val] of Object.entries(pr.fixedAttributes)) {
+                  fixedInfo += `  - ${key}: ${val}\n`;
+                }
+              }
+              
+              if (pr.selectableAttributes && Object.keys(pr.selectableAttributes).length > 0) {
+                selectableInfo = `\nSELECTABLE ATTRIBUTES (present these options to the customer when asking):\n`;
+                for (const [key, options] of Object.entries(pr.selectableAttributes)) {
+                  selectableInfo += `  - ${key}: ${options.join(", ")}\n`;
+                }
               }
             }
             
-            if (pr.selectableAttributes && Object.keys(pr.selectableAttributes).length > 0) {
-              selectableInfo = `\nSELECTABLE ATTRIBUTES (present these options to the customer when asking):\n`;
-              for (const [key, options] of Object.entries(pr.selectableAttributes)) {
-                selectableInfo += `  - ${key}: ${options.join(", ")}\n`;
-              }
+            productContext = `\nPRODUCT FACTS (Use these verified facts naturally to sound like a product expert):\n`;
+            productContext += `- Title: ${product.instagramProductTitle || 'Unknown'}\n`;
+            if (product.instagramSellingPrice && product.currency) {
+              productContext += `- Price: ${product.currency} ${product.instagramSellingPrice}\n`;
             }
-          }
-          
-          productContext = `\nPRODUCT FACTS (Use these verified facts naturally to sound like a product expert):\n`;
-          productContext += `- Title: ${product.instagramProductTitle || 'Unknown'}\n`;
-          if (product.instagramSellingPrice && product.currency) {
-            productContext += `- Price: ${product.currency} ${product.instagramSellingPrice}\n`;
-          }
-          if (product.supplierFeatures && product.supplierFeatures.length > 0) {
-            productContext += `- Features: ${product.supplierFeatures.slice(0, 5).join(" | ")}\n`;
+            if (product.description) {
+              productContext += `- Description: ${product.description}\n`;
+            }
           }
         } catch (e) {
           console.error("[ai/sonia] Failed to load product requirements for prompt", e);
@@ -583,6 +588,14 @@ If the user confirms a "needs_clarification" value (like saying "yes" to a norma
 `;
       }
     }
+  }
+
+  if (req.soniaAction) {
+    commerceContextStr += `\n\nSYSTEM DIRECTIVE FOR THIS TURN:
+The backend has processed the order state. You MUST naturally phrase the following action to the user:
+Action: ${req.soniaAction.action}
+Data: ${JSON.stringify(req.soniaAction.data || {})}
+Do not invent or add other requests. Keep it natural.`;
   }
 
   let movieDataContext = "";
@@ -732,182 +745,15 @@ If the user confirms a "needs_clarification" value (like saying "yes" to a norma
         parsed = { message: text, recommendations: [], memories: [] };
       }
     } else if (!parsed.message && !wantsTmdbSearch && !wantsCommerceAction) {
-      parsed = { message: text, recommendations: [], memories: [], extractedOrderFields: parsed.extractedOrderFields };
-    }
-
-    if (hasExtractedFields && targetUserId) {
-      try {
-        const { updateOrderCollectedInfo, runOrderOrchestrator, getActiveOrderForCustomer, updateOrderStatus } = await import("@/lib/db/commerce-orders");
-        const { validateField } = await import("@/lib/commerce/orchestrator");
-        const activeOrder = await getActiveOrderForCustomer(targetUserId);
-        
-        if (activeOrder) {
-          // Handle price approval for repricing flow
-          if (parsed.extractedOrderFields?.priceApproved !== undefined && activeOrder.status === 'PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED') {
-            if (parsed.extractedOrderFields.priceApproved === true) {
-              console.log(`[ai/sonia] Customer approved repriced order ${activeOrder._id}`);
-              const { appendSourcingEvent } = await import("@/lib/db/commerce-orders");
-              await appendSourcingEvent(activeOrder._id!.toString(), "CUSTOMER_ACCEPTED_REPRICE", {
-                proposedPrice: activeOrder.proposedNewPrice,
-                proposedCurrency: activeOrder.proposedCurrency,
-                repricingVersion: activeOrder.repricingVersion,
-                originalCustomerPrice: activeOrder.originalCustomerPrice,
-              });
-              await updateOrderStatus(activeOrder._id!.toString(), "READY_FOR_PAYMENT");
-              // Second pass for confirmation message
-              chatMessages.push({ role: "assistant", content: text });
-              chatMessages.push({ role: "user", content: `[SYSTEM] The customer has approved the new price. The order is now READY_FOR_PAYMENT. Confirm to the customer that their order is being processed at the new price. Be warm and reassuring. Remember to output ONLY valid JSON.` });
-              const confirmPass = await routeChat(chatMessages);
-              text = confirmPass.text;
-              try {
-                const stripped = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-                const start = stripped.indexOf("{");
-                const end = stripped.lastIndexOf("}");
-                if (start !== -1 && end !== -1) parsed = JSON.parse(stripped.slice(start, end + 1));
-              } catch { parsed.message = text; }
-            } else {
-              console.log(`[ai/sonia] Customer rejected repriced order ${activeOrder._id}`);
-              const { appendSourcingEvent } = await import("@/lib/db/commerce-orders");
-              await appendSourcingEvent(activeOrder._id!.toString(), "CUSTOMER_REJECTED_REPRICE", {
-                proposedPrice: activeOrder.proposedNewPrice,
-                proposedCurrency: activeOrder.proposedCurrency,
-                repricingVersion: activeOrder.repricingVersion,
-              });
-              await updateOrderStatus(activeOrder._id!.toString(), "PRICE_REVIEW_REQUIRED");
-            }
-            // Skip normal field processing for price approval
-          } else {
-            // Normal field extraction flow
-            const validatedFields: any = {};
-            const invalidReasons: string[] = [];
-
-            for (const [key, value] of Object.entries(parsed.extractedOrderFields || {})) {
-              if (value === undefined || value === null || value === "") continue;
-              if (key === "priceApproved") continue; // handled above
-              
-              const validation = await validateFieldAsync(key, value, activeOrder.collected_info, activeOrder);
-              
-              const { appendConversationRequest } = await import("@/lib/db/commerce-orders");
-              await appendConversationRequest(activeOrder._id!.toString(), {
-                field: key,
-                action: "extracted",
-                valueReceived: String(value),
-                outcome: validation.resolution,
-                timestamp: new Date().toISOString()
-              });
-
-              if (validation.valid || validation.resolution === "confirmed") {
-                validatedFields[key] = validation.normalizedValue !== undefined ? validation.normalizedValue : value;
-              } else {
-                invalidReasons.push(`Field ${key} was invalid: ${validation.reason}`);
-              }
-            }
-
-            if (Object.keys(validatedFields).length > 0) {
-              console.log(`[ai/sonia] Saving validated order fields: `, validatedFields);
-              await updateOrderCollectedInfo(activeOrder._id!.toString(), validatedFields);
-              await runOrderOrchestrator(activeOrder._id!.toString());
-              
-              // Reload FRESH order state and do a second pass so Sonia can ask dynamically
-              const freshOrder = await getActiveOrderForCustomer(targetUserId);
-              if (freshOrder) {
-                let systemPromptAddon = "";
-                if (freshOrder.status === 'READY_FOR_SOURCING_CHECK') {
-                  systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The order is now complete — all information has been collected! (Status: READY_FOR_SOURCING_CHECK). Tell the customer: "Thanks — I have everything I need. I'm checking availability now." The sourcing check is running in the background. Do not ask for any more information. Do NOT say "Order confirmed". Remember to output ONLY valid JSON.`;
-                } else if (freshOrder.status === 'LIVE_WEB_CHECK_PASSED') {
-                  systemPromptAddon = `[SYSTEM] The order is currently in LIVE_WEB_CHECK_PASSED state. A live supplier verification is required by a human admin before payment can be authorized. If the customer is asking for an update, tell them gracefully: "I'm still checking with our suppliers to confirm availability and price. I'll get back to you shortly!" Do NOT say the order is confirmed yet. Remember to output ONLY valid JSON.`;
-                } else if (freshOrder.status === 'READY_FOR_PAYMENT') {
-                  systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The order is ready for payment! (Status: ${freshOrder.status}). Acknowledge that the order details are confirmed and you have everything you need. Do not ask for any more information. Remember to output ONLY valid JSON.`;
-                } else if (freshOrder.missingFields && freshOrder.missingFields.length > 0) {
-                  const nextField = freshOrder.missingFields[0];
-                  const resolution = freshOrder.fieldResolutions?.[nextField];
-                  if (resolution?.resolution === "needs_clarification") {
-                     if (resolution.reason === "confirm_inferred_international_number") {
-                       systemPromptAddon = `[SYSTEM] The extracted phone was parsed to a valid format using the delivery country context. The next goal is to clarify '${nextField}'. Ask naturally: "Just confirming — ${resolution.normalizedValue}, right?" Remember to output ONLY valid JSON.`;
-                     } else if (resolution.reason === "country_conflict") {
-                       systemPromptAddon = `[SYSTEM] The extracted phone was parsed but its country code doesn't match the delivery address. The next goal is to clarify '${nextField}'. Ask something like: "Your delivery address is in a different country, but this looks like a different country's number. Is this the best number to reach you on?" Remember to output ONLY valid JSON.`;
-                     } else if (resolution.reason === "incomplete_address_details" && resolution.normalizedValue) {
-                       const loc = resolution.normalizedValue;
-                       const knownStr = [loc.locality, loc.administrativeArea, loc.countryName].filter(Boolean).join(", ");
-                       systemPromptAddon = `[SYSTEM] The extracted address is incomplete. The next goal is to clarify '${nextField}'. We resolved it to: ${knownStr}. Ask ONLY for the missing street/house number naturally: "I've got ${knownStr}. What street and house/building number should I use for delivery?" Do NOT ask them to repeat the whole address. Remember to output ONLY valid JSON.`;
-                     } else {
-                       systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The next goal is to clarify '${nextField}'. (Candidate: ${JSON.stringify(resolution.normalizedValue)}). Ask for a short confirmation. Remember to output ONLY valid JSON.`;
-                     }
-                  } else {
-                     systemPromptAddon = `[SYSTEM] The extracted fields were validated and saved. The very next field you must ask for is: **${nextField}**. Naturally weave this question into the conversation. Sometimes acknowledge briefly, sometimes jump straight into the question, sometimes reference context. Do not be robotic. Remember to output ONLY valid JSON.`;
-                  }
-                }
-
-                if (systemPromptAddon) {
-                  console.log(`[ai/sonia] Running second pass for dynamic order response...`);
-                  chatMessages.push({ role: "assistant", content: text });
-                  chatMessages.push({ role: "user", content: systemPromptAddon });
-                  
-                  const secondPass = await routeChat(chatMessages);
-                  text = secondPass.text;
-                  console.log(`\n=== RAW AI OUTPUT (SECOND PASS) ===\n${text}\n=================================\n`);
-                  
-                  try {
-                    const stripped = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-                    const start = stripped.indexOf("{");
-                    const end = stripped.lastIndexOf("}");
-                    if (start !== -1 && end !== -1) {
-                      const cleaned = stripped.slice(start, end + 1);
-                      parsed = JSON.parse(cleaned);
-                    } else {
-                      throw new Error("No JSON object found");
-                    }
-                  } catch {
-                    parsed.message = text; // fallback
-                  }
-                }
-              }
-            }
-
-            if (invalidReasons.length > 0) {
-              console.warn(`[ai/sonia] User provided invalid order info: `, invalidReasons);
-            }
-          }
-        }
-      } catch (e) {
-        console.error("[ai/sonia] Failed to process extracted fields", e);
+      if (text.trim().startsWith('{')) {
+        parsed.message = "";
+      } else {
+        parsed = { message: text, recommendations: [], memories: [], extractedOrderFields: parsed.extractedOrderFields };
       }
     }
+    // Commerce logic (validation, repricing, explicit action, missing field tracking) 
+    // has been moved to lib/brain.ts to ensure Sonia layer remains purely conversational.
     
-    // Process explicit actions
-    if (targetUserId && parsed.explicitAction === "CANCEL_ORDER") {
-      try {
-        const { getActiveOrderForCustomer, updateOrderStatus } = await import("@/lib/db/commerce-orders");
-        const activeOrder = await getActiveOrderForCustomer(targetUserId);
-        if (activeOrder) {
-          console.log(`[ai/sonia] Cancelling order ${activeOrder._id} due to explicitAction: CANCEL_ORDER`);
-          await updateOrderStatus(activeOrder._id!.toString(), "CANCELLED" as any); // Or a specific cancelled state
-        }
-      } catch (e) {
-        console.error("[ai/sonia] Failed to process CANCEL_ORDER explicit action", e);
-      }
-    }
-
-    // Log the field we requested at the end of the turn
-    if (targetUserId) {
-      try {
-        const { getActiveOrderForCustomer, appendConversationRequest } = await import("@/lib/db/commerce-orders");
-        const freshOrder = await getActiveOrderForCustomer(targetUserId);
-        if (freshOrder && freshOrder.status === 'INFORMATION_REQUIRED' && freshOrder.missingFields && freshOrder.missingFields.length > 0) {
-          const topField = freshOrder.missingFields[0];
-          const resolution = freshOrder.fieldResolutions?.[topField];
-          await appendConversationRequest(freshOrder._id!.toString(), {
-            field: topField,
-            action: "requested",
-            outcome: resolution?.resolution || "missing",
-            timestamp: new Date().toISOString()
-          });
-        }
-      } catch (e) {
-        console.error("[ai/sonia] Failed to log requested field", e);
-      }
-    }
-
     if (targetUserId && Array.isArray(parsed.memories) && parsed.memories.length > 0) {
       clientPromise
         .then((client) => {
@@ -1035,6 +881,8 @@ If the user confirms a "needs_clarification" value (like saying "yes" to a norma
       provider,
       intent: parsed.intent,
       presentation: parsed.presentation,
+      extractedOrderFields: parsed.extractedOrderFields,
+      explicitAction: (parsed as any).explicitAction,
     };
   } catch (err) {
     console.error("[ai/sonia] All providers failed:", err);

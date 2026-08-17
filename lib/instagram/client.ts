@@ -159,6 +159,32 @@ export async function setTyping(recipientId: string, isTyping: boolean): Promise
 }
 
 /**
+ * Mark a message as seen
+ */
+export async function markSeen(recipientId: string): Promise<boolean> {
+  const token = getAccessToken();
+  const url = `${GRAPH_API_BASE}/me/messages`;
+  const body = {
+    recipient: { id: recipientId },
+    sender_action: "mark_seen",
+  };
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Fetch Instagram Media Caption via Graph API
  */
 export async function fetchMediaCaption(mediaId: string): Promise<string | null> {

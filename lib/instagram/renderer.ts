@@ -60,8 +60,37 @@ export async function resolveMoviePresentationAsset(params: {
   return { type: "unavailable" };
 }
 
+export function assertSafeCustomerMessage(message: string, fallbackMessage: string = "I am processing your request. Please wait."): string {
+  if (!message || message.trim() === "") return fallbackMessage;
+  
+  const isJson = /^[\{\[]/.test(message.trim());
+  if (isJson) {
+    try {
+      JSON.parse(message);
+      console.error("[renderer] BLOCKING LEAKED JSON:", message);
+      return fallbackMessage;
+    } catch {
+      // Not strict JSON, but looks suspicious. We block it if it contains internal keys.
+    }
+  }
+
+  const blockedKeys = ["quantity", "shippingAddress", "fieldResolutions", "normalizedValue", "commerceProductId"];
+  for (const key of blockedKeys) {
+    if (message.includes(`"${key}"`) || message.includes(`'${key}'`)) {
+      console.error("[renderer] BLOCKING LEAKED INTERNAL KEYS:", message);
+      return fallbackMessage;
+    }
+  }
+
+  return message;
+}
+
 export async function renderPresentation(recipientId: string, response: any): Promise<void> {
-  const { content, presentation } = response;
+  let { content, presentation } = response;
+  
+  if (content) {
+    content = assertSafeCustomerMessage(content);
+  }
   
   if (!presentation) {
     if (content) {

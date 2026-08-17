@@ -168,8 +168,7 @@ export async function validateFieldAsync(field: string, value: any, context?: an
       if (typeof value !== "string" && typeof value !== "number") {
         return { valid: false, resolution: "invalid", reason: "invalid_type", rawValue: value };
       }
-      
-      const phoneCtx = parsePhone(String(value), order?.locationContext);
+      const phoneCtx = parsePhone(String(value), order?.locationContext || (order?.collected_info?.shippingAddress as any));
       
       if (phoneCtx.resolution === "needs_clarification" || phoneCtx.resolution === "inferred") {
         if (order?.fieldResolutions?.["phone"]?.resolution === "needs_clarification" && 
