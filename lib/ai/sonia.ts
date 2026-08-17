@@ -583,7 +583,9 @@ BEHAVIORAL RULES:
 6. Never request information already supplied. If supplied information is incomplete, clarify only the missing component based on the YOUR NEXT GOAL above.
 
 EXTRACTION:
-Extract whatever the user provides into "extractedOrderFields".
+CRITICAL JSON FORMAT: You MUST return a valid JSON object matching the root schema (with "intent", "message", and "extractedOrderFields").
+NEVER put order fields at the root of the JSON. They MUST be nested inside "extractedOrderFields".
+If the user provides information, extract it into "extractedOrderFields".
 If the user confirms a "needs_clarification" value (like saying "yes" to a normalized phone number), extract it exactly as the candidate normalized value.
 `;
       }
@@ -682,6 +684,22 @@ Do not invent or add other requests. Keep it natural.`;
         } else if (parsed.action === "search_catalog" || parsed.action === "get_supplier_offers") {
           wantsCommerceAction = true;
         }
+
+        if (!parsed.extractedOrderFields) {
+          const possibleFields = ["quantity", "phone", "shippingAddress", "size", "color", "priceApproved"];
+          const rootFieldsExtracted: any = {};
+          let extractedAny = false;
+          for (const pf of possibleFields) {
+            if ((parsed as any)[pf] !== undefined) {
+              rootFieldsExtracted[pf] = (parsed as any)[pf];
+              extractedAny = true;
+            }
+          }
+          if (extractedAny) {
+            parsed.extractedOrderFields = rootFieldsExtracted;
+          }
+        }
+
         if (parsed.extractedOrderFields && Object.keys(parsed.extractedOrderFields).length > 0) {
           hasExtractedFields = true;
         }

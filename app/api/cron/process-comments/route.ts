@@ -52,6 +52,15 @@ export async function GET(req: Request) {
         continue;
       }
 
+      // 1.5 Idempotency Check (Duplicate reply prevention)
+      const alreadyReplied = thread.messages.some((m: any) => m.parentCommentId === job.commentId && m.isOurAccount);
+      if (alreadyReplied) {
+        console.log(`[cron/process-comments] idempotency_skip already_replied_to=${job.commentId}`);
+        await markJobComplete(job._id!.toString(), "completed");
+        processedCount++;
+        continue;
+      }
+
       contextualMessage += `User Comment: ${triggeringMessage.text}`;
 
       // Build history up to the triggering message
