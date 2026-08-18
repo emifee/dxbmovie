@@ -116,6 +116,7 @@ export interface OrderCollectedFields {
   phone?: string;
   shippingAddress?: ShippingAddress;
   variant?: string;
+  email?: string;
 }
 
 export interface CommerceOrder {
