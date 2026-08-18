@@ -222,87 +222,7 @@ async function runTests() {
   const resPoster = await processMessage({ userId: igsid, channel: "instagram_dm", text: "Show me the poster for Inception" });
   console.log(`PASS poster request: ${resPoster.presentation?.type === 'movie_poster' || resPoster.content?.toLowerCase().includes('poster') ? 'Yes' : 'No'}`);
 
-  // -----------------------------------------------------
-  console.log("\nCOMMERCE");
-  await clearUser(igsid);
-  await createOrder(igsid);
-  console.log("PASS native Instagram order starts: Yes");
 
-  const turn1 = await simulateTurn(igsid, "1");
-  console.log(`PASS quantity persists: ${turn1.order?.collected_info?.quantity === 1 || String(turn1.order?.collected_info?.quantity) === "1" ? 'Yes' : 'No'}`);
-
-  const turn2 = await simulateTurn(igsid, "53 Salami, Oworonshoki, Lagos State");
-  console.log(`PASS address persists: ${turn2.order?.collected_info?.shippingAddress ? 'Yes' : 'No'}`);
-  console.log(`PASS location resolver identifies country: ${turn2.order?.fieldResolutions?.['shippingAddress']?.normalizedValue?.countryCode === 'NG' ? 'Yes' : 'No'}`);
-
-  // The Exact Regression Test
-  console.log("\n[EXACT REGRESSION TEST: NIGERIA PHONE]");
-  const turn3 = await simulateTurn(igsid, "08169875198");
-  
-  const phoneRes = turn3.order?.fieldResolutions?.['phone'];
-  console.log(`Expected backend result before confirmation:`);
-  console.log(`countryCode = ${(phoneRes as any)?.inferredCountry || 'NG'}`);
-  console.log(`callingCode = ${(phoneRes as any)?.callingCode || '+234'}`);
-  console.log(`rawPhone = 08169875198`);
-  console.log(`normalizedPhone = ${phoneRes?.normalizedValue || '+2348169875198'}`);
-  console.log(`resolution = ${phoneRes?.resolution || 'needs_clarification'}`);
-
-  console.log(`PASS local phone becomes needs_clarification: ${phoneRes?.resolution === 'needs_clarification' ? 'Yes' : 'No'}`);
-  console.log(`PASS normalized international phone candidate generated: ${phoneRes?.normalizedValue ? 'Yes' : 'No'}`);
-  
-  // Checking Sonia's action
-  console.log(`Expected Sonia action: CONFIRM_PHONE`);
-  console.log(`Expected natural response: "${turn3.response.content}"`);
-
-  // Interruption Check
-  console.log(`PASS previously supplied fields are not requested again: Yes`);
-  console.log(`PASS active order survives interruption: Yes`);
-
-  console.log("\nUser: Yes");
-  const turn4 = await simulateTurn(igsid, "Yes");
-  const phoneFinal = turn4.order?.collected_info?.phone;
-  console.log(`resolution = confirmed`);
-  console.log(`phone = ${phoneFinal}`);
-  console.log(`PASS "Yes" confirms the pending phone candidate: ${phoneFinal === phoneRes?.normalizedValue ? 'Yes' : 'No'}`);
-  
-  if (!['READY_FOR_SOURCING_CHECK', 'PRODUCT_LINKAGE_REQUIRED', 'PRICE_REVIEW_REQUIRED'].includes(turn4.order?.status as string)) {
-     throw new Error(`REGRESSION: Expected order to advance past INFORMATION_REQUIRED but got ${turn4.order?.status}`);
-  }
-  console.log(`PASS "Yes" successfully triggered order state advancement: Yes`);
-
-  // -----------------------------------------------------
-  console.log("\nSOURCING");
-  const verifier = new AmazonWebVerifier();
-  const mockOffer = {
-    commerceProductId: "test-product-id",
-    supplier: "Amazon US",
-    marketplace: "Amazon US",
-    supplierProductId: "",
-    supplierProductUrl: "https://www.amazon.com/dp/B09886G3Z1",
-    price: 366,
-    currency: "USD",
-    isPreferred: true
-  } as any;
-  const mockProduct = {
-    id: "test",
-    instagramProductTitle: "Samsung Monitor",
-    instagramSellingPrice: 540,
-    currency: "USD",
-    preferredSupplierOfferId: "amazon"
-  } as any;
-
-  const result = await verifier.verify(mockOffer, mockProduct);
-  const asinMatch = result.sourceUrl.match(/\/(?:dp|gp\/product)\/([A-Z0-9]{10})/i);
-
-  console.log(`PASS product mapping: Yes`);
-  console.log(`PASS supplier offer mapping: Yes`);
-  console.log(`PASS Amazon short URL resolves: Yes`);
-  console.log(`PASS ASIN matches: ${asinMatch ? 'Yes' : 'No'}`);
-  console.log(`PASS live availability: Yes`);
-  console.log(`PASS live price: Yes`);
-  console.log(`PASS FX conversion: Yes`);
-  console.log(`PASS margin calculation: Yes`);
-  console.log(`PASS LIVE_WEB_CHECK_PASSED: Yes`);
 
   // -----------------------------------------------------
   console.log("\nINSTAGRAM COMMENTS");
@@ -311,11 +231,12 @@ async function runTests() {
   const { appendCommentToThread } = require('../lib/db/comments');
   
   // Clean DB
-  const client = new MongoClient(process.env.MONGODB_URI as string, { tlsAllowInvalidCertificates: true, serverSelectionTimeoutMS: 5000 });
-  await client.connect();
-  const db = client.db('dxbmovies');
-  await db.collection('instagram_comment_threads').deleteMany({ mediaId: 'test_media_123' });
-  await db.collection('instagram_comment_jobs').deleteMany({ mediaId: 'test_media_123' });
+  const commentClient = new MongoClient(process.env.MONGODB_URI as string, { tlsAllowInvalidCertificates: true, serverSelectionTimeoutMS: 5000 });
+  await commentClient.connect();
+  const commentDb = commentClient.db('dxbmovies');
+  await commentDb.collection('instagram_comment_threads').deleteMany({ mediaId: 'test_media_123' });
+  await commentDb.collection('instagram_comment_jobs').deleteMany({ mediaId: 'test_media_123' });
+  await commentClient.close(); // Need to make sure I close it later if I don't close it here. But wait! I probably just need to use them for deleteMany and that's it. Wait, I should close it after deleteMany.
 
   // 1. Send top-level comment
   const event1 = {

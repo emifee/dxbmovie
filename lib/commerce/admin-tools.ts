@@ -1,4 +1,4 @@
-import { getCommerceProduct, upsertCommerceProduct, upsertSupplierOffer, validateProductForActivation, searchCommerceProducts, CommerceProductStatus, getSupplierOffersForProduct, PurchaseRequirements, PricingPolicy } from "@/lib/db/commerce-products";
+import { getCommerceProduct, upsertCommerceProduct, deleteCommerceProduct, upsertSupplierOffer, validateProductForActivation, searchCommerceProducts, CommerceProductStatus, getSupplierOffersForProduct, PurchaseRequirements, PricingPolicy } from "@/lib/db/commerce-products";
 import { getCommerceOrder, updateOrderStatus } from "@/lib/db/commerce-orders";
 import { SchemaType, FunctionDeclaration } from "@google/generative-ai";
 import { createAuditLog } from "@/lib/db/admin-audit";
@@ -21,7 +21,8 @@ export const adminTools = {
         description: { type: SchemaType.STRING },
         category: { type: SchemaType.STRING },
         fulfillmentType: { type: SchemaType.STRING, description: "physical, digital, or service" },
-        orderingEnabled: { type: SchemaType.BOOLEAN, description: "Can this product be ordered? Must be digital + resaleAuthorized to be true." },
+        fulfillmentMethod: { type: SchemaType.STRING, description: "For digital products: e.g. download_url, license_key, account_access, manual_delivery" },
+        orderingEnabled: { type: SchemaType.BOOLEAN, description: "Can this product be ordered? Must be digital to be true." },
         customerVisible: { type: SchemaType.BOOLEAN, description: "Is this visible to customers?" },
       },
       required: ["instagramProductTitle", "instagramSellingPrice", "currency"],
@@ -54,6 +55,17 @@ export const adminTools = {
         currency: { type: SchemaType.STRING },
       },
       required: ["commerceProductId", "supplierName", "marketplace", "supplierProductTitle", "supplierProductUrl", "supplierPriceAtListing", "currency"]
+    }
+  },
+
+  delete_product: {
+    description: "Completely delete a commerce product and all its associated supplier offers from the database. Destructive action.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        productId: { type: SchemaType.STRING }
+      },
+      required: ["productId"]
     }
   },
 
@@ -141,6 +153,7 @@ export async function executeAdminTool(toolName: string, args: any, context: Adm
       const product = await upsertCommerceProduct({
         id,
         status: "draft",
+        resaleAuthorized: false,
         ...args
       });
       
@@ -226,6 +239,27 @@ export async function executeAdminTool(toolName: string, args: any, context: Adm
       return {
         message: `Product ${productId} status updated to ${status}.`,
         product: updated
+      };
+    }
+
+    case "delete_product": {
+      const { productId } = args;
+      const product = await getCommerceProduct(productId);
+      if (!product) throw new Error("Product not found");
+      
+      await deleteCommerceProduct(productId);
+      
+      await createAuditLog({
+        adminId,
+        action: "delete_product",
+        targetCollection: "commerce_products",
+        targetId: productId,
+        oldValue: product.status,
+        requiredConfirmation: true,
+      });
+
+      return {
+        message: `Product ${productId} completely deleted.`
       };
     }
 

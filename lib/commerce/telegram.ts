@@ -16,6 +16,8 @@ export async function sendTelegramNotification(message: string, markdown: boolea
   if (markdown) {
     body.parse_mode = "MarkdownV2";
   }
+  
+  console.log(`[telegram/sender] Sending to ${chatId}: ${message.substring(0, 100)}...`);
 
   try {
     const res = await fetch(url, {

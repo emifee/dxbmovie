@@ -1,5 +1,6 @@
 import { CommerceOrder, OrderState, OrderFieldResolution, FieldResolution } from "@/lib/db/commerce-orders";
 import { getCommerceProduct, PurchaseRequirements, CommerceProduct } from "@/lib/db/commerce-products";
+import { resolveDigitalRequirements } from "@/lib/commerce/digital-eligibility";
 
 // --------------- Fallback Category Requirements ---------------
 // Used only when a product has no explicit purchaseRequirements.
@@ -75,16 +76,18 @@ export function resolveProductRequirements(
   let fields: string[] = [];
   const fulfillmentType = product.fulfillmentType || "physical";
   
-  if (product.purchaseRequirements && product.purchaseRequirements.requiredFields) {
-    fields = [...product.purchaseRequirements.requiredFields];
+  if (fulfillmentType === "digital") {
+    fields = resolveDigitalRequirements(product as CommerceProduct);
   } else {
-    if (fulfillmentType === "physical") {
-      const categoryFields = CATEGORY_REQUIREMENTS[category] || CATEGORY_REQUIREMENTS["generic"];
-      fields = [...categoryFields];
-    } else if (fulfillmentType === "digital") {
-      fields = ["quantity", "email"];
-    } else if (fulfillmentType === "service") {
-      fields = ["customerName"];
+    if (product.purchaseRequirements && product.purchaseRequirements.requiredFields) {
+      fields = [...product.purchaseRequirements.requiredFields];
+    } else {
+      if (fulfillmentType === "physical") {
+        const categoryFields = CATEGORY_REQUIREMENTS[category] || CATEGORY_REQUIREMENTS["generic"];
+        fields = [...categoryFields];
+      } else if (fulfillmentType === "service") {
+        fields = ["customerName"];
+      }
     }
   }
 

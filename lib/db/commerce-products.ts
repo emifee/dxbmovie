@@ -58,6 +58,10 @@ export interface CommerceProduct {
   purchaseRequirements?: PurchaseRequirements;
   pricingPolicy?: PricingPolicy;
   
+  // Digital fulfillment properties
+  resaleAuthorized?: boolean;
+  fulfillmentMethod?: string;
+  
   // Legacy / other fields preserved for app use
   id: string; // Friendly ID
   title?: string;
@@ -177,25 +181,38 @@ export async function searchCommerceProducts(query: string, maxPrice?: number, c
   return col.find(filter).limit(10).toArray();
 }
 
-export async function upsertCommerceProduct(productData: Partial<CommerceProduct> & { id: string }): Promise<CommerceProduct> {
+export async function upsertCommerceProduct(productData: Partial<CommerceProduct> & { id?: string }): Promise<CommerceProduct> {
   const col = await getCommerceProductsCollection();
   const now = new Date();
   
+  const { id, ...rest } = productData;
+  const targetId = id || new ObjectId().toString();
+  
   const updateDoc = {
-    ...productData,
+    ...rest,
     updatedAt: now,
   };
-
-  const result = await col.findOneAndUpdate(
-    { id: productData.id },
+  
+  await col.updateOne(
+    { id: targetId },
     { 
       $set: updateDoc,
-      $setOnInsert: { createdAt: now } 
+      $setOnInsert: { id: targetId, createdAt: now } 
     },
-    { upsert: true, returnDocument: "after" }
+    { upsert: true }
   );
+  
+  return (await getCommerceProduct(targetId))!;
+}
 
-  return (result?.value || result) as unknown as CommerceProduct;
+export async function deleteCommerceProduct(productId: string): Promise<boolean> {
+  const productCol = await getCommerceProductsCollection();
+  const offersCol = await getSupplierOffersCollection();
+  
+  await offersCol.deleteMany({ commerceProductId: productId });
+  const result = await productCol.deleteOne({ id: productId });
+  
+  return result.deletedCount > 0;
 }
 
 // ---------------- Supplier Offers ----------------
@@ -220,27 +237,12 @@ export function validateProductForActivation(product: CommerceProduct, offers: (
     throw new Error("Product must have at least one supplier offer before activation.");
   }
   
-  if (product.fulfillmentType === "digital") {
-    const validDigitalOffer = offers.find(o => 
-      o.supplier && 
-      'fulfillmentMethod' in o &&
-      (o as DigitalSupplierOffer).resaleAuthorized === true
-    );
-    if (!validDigitalOffer) {
-      throw new Error("Digital product must have a digital supplier offer with resaleAuthorized=true to be enabled.");
-    }
-  } else {
-    // Verify at least one offer has the mandatory physical/Amazon fields
-    const validOffer = offers.find(o => 
-      o.supplier && 
-      'marketplace' in o && 
-      'supplierProductUrl' in o && 
-      o.supplierPriceAtListing !== undefined
-    );
-    
-    if (!validOffer) {
-      throw new Error("Physical product must have a supplier offer with supplier, marketplace, supplierProductUrl, and supplierPriceAtListing.");
-    }
+  // Removed strict fulfillmentMethod/marketplace checks to allow dropshipping
+  // digital products via Amazon links.
+  const validOffer = offers.find(o => o.supplier);
+  
+  if (!validOffer) {
+    throw new Error("Product must have a valid supplier offer with a supplier name.");
   }
   
   return true;

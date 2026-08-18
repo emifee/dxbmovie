@@ -12,6 +12,7 @@ export type OrderState =
   | 'DESTINATION_UNAVAILABLE'
   | 'DESTINATION_VERIFICATION_REQUIRED'
   | 'OUT_OF_STOCK'
+  | 'ORDER_NOT_AVAILABLE'
   | 'AVAILABILITY_UNKNOWN'
   | 'PRICE_REVIEW_REQUIRED'
   | 'PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED'
@@ -340,11 +341,28 @@ export async function runOrderOrchestrator(orderId: string | ObjectId): Promise<
       console.log(`[orchestrator] Order ${orderId} transitioned to READY_FOR_SOURCING_CHECK. Triggering sourcing engine...`);
 
       console.log(`[orchestrator] Triggering sourcing job for ${orderId}...`);
-      import("@/lib/commerce/sourcing-engine").then(({ executeSourcingCheck }) => {
-        executeSourcingCheck(updatedOrder).catch(err => {
-          console.error(`[orchestrator] Sourcing engine error for order ${orderId}:`, err);
+      
+      const { getCommerceProduct } = await import("@/lib/db/commerce-products");
+      let isDigital = false;
+      if (updatedOrder.commerceProductId) {
+        const product = await getCommerceProduct(updatedOrder.commerceProductId);
+        if (product && product.fulfillmentType === "digital") {
+          isDigital = true;
+          import("@/lib/commerce/digital-eligibility").then(({ checkDigitalEligibility }) => {
+            checkDigitalEligibility(updatedOrder, product).catch(err => {
+              console.error(`[orchestrator] Digital eligibility error for order ${orderId}:`, err);
+            });
+          });
+        }
+      }
+
+      if (!isDigital) {
+        import("@/lib/commerce/sourcing-engine").then(({ executeSourcingCheck }) => {
+          executeSourcingCheck(updatedOrder).catch(err => {
+            console.error(`[orchestrator] Sourcing engine error for order ${orderId}:`, err);
+          });
         });
-      });
+      }
     }
   }
 }

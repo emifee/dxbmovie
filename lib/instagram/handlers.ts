@@ -17,13 +17,8 @@ export interface NormalizedInstagramEvent {
 }
 
 function isAllowedTester(event: NormalizedInstagramEvent): boolean {
-  const allowedUsernames = (process.env.TEST_INSTAGRAM_USERNAMES || "").split(",").map(u => u.trim());
-  const allowedIds = (process.env.TEST_INSTAGRAM_SENDER_IDS || "").split(",").map(i => i.trim());
-
-  if (event.sender_username && allowedUsernames.includes(event.sender_username)) return true;
-  if (event.sender_id && allowedIds.includes(event.sender_id)) return true;
-
-  return false;
+  // Tester locks have been removed so the bot can respond to actual customers.
+  return true;
 }
 
 export async function handleNormalizedEvent(event: NormalizedInstagramEvent) {
