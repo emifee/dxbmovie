@@ -323,33 +323,68 @@ describeIntegration("commerce integration flow", () => {
   });
 
   describe("instagram comments (must stay separate from commerce)", () => {
-    test("a question schedules one job, duplicates are ignored, and no order is created", async () => {
-      const commentId = "regression_comment_" + Date.now();
-      const event = {
-        event_type: "instagram.comment.created" as const,
-        event_id: commentId,
-        sender_id: "regression_commenter",
-        sender_username: "regression",
-        instagram_account_id: "regression_account",
-        media_id: TEST_MEDIA_ID,
-        text: "What movie is this?",
-        payload: {},
-      };
+    test("public automation OFF: the comment is ingested but nothing is scheduled or published", async () => {
+      const previous = process.env.SONIA_COMMENT_MODE;
+      process.env.SONIA_COMMENT_MODE = "off";
+      const commentId = "regression_off_" + Date.now();
+      try {
+        await api.handleNormalizedEvent({
+          event_type: "instagram.comment.created" as const,
+          event_id: commentId,
+          sender_id: "regression_commenter",
+          sender_username: "regression",
+          instagram_account_id: "regression_account",
+          media_id: TEST_MEDIA_ID,
+          text: "What movie is this?",
+          payload: {},
+        });
 
-      await api.handleNormalizedEvent(event);
-      let jobs = await db.collection("instagram_comment_jobs").find({ commentId }).toArray();
-      expect(jobs).toHaveLength(1);
-      expect(jobs[0].intent).toBe("immediate");
+        const jobs = await db.collection("instagram_comment_jobs").find({ commentId }).toArray();
+        expect(jobs).toHaveLength(0); // nothing queued
 
-      await api.handleNormalizedEvent(event); // redelivery
-      jobs = await db.collection("instagram_comment_jobs").find({ commentId }).toArray();
-      expect(jobs).toHaveLength(1);
+        const threads = await db.collection("instagram_comment_threads").find({ mediaId: TEST_MEDIA_ID }).toArray();
+        expect(threads.length).toBeGreaterThan(0); // but ingestion still happened
+      } finally {
+        if (previous === undefined) delete process.env.SONIA_COMMENT_MODE;
+        else process.env.SONIA_COMMENT_MODE = previous;
+      }
+    }, 60000);
 
-      const threads = await db.collection("instagram_comment_threads").find({ mediaId: TEST_MEDIA_ID }).toArray();
-      expect(threads).toHaveLength(1);
+    test("public automation LIVE: a question schedules one job, duplicates are ignored, and no order is created", async () => {
+      const previousMode = process.env.SONIA_COMMENT_MODE;
+      process.env.SONIA_COMMENT_MODE = "live";
+      try {
+        const commentId = "regression_comment_" + Date.now();
+        const event = {
+          event_type: "instagram.comment.created" as const,
+          event_id: commentId,
+          sender_id: "regression_commenter",
+          sender_username: "regression",
+          instagram_account_id: "regression_account",
+          media_id: TEST_MEDIA_ID,
+          text: "What movie is this?",
+          payload: {},
+        };
 
-      const orders = await db.collection("commerce_orders").countDocuments({ customer_igsid: "regression_commenter" });
-      expect(orders).toBe(0);
+        await api.handleNormalizedEvent(event);
+        let jobs = await db.collection("instagram_comment_jobs").find({ commentId }).toArray();
+        expect(jobs).toHaveLength(1);
+        expect(jobs[0].intent).toBe("immediate");
+
+        await api.handleNormalizedEvent(event); // redelivery
+        jobs = await db.collection("instagram_comment_jobs").find({ commentId }).toArray();
+        expect(jobs).toHaveLength(1);
+
+        // One thread for THIS root comment (other tests on the same media add their own).
+        const threads = await db.collection("instagram_comment_threads").find({ mediaId: TEST_MEDIA_ID, rootCommentId: commentId }).toArray();
+        expect(threads).toHaveLength(1);
+
+        const orders = await db.collection("commerce_orders").countDocuments({ customer_igsid: "regression_commenter" });
+        expect(orders).toBe(0);
+      } finally {
+        if (previousMode === undefined) delete process.env.SONIA_COMMENT_MODE;
+        else process.env.SONIA_COMMENT_MODE = previousMode;
+      }
     }, 60000);
   });
 

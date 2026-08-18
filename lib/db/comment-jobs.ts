@@ -2,7 +2,8 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
 export type CommentIntent = "immediate" | "short_delay" | "medium_delay" | "long_delay";
-export type JobStatus = "pending" | "completed" | "failed";
+/** "skipped" = deliberately not published (public comment automation disabled). */
+export type JobStatus = "pending" | "completed" | "failed" | "skipped";
 
 export interface InstagramCommentJob {
   _id?: ObjectId;

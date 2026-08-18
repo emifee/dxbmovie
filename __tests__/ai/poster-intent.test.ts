@@ -13,6 +13,10 @@ import { isPosterRequest, extractPosterTitle } from "@/lib/ai/sonia";
 describe("isPosterRequest", () => {
   const wants = [
     "Can I see Green Mile poster",
+    "How me Game of thrones poster",      // real customer typo for "Show me"
+    "Game of Thrones poster",
+    "I said can I see green mile poster",
+    "gimme the Dune poster",
     "can i see the poster",
     "show me the poster",
     "show me the image",
@@ -31,6 +35,8 @@ describe("isPosterRequest", () => {
 
   const doesNot = [
     "what is the green mile about",
+    "the poster was beautiful",
+    "I loved that poster",
     "recommend me a thriller",
     "I loved that movie, the cinematography was beautiful",
     "who directed it",
@@ -44,6 +50,9 @@ describe("isPosterRequest", () => {
 describe("extractPosterTitle", () => {
   test.each([
     ["Can I see Green Mile poster", "Green Mile"],
+    ["How me Game of thrones poster", "Game of thrones"],
+    ["I said can I see green mile poster", "green mile"],
+    ["Show me Game of Thrones poster", "Game of Thrones"],
     ["show me the poster for Dune", "Dune"],
     ["can you show me the Interstellar poster", "Interstellar"],
     ["The Green Mile poster", "Green Mile"],

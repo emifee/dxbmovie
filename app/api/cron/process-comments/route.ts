@@ -6,6 +6,7 @@ import { generateSoniaResponse } from "@/lib/ai/sonia";
 import { replyToComment } from "@/lib/instagram/client";
 import type { AIChatMessage } from "@/lib/ai-router";
 import clientPromise from "@/lib/mongodb";
+import { getCommentMode } from "@/lib/instagram/comment-mode";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,17 @@ export async function GET(req: Request) {
     
     if (jobs.length === 0) {
       return NextResponse.json({ success: true, processed: 0 });
+    }
+
+    // Send guard, checked immediately before any publishing can happen. This is the
+    // last line of defence: it also neutralises jobs queued before automation was
+    // switched off, webhook redeliveries, and scheduler/worker races.
+    if (getCommentMode() !== "live") {
+      for (const job of jobs) {
+        await markJobComplete(job._id!.toString(), "skipped");
+      }
+      console.log(`[cron/process-comments] public replies disabled (mode=${getCommentMode()}) — skipped ${jobs.length} queued job(s), nothing published`);
+      return NextResponse.json({ success: true, processed: 0, skipped: jobs.length, mode: getCommentMode() });
     }
 
     const client = await clientPromise;
@@ -86,7 +98,7 @@ export async function GET(req: Request) {
 
       const willReply = !!(response.content && response.content.trim() !== "");
       
-      const mode = process.env.SONIA_COMMENT_MODE || "shadow";
+      const mode = getCommentMode();
 
       const nowMs = Date.now();
       const shadowLogData = {
@@ -114,6 +126,13 @@ export async function GET(req: Request) {
       }
 
       if (willReply) {
+        // Re-check immediately before publishing: generating the reply took time, and
+        // automation may have been switched off in the meantime.
+        if (getCommentMode() !== "live") {
+          console.log(`[cron/process-comments] mode changed during generation — refusing to publish commentId=${job.commentId}`);
+          await markJobComplete(job._id!.toString(), "skipped");
+          continue;
+        }
         const result = await replyToComment(job.commentId, response.content!);
         if (result.success) {
           await appendCommentToThread(job.mediaId, job.rootCommentId, {

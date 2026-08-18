@@ -3,6 +3,7 @@ import { renderPresentation } from "./renderer";
 import { resolveThreadRoot, appendCommentToThread, setThreadPausedUntil, getDailyUserReplyCount } from "@/lib/db/comments";
 import { scheduleCommentJob, CommentIntent } from "@/lib/db/comment-jobs";
 import { processMessage } from "@/lib/brain";
+import { getCommentMode } from "./comment-mode";
 
 export interface NormalizedInstagramEvent {
   event_type: "instagram.dm.received" | "instagram.comment.created" | "instagram.unknown";
@@ -119,6 +120,15 @@ async function handleComment(event: NormalizedInstagramEvent) {
     const limit = process.env.SONIA_THREAD_REPLY_LIMIT ? parseInt(process.env.SONIA_THREAD_REPLY_LIMIT) : 3;
     if (soniaReplies >= limit) {
       console.log(`[instagram/handlers] ignored_ceiling_reached threadRoot=${rootCommentId} replies=${soniaReplies}`);
+      return;
+    }
+
+    // 4b. Public comment automation gate.
+    // The comment is already persisted to its thread above (ingestion continues), but
+    // while automation is not "live" we schedule nothing — no job, no public reply.
+    const commentMode = getCommentMode();
+    if (commentMode !== "live") {
+      console.log(`[instagram/handlers] comment_automation_${commentMode} — ingested but no reply scheduled commentId=${event.event_id}`);
       return;
     }
 

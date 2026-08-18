@@ -207,6 +207,104 @@ describe("poster flow", () => {
   });
 });
 
+const GOT = { id: 1399, name: "Game of Thrones", media_type: "tv", poster_path: "/got.jpg", vote_average: 8.4, first_air_date: "2011-04-17", overview: "" };
+const SHAWSHANK = { id: 278, title: "The Shawshank Redemption", media_type: "movie", poster_path: "/ss.jpg", vote_average: 8.7, release_date: "1994-09-23", overview: "" };
+
+describe("media identity priority — explicit title always beats stale context", () => {
+  test("a named movie overrides an unrelated active context", async () => {
+    mockDb.userPreferences = { userId: "ig-1", activeMediaContext: { title: "The Shawshank Redemption", tmdbId: 278, mediaType: "movie" } };
+    tmdbResults = [GREEN_MILE];
+    mockReplies.push(JSON.stringify({ message: "Sure", presentation: { type: "image", tmdbId: 278, mediaType: "movie" } }));
+
+    const res = await ask("Can I see Green Mile poster");
+
+    expect(res.presentation.tmdbId).toBe(497);
+    expect(res.presentation.tmdbId).not.toBe(278); // never Shawshank
+  });
+
+  test("a named TV title resolves as tv, not as a movie", async () => {
+    mockDb.userPreferences = { userId: "ig-1", activeMediaContext: { title: "The Shawshank Redemption", tmdbId: 278, mediaType: "movie" } };
+    tmdbResults = [GOT];
+    mockReplies.push(JSON.stringify({ message: "ok", presentation: { type: "image", mediaType: "movie", tmdbId: 999 } }));
+
+    const res = await ask("How me Game of thrones poster");
+
+    expect(res.presentation.tmdbId).toBe(1399);
+    expect(res.presentation.mediaType).toBe("tv"); // model said "movie"; resolution wins
+  });
+
+  test("the follow-up 'Can I see the poster?' uses the newly named title", async () => {
+    // Turn 1 names Game of Thrones, which becomes the active context.
+    tmdbResults = [GOT];
+    mockReplies.push(JSON.stringify({ message: "ok" }));
+    await ask("Show me Game of Thrones poster");
+    expect(mockDb.userPreferences === null).toBe(true); // writes go through updateOne (mocked)
+
+    // Simulate the persisted context the previous turn wrote.
+    mockDb.userPreferences = { userId: "ig-1", activeMediaContext: { title: "Game of Thrones", tmdbId: 1399, mediaType: "tv" } };
+    mockReplies.push(JSON.stringify({ message: "ok" }));
+
+    const res = await ask("Can I see the poster?");
+
+    expect(res.presentation.tmdbId).toBe(1399);
+    expect(res.presentation.mediaType).toBe("tv");
+  });
+
+  test("an unresolvable named title NEVER substitutes another title's poster", async () => {
+    mockDb.userPreferences = { userId: "ig-1", activeMediaContext: { title: "The Shawshank Redemption", tmdbId: 278, mediaType: "movie" } };
+    tmdbResults = []; // lookup fails
+    mockReplies.push(JSON.stringify({ message: "Here it is", presentation: { type: "image", tmdbId: 278, mediaType: "movie" } }));
+
+    const res = await ask("Can I see Zzzqqx poster");
+
+    expect(res.presentation).toBeUndefined();          // no wrong poster
+    expect(res.content).toMatch(/couldn't load the poster/i);
+    expect(res.content).toContain("Zzzqqx");
+  });
+
+  test('never claims "we don\'t offer posters" while sending one', async () => {
+    mockDb.userPreferences = { userId: "ig-1", activeMediaContext: { title: "The Green Mile", tmdbId: 497, mediaType: "movie" } };
+    mockReplies.push(JSON.stringify({
+      message: "Unfortunately we don't currently offer a poster for The Green Mile.",
+      presentation: { type: "image", tmdbId: 497, mediaType: "movie" },
+    }));
+
+    const res = await ask("show me the poster");
+
+    expect(res.presentation.tmdbId).toBe(497);
+    expect(res.content.toLowerCase()).not.toMatch(/don'?t (currently )?offer/);
+    expect(res.content).toBe("Here it is 👇");
+  });
+});
+
+describe("memory kinds are kept separate", () => {
+  test("media context is scoped to pronoun resolution, not conversation recall", async () => {
+    mockDb.userPreferences = { userId: "ig-1", activeMediaContext: { title: "Game of Thrones", tmdbId: 1399, mediaType: "tv" } };
+    await ask("What was I saying before digital products?");
+    const prompt = mockPrompts[0];
+
+    expect(prompt).toContain("ACTIVE MEDIA CONTEXT (pronoun resolution ONLY)");
+    expect(prompt).toMatch(/NEVER use this field to answer a question about the CONVERSATION/);
+    expect(prompt).toContain("CONVERSATION RECALL");
+    expect(prompt).toMatch(/answer\s*\n?strictly from that message sequence/);
+  });
+
+  test("long-term profile is labelled as not being conversation history", async () => {
+    mockDb.userPreferences = { userId: "ig-1", genres: ["Action"] };
+    await ask("hi");
+    expect(mockPrompts[0]).toContain("USER PROFILE (long-term memory — NOT a record of this conversation)");
+  });
+
+  test("a stale media context is flagged as being from an earlier session", async () => {
+    mockDb.userPreferences = {
+      userId: "ig-1",
+      activeMediaContext: { title: "Heat", tmdbId: 949, mediaType: "movie", setAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString() },
+    };
+    await ask("hello");
+    expect(mockPrompts[0]).toContain("from an earlier session");
+  });
+});
+
 describe("returning-customer memory", () => {
   test("a returning customer's prior visit and taste are in the profile", async () => {
     mockDb.userPreferences = {

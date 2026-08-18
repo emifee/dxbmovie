@@ -18,6 +18,15 @@ const SHOW_VERBS = /\b(show|see|send|share|view|display|get|look)\b/i;
  * so a natural request like "Can I see Green Mile poster" — which contains none of them
  * verbatim — was not recognised and no poster was ever sent.
  */
+/**
+ * Copy that denies our ability to show an image. Sonia said "we don't currently offer a
+ * poster for The Green Mile" while the renderer was successfully sending one.
+ */
+const CANNOT_SHOW_MEDIA = /text-based ai|can'?t (share|send|show|provide|display)|cannot (share|send|show|provide|display)|unable to (share|send|show|provide)|don'?t (currently )?(offer|have)|do not (currently )?(offer|have)|not available|isn'?t available|aren'?t available|the poster features/i;
+
+/** Talking ABOUT a poster rather than asking for one. */
+const DESCRIBES_MEDIA = /\b(was|were|looks?|looked|love[ds]?|liked?|hate[ds]?|beautiful|amazing|terrible)\b/i;
+
 export function isPosterRequest(text: string): boolean {
   const t = (text || "").toLowerCase().trim();
   if (!t) return false;
@@ -27,9 +36,14 @@ export function isPosterRequest(text: string): boolean {
     // No noun, but still a request to be shown the thing under discussion.
     return /\b(can i see it|let me see it|show me it|show it|see it|show me)\b/.test(t);
   }
-  // A media noun plus either an asking verb, a question mark, or a very short phrase
-  // ("poster?", "green mile poster").
-  return SHOW_VERBS.test(t) || t.endsWith("?") || t.split(/\s+/).length <= 5;
+
+  // Someone describing a poster is not asking for one.
+  if (DESCRIBES_MEDIA.test(t)) return false;
+
+  // Otherwise a media noun in a short, request-shaped message counts. Deliberately
+  // permissive: a customer typing "How me Game of thrones poster" (a typo for "Show
+  // me") still clearly wants a poster, and the previous verb requirement missed it.
+  return SHOW_VERBS.test(t) || t.endsWith("?") || t.split(/\s+/).length <= 8;
 }
 
 const POSTER_FILLER = new Set([
@@ -37,6 +51,7 @@ const POSTER_FILLER = new Set([
   "would","will","you","i","please","pls","let","us","do","does","have","got","any","is","are","there",
   "of","for","to","it","that","this","one","movie","movies","film","tv","series","show","poster",
   "posters","image","images","picture","pic","photo","artwork","cover","some","kindly",
+  "how","hey","hi","ok","okay","so","and","but","plz","again","now","just","said","want","need",
 ]);
 
 /**
@@ -57,14 +72,21 @@ export function extractPosterTitle(text: string): string | null {
   for (const re of patterns) {
     const match = raw.match(re);
     if (!match?.[1]) continue;
-    const candidate = match[1]
+    let candidate = match[1]
       .trim()
-      .replace(/^(the|a|an)\s+/i, "")
       .replace(/\s+(movie|film|tv show|series)$/i, "")
       .trim();
-    if (candidate.length < 2) continue;
-    const tokens = candidate.toLowerCase().split(/\s+/);
-    if (tokens.every((w) => POSTER_FILLER.has(w))) continue; // "show me the" is not a title
+
+    // Strip leading filler words one at a time. "How me Game of thrones" -> "Game of
+    // thrones". Rejecting the whole candidate when it merely STARTS with filler was
+    // losing real titles from typo'd or verbless requests.
+    let tokens = candidate.split(/\s+/);
+    while (tokens.length > 0 && POSTER_FILLER.has(tokens[0].toLowerCase())) {
+      tokens = tokens.slice(1);
+    }
+    candidate = tokens.join(" ").trim();
+
+    if (candidate.length < 2) continue; // nothing but filler — refers to active context
     return candidate;
   }
   return null;
@@ -516,7 +538,7 @@ export async function generateSoniaResponse(req: SoniaRequest): Promise<SoniaRes
       const recommendedTitles: string[] = prefs?.recommendedTitles || [];
       activeMediaContext = prefs?.activeMediaContext || null;
 
-      userContextStr = "\n\nUSER PROFILE:\n";
+      userContextStr = "\n\nUSER PROFILE (long-term memory — NOT a record of this conversation):\n";
       // We don't have userName here unless we pass it in, we'll keep it simple for now or let the caller prefix it in a message if needed.
       if (genres.length > 0) userContextStr += `- Favourite Genres (DNA): ${genres.join(", ")}\n`;
       if (likedGenres.length > 0) {
@@ -766,19 +788,35 @@ Do not invent or add other requests. Keep it natural.`;
 
   const channelPolicy = getChannelPolicy(req.channel);
 
-  // The title currently under discussion. Without this the model has no way to resolve
-  // "it" / "the poster" and cannot emit a correct presentation.
+  // Four DISTINCT kinds of memory. They answer different questions and must not be
+  // substituted for one another — conflating them made Sonia answer "what were we
+  // talking about before X?" with the last title she had on file.
   let mediaContextStr = "";
   if (activeMediaContext?.title) {
+    const setAt = activeMediaContext.setAt ? new Date(activeMediaContext.setAt).getTime() : 0;
+    const isStale = setAt > 0 && Date.now() - setAt > 6 * 60 * 60 * 1000;
     mediaContextStr =
-      `\n\nACTIVE MEDIA CONTEXT:\n` +
-      `- Title currently under discussion: "${activeMediaContext.title}"\n` +
-      `- TMDB id: ${activeMediaContext.tmdbId} (${activeMediaContext.mediaType || "movie"})\n` +
-      `If the user says "it", "that one", or asks for "the poster" without naming a title, they mean this one. ` +
-      `Use this TMDB id in the presentation object rather than guessing.`;
+      `\n\nACTIVE MEDIA CONTEXT (pronoun resolution ONLY):\n` +
+      `- Last title referenced: "${activeMediaContext.title}"\n` +
+      `- TMDB id: ${activeMediaContext.tmdbId} (${activeMediaContext.mediaType || "movie"})` +
+      (isStale ? `\n- NOTE: this is from an earlier session, not necessarily this conversation.` : "") +
+      `\n\nHOW TO USE IT:\n` +
+      `- Use it ONLY to resolve pronouns: "show me its poster", "who's in it", "when did it come out".\n` +
+      `- It is NOT a record of what was said. It is NOT the current topic.\n` +
+      `- If the user names a different title, that title wins immediately and completely.\n` +
+      `- NEVER use this field to answer a question about the CONVERSATION, such as\n` +
+      `  "what were we talking about before X?" or "what did I just ask?". Those must be\n` +
+      `  answered by reading the actual message history above, in order. If the message\n` +
+      `  history does not contain it, say you're not sure rather than guessing this title.`;
   }
 
-  let systemContent = BASE_SYSTEM_PROMPT + "\n\n" + channelPolicy + movieDataContext + mediaContextStr + userContextStr + commerceContextStr;
+  const recentTopicPolicy =
+    `\n\nCONVERSATION RECALL:\n` +
+    `The messages in this conversation are the record of what was actually said. When the user\n` +
+    `asks what they were saying, what came before something, or what you just discussed, answer\n` +
+    `strictly from that message sequence — never from the user profile or the media context.`;
+
+  let systemContent = BASE_SYSTEM_PROMPT + "\n\n" + channelPolicy + movieDataContext + mediaContextStr + recentTopicPolicy + userContextStr + commerceContextStr;
 
   if (req.contextMode === "commerce") {
     systemContent += `\n\n[STRICT COMMERCE MODE ENABLED]\nAn active order exists. You must absolutely NOT reset the conversation to generic movie chat. If the user says "Hello" or asks a general question, acknowledge it and immediately steer them back to the active order status. Your priority is finishing this transaction. DO NOT output search intent for movies while an order is active.`;
@@ -1042,17 +1080,27 @@ Do not invent or add other requests. Keep it natural.`;
             .catch((e) => console.error("[ai/sonia] activeMediaContext save failed", e));
         }
       } else {
+        // The customer named a title we could not resolve. Do NOT fall back to the
+        // active media context: that is exactly how "Can I see Green Mile poster"
+        // ended up sending The Shawshank Redemption.
         titleResolutionFailed = true;
+        posterTarget = null;
       }
     }
 
     if (parsed.presentation && (parsed.presentation.type === "image" || parsed.presentation.type === "movie_card")) {
-      // Trust our own TMDB resolution over the model's id — but only when we actually
-      // resolved something. Previously this overwrote the id unconditionally from the
-      // active context, so asking for a DIFFERENT title returned the wrong poster.
-      if (posterTarget?.tmdbId) {
+      if (requestedTitle && !posterTarget?.tmdbId) {
+        // The customer named a title we could not resolve. Sending SOMETHING would mean
+        // sending the wrong film's poster — drop the presentation and answer in words.
+        console.warn(`[ai/sonia] dropping presentation: could not resolve requested title "${requestedTitle}"`);
+        parsed.presentation = undefined;
+      } else if (posterTarget?.tmdbId) {
+        // Our own resolution is authoritative for the whole identity — id AND type.
+        // Letting the model's mediaType survive sent TV titles to the /movie endpoint
+        // (Game of Thrones resolved as a movie, found nothing, fell back to stale context).
         parsed.presentation.tmdbId = posterTarget.tmdbId;
-        parsed.presentation.mediaType = parsed.presentation.mediaType || posterTarget.mediaType;
+        parsed.presentation.mediaType = posterTarget.mediaType || parsed.presentation.mediaType || "movie";
+        delete parsed.presentation.movieId;
       }
     }
 
@@ -1065,17 +1113,15 @@ Do not invent or add other requests. Keep it natural.`;
         deliveryMode: "text_then_media"
       };
       
-      // Enforce clean fallback message
-      if (
-        finalMessage.toLowerCase().includes("text-based ai") ||
-        finalMessage.toLowerCase().includes("can't share images") ||
-        finalMessage.toLowerCase().includes("cannot share images") ||
-        finalMessage.toLowerCase().includes("the poster features") ||
-        !finalMessage.trim() || 
-        finalMessage.length > 100
-      ) {
+      if (!finalMessage.trim() || finalMessage.length > 100 || CANNOT_SHOW_MEDIA.test(finalMessage)) {
         finalMessage = "Here it is 👇";
       }
+    }
+
+    // A poster IS being sent — the message must never claim otherwise.
+    if (parsed.presentation && CANNOT_SHOW_MEDIA.test(finalMessage)) {
+      console.warn(`[ai/sonia] replacing contradictory "cannot show media" copy while sending a presentation`);
+      finalMessage = "Here it is 👇";
     }
 
     // A presentation with no words leaves an empty message bubble. Give it a short line.
@@ -1086,16 +1132,15 @@ Do not invent or add other requests. Keep it natural.`;
       }
     }
 
-    // A poster was asked for and we have nothing to show: answer in words. Never go silent.
+    // A poster was asked for and we have nothing to show: answer in words. Never go
+    // silent, and never substitute a different title's poster.
     if (posterIntentDetected && !parsed.presentation) {
-      const noImageExcuse =
-        finalMessage.toLowerCase().includes("text-based ai") ||
-        finalMessage.toLowerCase().includes("can't share images") ||
-        finalMessage.toLowerCase().includes("cannot share images") ||
-        finalMessage.toLowerCase().includes("unable to share images");
-      if (!finalMessage.trim() || noImageExcuse) {
-        finalMessage = titleResolutionFailed || requestedTitle
-          ? `I couldn't find "${requestedTitle}" — could you double-check the title?`
+      if (titleResolutionFailed && requestedTitle) {
+        // We are sending no image, so any "here it is" style copy is a false promise.
+        finalMessage = `I couldn't load the poster for "${requestedTitle}" right now.`;
+      } else if (!finalMessage.trim() || CANNOT_SHOW_MEDIA.test(finalMessage) || /here (it is|you go|'?s the)/i.test(finalMessage)) {
+        finalMessage = requestedTitle
+          ? `I couldn't load the poster for "${requestedTitle}" right now.`
           : "Which title would you like to see?";
       }
     }
