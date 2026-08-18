@@ -94,11 +94,11 @@ ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no "${ORACLE_USER}@${ORACLE_IP}" bash
   # Start fresh
   PORT=3000 pm2 start server.js --name dxbmovies \
     --env production \
-    -- --env-file ../../.env.local
+    --node-args="--env-file=.env.local"
 
-  pm2 start ../../scripts/worker.js --name dxbmovies-worker \
+  pm2 start scripts/worker.js --name dxbmovies-worker \
     --env production \
-    -- --env-file ../../.env.local
+    --node-args="--env-file=.env.local"
 
   # Save pm2 list so it survives reboots
   pm2 save
