@@ -1,9 +1,15 @@
 /**
  * AI Router — Groq (primary, free) → OpenAI GPT-4o-mini (fallback)
  *
- * - Tries Groq llama-3.3-70b-versatile first with an 8-second timeout.
- * - On any failure (rate limit, timeout, unavailable) switches to OpenAI.
+ * - Tries Groq first with an 8-second timeout, then falls back to OpenAI.
  * - Logs which provider handled each request for monitoring.
+ *
+ * The Groq model is configurable because models get decommissioned:
+ * llama-3.3-70b-versatile was retired and every single request then burned four
+ * failed key attempts (one per configured key) before falling through to OpenAI,
+ * adding latency to every reply and flooding the error log. When Groq reports the
+ * model is gone, the router now stops trying it for a cooldown instead of retrying
+ * it on each request — a dead model is not a per-key problem.
  */
 
 import Groq from "groq-sdk";
@@ -19,17 +25,34 @@ export interface RouterResult {
   provider: "groq" | "openai";
 }
 
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 const OPENAI_MODEL = "gpt-4o-mini";
 const GROQ_TIMEOUT_MS = 8_000;
 
+/** How long to stop attempting Groq after it reports the model is unavailable. */
+const GROQ_MODEL_COOLDOWN_MS = 30 * 60 * 1000;
+let groqDisabledUntil = 0;
+
+/** Distinguishes "this model no longer exists" from a transient/key-specific failure. */
+function isModelUnavailable(message: string): boolean {
+  return /model_not_found|does not exist|decommissioned|has been deprecated/i.test(message);
+}
+
+/** Exposed for tests. */
+export function __resetGroqCircuitBreaker() {
+  groqDisabledUntil = 0;
+}
+
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`Groq timeout after ${ms}ms`)), ms),
-    ),
-  ]);
+  // The timer must be cleared once the race settles. Previously every successful Groq
+  // call left an 8-second timer pending, keeping the event loop busy for no reason.
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<T>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`Groq timeout after ${ms}ms`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
 }
 
 async function callGroq(key: string, messages: AIChatMessage[]): Promise<string> {
@@ -64,19 +87,28 @@ export async function routeChat(messages: AIChatMessage[]): Promise<RouterResult
   const openaiKey = process.env.OPENAI_API_KEY;
 
   // --- PRIMARY: Groq ---
-  if (rawGroqKeys) {
+  if (rawGroqKeys && Date.now() >= groqDisabledUntil) {
     const groqKeys = rawGroqKeys.split(",").map((k) => k.trim()).filter(Boolean);
-    
+
     for (const groqKey of groqKeys) {
       try {
         const text = await callGroq(groqKey, messages);
         console.log("[ai-router] provider=groq model=" + GROQ_MODEL);
         return { text, provider: "groq" };
       } catch (err) {
-        console.warn(
-          "[ai-router] Groq key failed, trying next key or switching to OpenAI —",
-          (err as Error).message,
-        );
+        const message = (err as Error).message;
+
+        if (isModelUnavailable(message)) {
+          // Not a key problem — trying the remaining keys would fail identically.
+          groqDisabledUntil = Date.now() + GROQ_MODEL_COOLDOWN_MS;
+          console.error(
+            `[ai-router] Groq model "${GROQ_MODEL}" is unavailable — skipping Groq for ${GROQ_MODEL_COOLDOWN_MS / 60000} minutes. ` +
+              `Set GROQ_MODEL to a current model. Detail: ${message}`,
+          );
+          break;
+        }
+
+        console.warn("[ai-router] Groq key failed, trying next key or switching to OpenAI —", message);
       }
     }
   }
