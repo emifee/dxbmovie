@@ -1,4 +1,4 @@
-import { getCommerceProduct, upsertCommerceProduct, deleteCommerceProduct, upsertSupplierOffer, validateProductForActivation, searchCommerceProducts, CommerceProductStatus, getSupplierOffersForProduct, PurchaseRequirements, PricingPolicy } from "@/lib/db/commerce-products";
+import { getCommerceProduct, upsertCommerceProduct, deleteCommerceProduct, upsertSupplierOffer, validateProductForActivation, searchCommerceProducts, CommerceProductStatus, getSupplierOffersForProduct, PurchaseRequirements, PricingPolicy, CommerceProduct } from "@/lib/db/commerce-products";
 import { getCommerceOrder, updateOrderStatus } from "@/lib/db/commerce-orders";
 import { SchemaType, FunctionDeclaration } from "@google/generative-ai";
 import { createAuditLog } from "@/lib/db/admin-audit";
@@ -143,6 +143,17 @@ export const adminTools = {
     }
   }
 };
+
+/**
+ * A supplier offer is a PHYSICAL sourcing requirement, not a universal one.
+ * Digital products are fulfilled from our own configuration, so admin linkage must not
+ * be blocked on an offer a digital product has no reason to have.
+ */
+export function supplierOfferRequiredFor(
+  product: Pick<CommerceProduct, "fulfillmentType">
+): boolean {
+  return (product.fulfillmentType || "physical") !== "digital";
+}
 
 export async function executeAdminTool(toolName: string, args: any, context: AdminToolContext): Promise<any> {
   const { adminId } = context;
@@ -406,8 +417,8 @@ export async function executeAdminTool(toolName: string, args: any, context: Adm
 
       const offers = await getSupplierOffersForProduct(commerceProductId);
       const offer = offers.find(o => o._id?.toString() === product.preferredSupplierOfferId) || offers[0];
-      
-      if (!offer) {
+
+      if (!offer && supplierOfferRequiredFor(product)) {
         return { error: "Commerce product has no supplier offers. Add a supplier offer to the product first." };
       }
 
@@ -420,7 +431,7 @@ export async function executeAdminTool(toolName: string, args: any, context: Adm
         { 
           $set: { 
             commerceProductId: product.id,
-            supplierOfferId: offer._id?.toString(),
+            supplierOfferId: offer?._id?.toString(),
             updated_at: new Date()
           } 
         }
@@ -430,7 +441,7 @@ export async function executeAdminTool(toolName: string, args: any, context: Adm
       const { createOrUpdateMapping } = await import("@/lib/db/instagram-mappings");
       await createOrUpdateMapping(
         product.id,
-        offer._id!.toString(),
+        offer?._id?.toString(), // undefined for digital products (no supplier offer)
         order.displayed_product_title // Save the normalized title
       );
 
@@ -444,15 +455,20 @@ export async function executeAdminTool(toolName: string, args: any, context: Adm
         requiredConfirmation: false,
       });
 
-      // 4. Resume the orchestrator. If it was blocked on PRODUCT_LINKAGE_REQUIRED,
-      // it should ideally transition back to READY_FOR_SOURCING_CHECK.
-      // Wait, runOrderOrchestrator doesn't automatically move from PRODUCT_LINKAGE_REQUIRED to READY_FOR_SOURCING_CHECK.
-      // Let's manually set it to READY_FOR_SOURCING_CHECK.
-      await updateOrderStatus(orderId, "READY_FOR_SOURCING_CHECK");
+      // 4. Resume the orchestrator through the SAME path for every fulfillment type.
+      // Product identity is now resolved, so the product decides the lifecycle:
+      //   digital  -> collect purchaseRequirements, then READY_FOR_PAYMENT
+      //   physical -> collect physical requirements, then READY_FOR_SOURCING_CHECK (fires sourcing)
+      // Hand the order back to the pre-decision state and let calculateOrderState choose.
+      // Do NOT hardcode READY_FOR_SOURCING_CHECK here: that assumed every product is
+      // physical, and it also suppressed the sourcing trigger (which only fires on a
+      // transition INTO READY_FOR_SOURCING_CHECK).
+      await updateOrderStatus(orderId, "INFORMATION_REQUIRED");
       await runOrderOrchestrator(orderId);
 
+      const resumed = await getCommerceOrder(orderId);
       return {
-        message: `Successfully linked order ${orderId} to product ${product.instagramProductTitle}. Sourcing check resumed.`,
+        message: `Successfully linked order ${orderId} to product ${product.instagramProductTitle}. Order resumed at ${resumed?.status || "unknown"}.`,
       };
     }
 

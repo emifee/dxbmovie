@@ -1,6 +1,8 @@
 import { CommerceOrder, OrderState, OrderFieldResolution, FieldResolution } from "@/lib/db/commerce-orders";
 import { getCommerceProduct, PurchaseRequirements, CommerceProduct } from "@/lib/db/commerce-products";
-import { resolveDigitalRequirements } from "@/lib/commerce/digital-eligibility";
+// NOTE: digital-eligibility is intentionally NOT imported here.
+// It is preserved for future admin/supplier/compliance use but is
+// completely disconnected from the customer-facing order runtime.
 
 // --------------- Fallback Category Requirements ---------------
 // Used only when a product has no explicit purchaseRequirements.
@@ -77,7 +79,15 @@ export function resolveProductRequirements(
   const fulfillmentType = product.fulfillmentType || "physical";
   
   if (fulfillmentType === "digital") {
-    fields = resolveDigitalRequirements(product as CommerceProduct);
+    // Digital products: field requirements come EXCLUSIVELY from product.purchaseRequirements.
+    // checkDigitalEligibility() is NEVER called here — it is disconnected from the customer runtime.
+    // Physical sourcing, shipping address, and phone are never required unless explicitly in purchaseRequirements.
+    if (product.purchaseRequirements?.requiredFields && product.purchaseRequirements.requiredFields.length > 0) {
+      fields = [...product.purchaseRequirements.requiredFields];
+    } else {
+      // Sensible default for digital: quantity + email
+      fields = ["quantity", "email"];
+    }
   } else {
     if (product.purchaseRequirements && product.purchaseRequirements.requiredFields) {
       fields = [...product.purchaseRequirements.requiredFields];
@@ -248,8 +258,108 @@ export async function validateFieldAsync(field: string, value: any, context?: an
 
 // --------------- Main State Calculation ---------------
 
-export async function calculateOrderState(order: CommerceOrder) {
-  const { requiredFields, fixedAttributes, selectableAttributes, category } = await resolveRequirements(order);
+export interface OrderStateResult {
+  productCategory: string;
+  requiredFields: string[];
+  missingFields: string[];
+  fieldResolutions: Record<string, OrderFieldResolution>;
+  status: OrderState;
+  // Quote snapshot, populated once all required fields are collected (READY_FOR_PAYMENT).
+  /** product.instagramSellingPrice at quote time. */
+  unitPrice?: number;
+  /** The quantity totalAmount was computed from. */
+  pricedQuantity?: number;
+  /** unitPrice × pricedQuantity. */
+  totalAmount?: number;
+  /** Currency of the quote, from product.currency. */
+  orderCurrency?: string;
+  /** Indicates this is a digital fulfillment type order. */
+  isDigital?: boolean;
+  /**
+   * False when the order's CommerceProduct could not be resolved. When false, no
+   * requirements, fulfillment type, or sourcing path has been inferred — the product
+   * is UNKNOWN, not physical and not digital.
+   */
+  productIdentityResolved?: boolean;
+}
+
+// --------------- Product Identity Invariant ---------------
+// An order whose CommerceProduct cannot be resolved is UNKNOWN. It must never inherit
+// physical defaults, digital defaults, category requirements, or a sourcing path.
+// This check runs BEFORE resolveProductRequirements() and applies to every channel.
+
+/**
+ * Statuses at or beyond payment/fulfillment commitment. Product identity is never
+ * re-derived for these: an order that is already paid for must not be dragged back
+ * into PRODUCT_LINKAGE_REQUIRED by a catalog change or a deleted product row.
+ */
+const POST_COMMITMENT_STATES: ReadonlySet<OrderState> = new Set<OrderState>([
+  "PAID",
+  "AWAITING_FULFILLMENT",
+  "DIGITAL_FULFILLMENT_PENDING",
+  "DIGITAL_FULFILLMENT_FAILED",
+  "SUPPLIER_PURCHASED",
+  "FULFILLED",
+  "SHIPPED",
+]);
+
+export async function calculateOrderState(order: CommerceOrder): Promise<OrderStateResult> {
+  let category = order.productCategory || detectCategory(order.displayed_product_title);
+
+  // -----------------------------------------------------------------------
+  // STEP 1 — Resolve product identity. Nothing may be inferred before this.
+  // -----------------------------------------------------------------------
+  const product: CommerceProduct | null = order.commerceProductId
+    ? await getCommerceProduct(order.commerceProductId)
+    : null;
+
+  // INVARIANT: fail closed on unresolved product identity.
+  // Covers both "no commerceProductId at all" and "commerceProductId does not resolve".
+  if (!product) {
+    if (POST_COMMITMENT_STATES.has(order.status)) {
+      // Past commitment: leave the order exactly as it is. Do not recompute anything.
+      return {
+        productCategory: order.productCategory || category,
+        requiredFields: order.requiredFields || [],
+        missingFields: order.missingFields || [],
+        fieldResolutions: order.fieldResolutions || {},
+        status: order.status,
+        productIdentityResolved: false,
+      };
+    }
+
+    // The product is UNKNOWN. Collect nothing, infer nothing, source nothing.
+    return {
+      productCategory: category,
+      requiredFields: [],
+      missingFields: [],
+      fieldResolutions: {},
+      status: "PRODUCT_LINKAGE_REQUIRED" as OrderState,
+      productIdentityResolved: false,
+    };
+  }
+
+  // -----------------------------------------------------------------------
+  // STEP 2 — Product identity is resolved. Only now may we infer anything.
+  // -----------------------------------------------------------------------
+
+  // Digital product with ordering disabled: reject before collecting any information.
+  if (product.fulfillmentType === "digital" && product.orderingEnabled === false) {
+    return {
+      productCategory: category,
+      requiredFields: [],
+      missingFields: [],
+      fieldResolutions: order.fieldResolutions || {},
+      status: "ORDER_NOT_AVAILABLE" as OrderState,
+      isDigital: true,
+      productIdentityResolved: true,
+    };
+  }
+
+  const isDigital = product.fulfillmentType === "digital";
+  
+  const { requiredFields, fixedAttributes, selectableAttributes, category: resolvedCategory } = await resolveProductRequirements(product, category);
+  category = resolvedCategory;
 
   const collected = order.collected_info || {} as any;
   const missingFields: string[] = [];
@@ -265,13 +375,6 @@ export async function calculateOrderState(order: CommerceOrder) {
     const value = (collected as any)[field];
     const validation = await validateFieldAsync(field, value, collected, order);
     
-    // Check if customer explicitly confirmed it
-    let finalResolution = validation.resolution;
-    let finalValue = validation.normalizedValue || validation.rawValue;
-    
-    // If the field is in collected_info and we had a recent request that resulted in confirmed
-    // We assume it's valid now if it's already normalized, but actually validateField should handle it.
-    
     fieldResolutions[field] = {
       field,
       resolution: validation.resolution,
@@ -286,12 +389,30 @@ export async function calculateOrderState(order: CommerceOrder) {
     }
   }
 
-  let status = order.status;
+  let status = order.status as OrderState;
+  let unitPrice: number | undefined;
+  let pricedQuantity: number | undefined;
+  let totalAmount: number | undefined;
+  let orderCurrency: string | undefined;
   
   if (status === "ORDER_REQUESTED" || status === "INFORMATION_REQUIRED") {
     if (missingFields.length > 0) {
       status = "INFORMATION_REQUIRED";
+    } else if (isDigital) {
+      // Digital orders bypass the sourcing engine entirely.
+      // They go directly to READY_FOR_PAYMENT once all fields are collected.
+      // The payment webhook (not Sonia) will later transition READY_FOR_PAYMENT → PAID → AWAITING_FULFILLMENT.
+      status = "READY_FOR_PAYMENT";
+      
+      // Snapshot the quote from product configuration.
+      if (product.instagramSellingPrice) {
+        pricedQuantity = Number(collected.quantity) || 1;
+        unitPrice = Number(product.instagramSellingPrice);
+        totalAmount = parseFloat((unitPrice * pricedQuantity).toFixed(2));
+        orderCurrency = product.currency || "AED";
+      }
     } else {
+      // Physical/service orders go to sourcing check as before
       status = "READY_FOR_SOURCING_CHECK";
     }
   }
@@ -301,6 +422,12 @@ export async function calculateOrderState(order: CommerceOrder) {
     requiredFields,
     missingFields,
     fieldResolutions,
-    status
+    status,
+    unitPrice,
+    pricedQuantity,
+    totalAmount,
+    orderCurrency,
+    isDigital,
+    productIdentityResolved: true,
   };
 }

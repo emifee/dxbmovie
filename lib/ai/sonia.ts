@@ -518,8 +518,46 @@ When you use commerce tools, provide the precise Commerce Product ID from this c
         }
       }
 
-      // Handle PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED state
-      if (activeOrder.status === 'PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED') {
+      // Handle PRODUCT_LINKAGE_REQUIRED state (product identity unresolved)
+      if (activeOrder.status === 'PRODUCT_LINKAGE_REQUIRED') {
+        commerceContextStr += `\n\nACTIVE ORDER — PRODUCT IDENTITY UNRESOLVED:
+The backend cannot yet determine which product this order refers to.
+
+INSTRUCTION: Say only that you are checking the product details before continuing.
+Do NOT ask for quantity, email, address, phone, or any other order information.
+Do NOT say the product is unavailable, confirmed, in stock, or out of stock.
+Do NOT mention price, payment, shipping, or availability. Nothing about this product is known yet.`;
+      }
+      // Handle ORDER_NOT_AVAILABLE state
+      else if (activeOrder.status === 'ORDER_NOT_AVAILABLE') {
+        commerceContextStr += `\n\nACTIVE ORDER — ORDER NOT AVAILABLE:
+This product cannot be ordered right now.
+
+INSTRUCTION: You MUST immediately tell the user: "This product isn't currently available to order."
+Do NOT ask for quantity, email, address, or any other information. Do NOT attempt to collect order fields.
+If the customer asks why, simply explain that ordering for this product is currently disabled or unavailable.`;
+      }
+      // Handle READY_FOR_PAYMENT state (all required information collected).
+      // NOTE: no payment provider is integrated yet. Sonia must not promise a payment
+      // link, claim payment is being processed, or say the order is confirmed.
+      else if (activeOrder.status === 'READY_FOR_PAYMENT') {
+        const amount = (activeOrder as any).totalAmount;
+        const currency = (activeOrder as any).orderCurrency;
+        const amountDisplay = amount && currency ? `${currency} ${amount}` : null;
+
+        commerceContextStr += `\n\nACTIVE ORDER — ALL REQUIRED INFORMATION COLLECTED:
+Everything needed for this order has been received. Nothing further is required from the customer right now.
+
+- Product: ${activeOrder.displayed_product_title}
+- Order ID: ${activeOrder._id}${amountDisplay ? `\n- Order total: ${amountDisplay}` : ''}
+
+INSTRUCTION:
+1. Confirm warmly and briefly that you have everything needed for their order.${amountDisplay ? ` You may state the order total as ${amountDisplay} if it is relevant.` : ''}
+2. Do NOT ask for any further information — not quantity, email, shipping address, phone, or anything else.
+3. Do NOT say payment details or a payment link are on the way. Do NOT say the order is confirmed, paid, or being processed. None of that is true yet.
+4. If the customer asks how to pay, say honestly that you will follow up with next steps — do not invent a method, link, or timeframe.`;
+      }
+      else if (activeOrder.status === 'PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED') {
         commerceContextStr += `\n\nACTIVE ORDER — PRICE CHANGE APPROVAL REQUIRED:
 You are waiting for the customer to approve a price change.
 
@@ -582,6 +620,7 @@ BEHAVIORAL RULES:
 4. Don't over-confirm. Avoid saying "Got it" or "Perfect" on every single message.
 5. Interruptions: If the customer asks a question, answer from PRODUCT FACTS first (or admit lack thereof), then gently steer back to the flow.
 6. Never request information already supplied. If supplied information is incomplete, clarify only the missing component based on the YOUR NEXT GOAL above.
+7. CRITICAL: DO NOT ask for any information that is NOT listed in YOUR NEXT GOAL. If the next goal is 'email', DO NOT ask for a shipping address or phone number. Only ask for exactly what is required next.
 
 EXTRACTION:
 CRITICAL JSON FORMAT: You MUST return a valid JSON object matching the root schema (with "intent", "message", and "extractedOrderFields").

@@ -1,5 +1,26 @@
+// Build identity, resolved at BUILD time and inlined into the bundle so the running
+// server can report exactly which code it is. The server itself never shells out to git
+// (the deployed standalone artifact has no .git directory), hence the try/catch.
+function buildInfo() {
+  const read = (cmd) => {
+    try {
+      return require("child_process").execSync(cmd, { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+    } catch {
+      return "";
+    }
+  };
+  return {
+    BUILD_COMMIT: process.env.BUILD_COMMIT || read("git rev-parse HEAD") || "unknown",
+    BUILD_TAG: process.env.BUILD_TAG || read("git describe --tags --always --dirty") || "unknown",
+    BUILD_DIRTY: process.env.BUILD_DIRTY || (read("git status --porcelain") ? "true" : "false"),
+    BUILD_TIME: process.env.BUILD_TIME || new Date().toISOString(),
+  };
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: buildInfo(),
+
   // Emit a self-contained server bundle (.next/standalone) so the Docker
   // runtime image only needs the traced node_modules, not the full install.
   output: "standalone",

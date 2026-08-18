@@ -12,7 +12,8 @@ export interface InstagramProductMapping {
   instagramMediaId?: string;
   normalizedInstagramTitle: string;
   commerceProductId: string;
-  supplierOfferId: string;
+  /** Physical sourcing linkage. Absent for digital products, which have no supplier offer. */
+  supplierOfferId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,7 +31,7 @@ async function getCollection() {
  */
 export async function createOrUpdateMapping(
   commerceProductId: string,
-  supplierOfferId: string,
+  supplierOfferId: string | undefined,
   rawTitle: string,
   instagramProductId?: string,
   instagramMediaId?: string
@@ -54,7 +55,7 @@ export async function createOrUpdateMapping(
       {
         $set: {
           commerceProductId,
-          supplierOfferId,
+          ...(supplierOfferId ? { supplierOfferId } : {}),
           normalizedInstagramTitle: normalizedTitle,
           ...(instagramProductId && { instagramProductId }),
           ...(instagramMediaId && { instagramMediaId }),
@@ -69,7 +70,7 @@ export async function createOrUpdateMapping(
   const result = await col.insertOne({
     normalizedInstagramTitle: normalizedTitle,
     commerceProductId,
-    supplierOfferId,
+    ...(supplierOfferId ? { supplierOfferId } : {}),
     ...(instagramProductId && { instagramProductId }),
     ...(instagramMediaId && { instagramMediaId }),
     createdAt: now,

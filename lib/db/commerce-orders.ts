@@ -1,6 +1,19 @@
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from 'mongodb';
 
+/**
+ * Canonical order lifecycle:
+ *
+ *   ORDER_REQUESTED -> INFORMATION_REQUIRED -> READY_FOR_PAYMENT -> PAYMENT_PENDING
+ *     -> PAID -> AWAITING_FULFILLMENT -> FULFILLED
+ *   with a single failure state: FULFILLMENT_FAILED
+ *
+ * AWAITING_FULFILLMENT / FULFILLED / FULFILLMENT_FAILED are deliberately not tied to a
+ * fulfillment implementation: a paid digital order is delivered manually today and may
+ * be delivered automatically later without changing the state machine.
+ *
+ * The remaining states are physical-sourcing states (dormant) or legacy — see below.
+ */
 export type OrderState = 
   | 'ORDER_REQUESTED'
   | 'INFORMATION_REQUIRED'
@@ -20,15 +33,22 @@ export type OrderState =
   | 'READY_FOR_PAYMENT'
   | 'PAYMENT_PENDING'
   | 'PAID'
+  | 'AWAITING_FULFILLMENT'
   | 'SOURCING'
   | 'AWAITING_HUMAN_APPROVAL'
   | 'SUPPLIER_PURCHASED'
   | 'AMAZON_VERIFICATION_RETRY_REQUIRED'
   | 'FX_VERIFICATION_REQUIRED'
-  | 'DIGITAL_FULFILLMENT_PENDING'
-  | 'DIGITAL_FULFILLMENT_FAILED'
   | 'FULFILLED'
-  | 'SHIPPED';
+  | 'FULFILLMENT_FAILED'
+  | 'SHIPPED'
+  // ---- LEGACY (technical debt) --------------------------------------------
+  // Superseded by AWAITING_FULFILLMENT / FULFILLMENT_FAILED. Still accepted by the
+  // schema because production and test residue hold records in these states, and
+  // DigitalFulfillmentService still reads/writes them. New digital checkout must never
+  // produce them. Retire in a dedicated migration, not as a side effect of a feature.
+  | 'DIGITAL_FULFILLMENT_PENDING'
+  | 'DIGITAL_FULFILLMENT_FAILED';
 
 // Sourcing events are audit trail entries, not order states.
 // They track transient events like price checks and notifications.
@@ -147,6 +167,14 @@ export interface CommerceOrder {
   // Sourcing audit trail (transient events, not order states)
   sourcingEvents?: SourcingEvent[];
   
+  // Quote snapshot, written by the orchestrator when the order reaches READY_FOR_PAYMENT.
+  // Captured together so a later payment step charges exactly what the customer was
+  // quoted, even if the catalog price changes afterwards.
+  unitPrice?: number;       // product.instagramSellingPrice at quote time
+  pricedQuantity?: number;  // the quantity totalAmount was computed from
+  totalAmount?: number;     // unitPrice × pricedQuantity
+  orderCurrency?: string;   // e.g. "USD", from product.currency
+  
   // Repricing context
   proposedNewPrice?: number;  // Set when PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED
   originalCustomerPrice?: number;
@@ -173,6 +201,30 @@ export async function createCommerceOrder(order: Omit<CommerceOrder, '_id' | 'cr
   const collection = db.collection<CommerceOrder>('commerce_orders');
   
   const now = new Date();
+
+  // A new order for this customer supersedes any earlier order we were never able to
+  // identify. Record that on the old order so it is not silently orphaned — it stays in
+  // the database, keeps its collected_info, and remains visible to admin linkage.
+  if (order.customer_igsid) {
+    const superseded = await collection.updateMany(
+      { customer_igsid: order.customer_igsid, status: 'PRODUCT_LINKAGE_REQUIRED' },
+      {
+        $push: {
+          sourcingEvents: {
+            event: 'SUPERSEDED_BY_NEW_ORDER',
+            timestamp: now,
+            details: { reason: 'customer started a new order while this one was unidentified' },
+          },
+        } as any,
+        $set: { updated_at: now },
+      }
+    );
+    if (superseded.modifiedCount > 0) {
+      console.warn(
+        `[commerce-orders] ${superseded.modifiedCount} unidentified order(s) superseded for customer ${order.customer_igsid} — admin linkage still required`
+      );
+    }
+  }
   const result = await collection.insertOne({
     ...order,
     created_at: now,
@@ -209,18 +261,29 @@ export async function getActiveOrderForCustomer(igsid: string): Promise<Commerce
       'PRICE_CHANGE_CUSTOMER_APPROVAL_REQUIRED',
       'READY_FOR_PAYMENT', 
       'PAYMENT_PENDING', 
-      'PAID', 
+      'PAID',
+      'AWAITING_FULFILLMENT',
+      'DIGITAL_FULFILLMENT_PENDING',
       'SOURCING', 
       'AWAITING_HUMAN_APPROVAL', 
-      'SUPPLIER_PURCHASED'
+      'SUPPLIER_PURCHASED',
+      'ORDER_NOT_AVAILABLE'
     ] }
   }, { sort: { created_at: -1 } });
 
   if (!order) return null;
 
-  // State-aware expiry:
-  // ORDER_REQUESTED and INFORMATION_REQUIRED expire after 24 hours of inactivity.
-  if (order.status === 'ORDER_REQUESTED' || order.status === 'INFORMATION_REQUIRED') {
+  // State-aware expiry: pre-checkout states expire after 24 hours of inactivity, so a
+  // stalled order never blocks the customer from starting a new one indefinitely.
+  // PRODUCT_LINKAGE_REQUIRED is included: an order we cannot identify must not stay
+  // active forever waiting on admin linkage.
+  const EXPIRING_STATES: OrderState[] = [
+    'ORDER_REQUESTED',
+    'INFORMATION_REQUIRED',
+    'ORDER_NOT_AVAILABLE',
+    'PRODUCT_LINKAGE_REQUIRED',
+  ];
+  if (EXPIRING_STATES.includes(order.status)) {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     if (order.updated_at < twentyFourHoursAgo) {
       return null; // Expired, so we pretend there's no active order.
@@ -294,7 +357,8 @@ export async function runOrderOrchestrator(orderId: string | ObjectId): Promise<
   
   if (!order) return;
 
-  const { status: nextStatus, missingFields, requiredFields, productCategory, fieldResolutions } = await calculateOrderState(order);
+  const stateResult = await calculateOrderState(order);
+  const { status: nextStatus, missingFields, requiredFields, productCategory, fieldResolutions, unitPrice, pricedQuantity, totalAmount, orderCurrency } = stateResult;
 
   const updates: any = {};
   let hasChanges = false;
@@ -325,6 +389,15 @@ export async function runOrderOrchestrator(orderId: string | ObjectId): Promise<
     hasChanges = true;
   }
 
+  // Persist the quote snapshot when the orchestrator calculates it (READY_FOR_PAYMENT).
+  const quote: Record<string, unknown> = { unitPrice, pricedQuantity, totalAmount, orderCurrency };
+  for (const [key, value] of Object.entries(quote)) {
+    if (value !== undefined && value !== (order as any)[key]) {
+      updates[key] = value;
+      hasChanges = true;
+    }
+  }
+
   if (hasChanges) {
     updates.updated_at = new Date();
     await collection.updateOne(
@@ -333,37 +406,22 @@ export async function runOrderOrchestrator(orderId: string | ObjectId): Promise<
     );
   }
 
-  // Trigger sourcing engine deterministically if we just transitioned into READY_FOR_SOURCING_CHECK
+  // -----------------------------------------------------------------------
+  // Trigger the physical sourcing engine ONLY for non-digital orders.
+  // Digital orders go directly to READY_FOR_PAYMENT via calculateOrderState.
+  // checkDigitalEligibility() is NEVER called from here — it is disconnected
+  // from the customer runtime path.
+  // -----------------------------------------------------------------------
   if (nextStatus === 'READY_FOR_SOURCING_CHECK' && order.status !== 'READY_FOR_SOURCING_CHECK') {
+    // Only physical/service orders reach READY_FOR_SOURCING_CHECK
     const updatedOrder = await collection.findOne({ _id: new ObjectId(orderId) });
     if (updatedOrder) {
-      console.log(`[orchestrator] Order ${orderId} transitioned to READY_FOR_SOURCING_CHECK. Sending Phase 1 Notification...`);
-      
-      console.log(`[orchestrator] Order ${orderId} transitioned to READY_FOR_SOURCING_CHECK. Triggering sourcing engine...`);
-
-      console.log(`[orchestrator] Triggering sourcing job for ${orderId}...`);
-      
-      const { getCommerceProduct } = await import("@/lib/db/commerce-products");
-      let isDigital = false;
-      if (updatedOrder.commerceProductId) {
-        const product = await getCommerceProduct(updatedOrder.commerceProductId);
-        if (product && product.fulfillmentType === "digital") {
-          isDigital = true;
-          import("@/lib/commerce/digital-eligibility").then(({ checkDigitalEligibility }) => {
-            checkDigitalEligibility(updatedOrder, product).catch(err => {
-              console.error(`[orchestrator] Digital eligibility error for order ${orderId}:`, err);
-            });
-          });
-        }
-      }
-
-      if (!isDigital) {
-        import("@/lib/commerce/sourcing-engine").then(({ executeSourcingCheck }) => {
-          executeSourcingCheck(updatedOrder).catch(err => {
-            console.error(`[orchestrator] Sourcing engine error for order ${orderId}:`, err);
-          });
+      console.log(`[orchestrator] Order ${orderId} -> READY_FOR_SOURCING_CHECK. Triggering sourcing engine...`);
+      import("@/lib/commerce/sourcing-engine").then(({ executeSourcingCheck }) => {
+        executeSourcingCheck(updatedOrder).catch(err => {
+          console.error(`[orchestrator] Sourcing engine error for order ${orderId}:`, err);
         });
-      }
+      });
     }
   }
 }
