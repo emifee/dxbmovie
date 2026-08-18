@@ -220,7 +220,7 @@ async function runTests() {
   console.log(`PASS movie recommendation: ${resMovie.recommendations && resMovie.recommendations.length > 0 || resMovie.content?.toLowerCase().includes('sci-fi') ? 'Yes' : 'No'}`);
 
   const resPoster = await processMessage({ userId: igsid, channel: "instagram_dm", text: "Show me the poster for Inception" });
-  console.log(`PASS poster request: ${resPoster.presentation?.type === 'movie_poster' || resPoster.content?.toLowerCase().includes('poster') ? 'Yes' : 'No'}`);
+  console.log(`PASS poster request: ${resPoster.presentation?.type === 'image' || resPoster.content?.toLowerCase().includes('poster') ? 'Yes' : 'No'}`);
 
 
 

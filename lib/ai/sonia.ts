@@ -95,10 +95,11 @@ JSON SCHEMA:
   "customerIntent": "buying", // Use to track attitude: "buying", "considering", "hesitating", "asking_question", "price_concern", "comparison", "cancel_intent", "confirmed"
   "message": "Your conversational text reply here.",
   "extractedOrderFields": {
-    // ONLY include this object if the user provides order details (quantity, address, phone)
+    // ONLY include this object if the user provides order details (quantity, address, phone, email)
     "quantity": 1,
     "shippingAddress": { "line1": "Dubai Marina", "city": "Dubai" },
-    "phone": "0551994544"
+    "phone": "0551994544",
+    "email": "customer@example.com"
   },
   "explicitAction": "CANCEL_ORDER", // ONLY include this if the user gives a strict command to cancel the order
   "recommendations": ["Title 1"],
@@ -686,7 +687,7 @@ Do not invent or add other requests. Keep it natural.`;
         }
 
         if (!parsed.extractedOrderFields) {
-          const possibleFields = ["quantity", "phone", "shippingAddress", "size", "color", "priceApproved"];
+          const possibleFields = ["quantity", "phone", "shippingAddress", "size", "color", "priceApproved", "email"];
           const rootFieldsExtracted: any = {};
           let extractedAny = false;
           for (const pf of possibleFields) {
