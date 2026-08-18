@@ -177,6 +177,30 @@ describe("poster flow", () => {
     expect(res.presentation?.type).toBe("image");
   });
 
+  test("a poster request survives a TMDB two-pass search", async () => {
+    // The model first asks for a search; the tool output is appended as a synthetic
+    // "user" message. Poster handling must still see the CUSTOMER's words, not the blob.
+    tmdbResults = [GREEN_MILE];
+    mockReplies.push(JSON.stringify({ action: "search", query: "The Green Mile" }));
+    mockReplies.push(JSON.stringify({ intent: "MOVIE_DISCUSSION", message: "A masterpiece." }));
+
+    const res = await ask("Can I see The Green Mile poster?");
+
+    expect(mockPrompts).toHaveLength(2); // two-pass really happened
+    expect(res.presentation?.type).toBe("image");
+    expect(res.presentation.tmdbId).toBe(497);
+  });
+
+  test("a presentation never leaves an empty message", async () => {
+    mockDb.userPreferences = { userId: "ig-1", activeMediaContext: { title: "The Green Mile", tmdbId: 497, mediaType: "movie" } };
+    mockReplies.push(JSON.stringify({ presentation: { type: "image", deliveryMode: "media_only", movieId: "497" } }));
+
+    const res = await ask("can i see it");
+
+    expect(res.content.trim().length).toBeGreaterThan(0);
+    expect(res.presentation.deliveryMode).toBe("text_then_media");
+  });
+
   test("the base prompt still forbids claiming to be text-only", async () => {
     await ask("hello");
     expect(mockPrompts[0]).toContain('NEVER claim you are a "text-based AI"');

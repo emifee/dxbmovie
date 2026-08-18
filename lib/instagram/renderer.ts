@@ -18,9 +18,16 @@ export async function resolveMoviePresentationAsset(params: {
 }): Promise<{ type: "media_share" | "image_url" | "unavailable"; value?: string }> {
   const { tmdbId, mediaId, mediaType = "movie" } = params;
 
-  // 1. Explicit Trusted mediaId
+  // 1. Explicit trusted mediaId.
+  // The model routinely invents these ("the-green-mile-poster", "The Green Mile Poster").
+  // A real Instagram media id is a long numeric string; anything else is a hallucination
+  // and must NOT short-circuit the lookup, otherwise sendMediaShare is called with a bogus
+  // id, Meta rejects it, and the customer gets nothing.
+  if (mediaId && /^\d{8,}$/.test(String(mediaId).trim())) {
+    return { type: "media_share", value: String(mediaId).trim() };
+  }
   if (mediaId) {
-    return { type: "media_share", value: mediaId };
+    console.warn(`[renderer] ignoring hallucinated mediaId="${mediaId}" — falling back to TMDB resolution`);
   }
 
   // 2. Existing instagram_media_mappings lookup

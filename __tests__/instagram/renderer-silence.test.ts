@@ -60,6 +60,26 @@ describe("happy path", () => {
   });
 });
 
+describe("hallucinated media ids", () => {
+  test("a made-up mediaId is ignored and TMDB resolution is used instead", async () => {
+    await renderPresentation("user-1", {
+      content: "Here it is 👇",
+      presentation: { type: "image", tmdbId: 497, mediaId: "the-green-mile-poster", deliveryMode: "text_then_media" },
+    });
+    expect(sent.mediaShares).toHaveLength(0);
+    expect(sent.images).toEqual(["https://image.tmdb.org/t/p/w500/poster.jpg"]);
+  });
+
+  test("a genuine numeric Instagram media id is still trusted", async () => {
+    await renderPresentation("user-1", {
+      content: "Here it is 👇",
+      presentation: { type: "image", tmdbId: 497, mediaId: "17912345678901234", deliveryMode: "text_then_media" },
+    });
+    expect(sent.mediaShares).toEqual(["17912345678901234"]);
+    expect(sent.images).toHaveLength(0);
+  });
+});
+
 describe("never silent", () => {
   test("unresolvable asset with text already sent still explains itself", async () => {
     posterPath = null; // TMDB has no poster

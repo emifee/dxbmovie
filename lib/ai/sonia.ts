@@ -1004,7 +1004,12 @@ Do not invent or add other requests. Keep it natural.`;
     }
 
     // Deterministic Poster-Intent Safeguard
-    const userText = chatMessages.filter((m) => m.role === "user").pop()?.content || "";
+    //
+    // Read the customer's own words from the ORIGINAL request, not from chatMessages:
+    // the TMDB/commerce two-pass appends its tool output as a synthetic "user" message,
+    // so reading the last entry of chatMessages returned a data blob instead of what the
+    // customer typed — and every poster request that triggered a search was missed.
+    const userText = [...req.messageHistory].reverse().find((m) => m.role === "user")?.content || "";
     const posterIntentDetected = isPosterRequest(userText);
     const requestedTitle = posterIntentDetected ? extractPosterTitle(userText) : null;
     let fallbackTriggered = false;
@@ -1070,6 +1075,14 @@ Do not invent or add other requests. Keep it natural.`;
         finalMessage.length > 100
       ) {
         finalMessage = "Here it is 👇";
+      }
+    }
+
+    // A presentation with no words leaves an empty message bubble. Give it a short line.
+    if (parsed.presentation && !finalMessage.trim()) {
+      finalMessage = "Here it is 👇";
+      if (parsed.presentation.deliveryMode === "media_only") {
+        parsed.presentation.deliveryMode = "text_then_media";
       }
     }
 
