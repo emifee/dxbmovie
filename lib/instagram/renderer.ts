@@ -101,9 +101,14 @@ export async function renderPresentation(recipientId: string, response: any): Pr
 
   const deliveryMode = presentation.deliveryMode || "text_then_media";
 
+  // Tracks whether the customer has received ANY message this turn. A presentation that
+  // fails to resolve must never leave the conversation silent.
+  let textSent = false;
+
   // Pre-send text if mode demands it
   if (content && deliveryMode === "text_then_media") {
     await sendTextMessage(recipientId, content);
+    textSent = true;
   }
 
   try {
@@ -154,6 +159,23 @@ export async function renderPresentation(recipientId: string, response: any): Pr
         // If embedded, fallback to sending text after image (since image can't embed text easily in API)
         if (content && deliveryMode === "embedded") {
           await sendTextMessage(recipientId, content);
+          textSent = true;
+        }
+
+        // Never go silent. If the asset could not be resolved or Meta rejected the send,
+        // say something in words instead of leaving the customer with nothing (or with a
+        // dangling "Here it is 👇" and no image).
+        const imageDelivered = metaResponseStatus === "success";
+        if (!imageDelivered) {
+          if (!textSent) {
+            await sendTextMessage(
+              recipientId,
+              content?.trim() || "I couldn't pull that image up right now — want me to tell you about it instead?"
+            );
+          } else {
+            await sendTextMessage(recipientId, "Sorry — I couldn't load that image just now.");
+          }
+          textSent = true;
         }
         break;
       }
@@ -245,9 +267,12 @@ export async function renderPresentation(recipientId: string, response: any): Pr
     }
   } catch (err) {
     console.error(`[renderer] Failed to render presentation for ${recipientId}:`, err);
-    // Safe fallback
-    if (content && deliveryMode === "embedded") {
-      await sendTextMessage(recipientId, content);
+    // Safe fallback: whatever went wrong, the customer must still get a reply.
+    if (!textSent) {
+      await sendTextMessage(
+        recipientId,
+        content?.trim() || "Sorry — something went wrong on my end. Could you try that again?"
+      );
     }
   }
 }

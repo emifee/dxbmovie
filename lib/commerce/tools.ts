@@ -4,15 +4,29 @@ export async function executeCommerceTool(toolName: string, args: any): Promise<
   switch (toolName) {
     case "search_catalog": {
       const { query, maxPrice, category } = args;
-      const products = await searchCommerceProducts(query, maxPrice, category);
-      
-      return products.map(p => ({
-        id: p.id || p.instagramProductId,
-        title: p.instagramProductTitle || p.title,
-        description: p.description,
-        category: p.category,
-        movieRelationship: p.movieRelationship,
-      }));
+      // customerFacing: only products an admin has enabled for ordering are ever shown.
+      const products = await searchCommerceProducts(query, maxPrice, category, { customerFacing: true });
+
+      if (products.length === 0) {
+        return {
+          products: [],
+          note: "Nothing in the catalog matches. We do not currently offer this — say so plainly and do not promise to add it.",
+        };
+      }
+
+      return {
+        products: products.map(p => ({
+          id: p.id || p.instagramProductId,
+          title: p.instagramProductTitle || p.title,
+          description: p.description,
+          category: p.category,
+          fulfillmentType: p.fulfillmentType,
+          price: p.instagramSellingPrice,
+          currency: p.currency,
+          movieRelationship: p.movieRelationship,
+        })),
+        note: "These are the only products currently available. Do not mention any product that is not in this list.",
+      };
     }
 
     case "get_supplier_offers": {

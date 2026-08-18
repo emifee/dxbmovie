@@ -162,11 +162,24 @@ function escapeRegex(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export async function searchCommerceProducts(query: string, maxPrice?: number, category?: string): Promise<CommerceProduct[]> {
+export async function searchCommerceProducts(
+  query: string,
+  maxPrice?: number,
+  category?: string,
+  opts?: { customerFacing?: boolean }
+): Promise<CommerceProduct[]> {
   const col = await getCommerceProductsCollection();
   
   // Use regex for Admin search instead of $text to avoid index requirements
   const filter: any = { status: "active" };
+
+  // Customer-facing lookups must only ever surface products an admin has explicitly
+  // switched on. Fail closed: a product without orderingEnabled is NOT for sale.
+  // Admin searches (the default) still see everything.
+  if (opts?.customerFacing) {
+    filter.orderingEnabled = true;
+    filter.customerVisible = { $ne: false };
+  }
   
   if (query) {
     filter.instagramProductTitle = { $regex: escapeRegex(query), $options: "i" };

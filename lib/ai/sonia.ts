@@ -8,13 +8,66 @@ import { getActiveOrderForCustomer } from "@/lib/db/commerce-orders";
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
-function isPosterRequest(text: string): boolean {
-  const t = text.toLowerCase();
-  return t.includes("show me the poster") || 
-         t.includes("can i see the poster") || 
-         t.includes("show me the image") || 
-         t.includes("can i see it") || 
-         t.includes("show me a picture");
+const MEDIA_NOUNS = "poster|posters|image|images|picture|pic|photo|artwork|cover";
+const SHOW_VERBS = /\b(show|see|send|share|view|display|get|look)\b/i;
+
+/**
+ * Does the user want to be shown an image?
+ *
+ * Previously this matched five exact substrings ("show me the poster", "can i see it", …),
+ * so a natural request like "Can I see Green Mile poster" — which contains none of them
+ * verbatim — was not recognised and no poster was ever sent.
+ */
+export function isPosterRequest(text: string): boolean {
+  const t = (text || "").toLowerCase().trim();
+  if (!t) return false;
+
+  const mentionsMedia = new RegExp(`\\b(${MEDIA_NOUNS})\\b`, "i").test(t);
+  if (!mentionsMedia) {
+    // No noun, but still a request to be shown the thing under discussion.
+    return /\b(can i see it|let me see it|show me it|show it|see it|show me)\b/.test(t);
+  }
+  // A media noun plus either an asking verb, a question mark, or a very short phrase
+  // ("poster?", "green mile poster").
+  return SHOW_VERBS.test(t) || t.endsWith("?") || t.split(/\s+/).length <= 5;
+}
+
+const POSTER_FILLER = new Set([
+  "show","send","share","see","view","get","display","look","me","my","the","a","an","can","could",
+  "would","will","you","i","please","pls","let","us","do","does","have","got","any","is","are","there",
+  "of","for","to","it","that","this","one","movie","movies","film","tv","series","show","poster",
+  "posters","image","images","picture","pic","photo","artwork","cover","some","kindly",
+]);
+
+/**
+ * Pulls the title out of a poster request, e.g.
+ *   "Can I see Green Mile poster"      -> "Green Mile"
+ *   "show me the poster for Dune"      -> "Dune"
+ *   "show me the poster"               -> null (refers to the active media context)
+ * Returns null when the request names nothing, so the caller falls back to context.
+ */
+export function extractPosterTitle(text: string): string | null {
+  const raw = (text || "").trim().replace(/[?!.]+$/, "");
+  const patterns = [
+    new RegExp(`(?:${MEDIA_NOUNS})\\s+(?:of|for|from)\\s+(.+)$`, "i"),
+    new RegExp(`\\b(?:see|show|send|share|view|display|get)\\b\\s*(?:me\\s+)?(?:the\\s+|a\\s+)?(.+?)\\s+(?:${MEDIA_NOUNS})\\b`, "i"),
+    new RegExp(`^(.+?)\\s+(?:${MEDIA_NOUNS})\\b`, "i"),
+  ];
+
+  for (const re of patterns) {
+    const match = raw.match(re);
+    if (!match?.[1]) continue;
+    const candidate = match[1]
+      .trim()
+      .replace(/^(the|a|an)\s+/i, "")
+      .replace(/\s+(movie|film|tv show|series)$/i, "")
+      .trim();
+    if (candidate.length < 2) continue;
+    const tokens = candidate.toLowerCase().split(/\s+/);
+    if (tokens.every((w) => POSTER_FILLER.has(w))) continue; // "show me the" is not a title
+    return candidate;
+  }
+  return null;
 }
 
 export type Channel = "web" | "instagram_dm" | "instagram_comment";
@@ -52,9 +105,29 @@ THE ART OF SELLING (RECOMMENDATIONS):
 - You aren't just listing movies; you are SELLING them. You must convince the user why they absolutely HAVE to watch this movie/show right now.
 - Pitch the film with infectious enthusiasm. Highlight the emotional hooks, the jaw-dropping cinematography, or the mind-bending plot twists. Make it sound irresistible.
 
+WHAT DXBMOVIES IS (read this carefully — getting it wrong loses us sales):
+- DXBmovies is primarily a movies and TV entertainment account. That is the heart of what we do.
+- DXBmovies ALSO SELLS a small, curated selection of DIGITAL PRODUCTS to customers.
+- Therefore you must NEVER say any of the following, because they are FALSE:
+  "I don't sell products", "I don't sell products directly", "I only discuss movies",
+  "I focus exclusively on movies and TV shows", "I can't help you buy anything".
+- If someone asks whether we sell things, the honest answer is yes — we offer selected digital products.
+
+THE CATALOG IS THE ONLY SOURCE OF TRUTH FOR WHAT WE SELL:
+- You do NOT know from memory or training what we stock, what it costs, or whether it can be ordered.
+- Whenever the user asks what we sell, whether we sell a specific thing, or about a product's price
+  or availability, you MUST look it up with the catalog tool instead of answering from memory:
+    {"intent":"PRODUCT_SEARCH","action":"search_catalog","query":"<what they asked for>"}
+  Use an empty query to list what is currently available.
+- NEVER state that a product is available, priced, or orderable unless it came back from that tool.
+- NEVER invent product names, prices, or stock. If the catalog returns nothing, say plainly that we
+  don't currently offer it. Do not promise to add it or to check later.
+- The backend decides what is orderable. Products missing from the catalog result are not for sale,
+  even if you believe they exist in the world.
+
 STRICT DOMAIN RESTRICTION:
-- You ONLY discuss movies, TV shows, entertainment, celebrities, and books (ONLY if the book is tied to a movie/show adaptation).
-- If the user asks about coding, politics, math, general history, or anything outside the entertainment industry, politely but firmly pivot the conversation back to movies/TV. You do not provide general AI assistance outside of entertainment.
+- You discuss movies, TV shows, entertainment, celebrities, books tied to adaptations, and the digital products DXBmovies sells.
+- If the user asks about coding, politics, math, general history, or anything outside entertainment and our own products, politely but firmly pivot the conversation back. You do not provide general AI assistance outside those topics.
 
 DEEP FILM EXPERTISE & TONE:
 You are a profound expert on all things cinema and television. You possess knowledge far beyond basic API data.
@@ -396,18 +469,31 @@ export async function generateSoniaResponse(req: SoniaRequest): Promise<SoniaRes
       const client = await clientPromise;
       const db = client.db("dxbmovies");
       
-      // Update lastInteractionAt to prevent Taste DNA decay
-      await db.collection("userPreferences").updateOne(
-        { userId: targetUserId },
-        { $set: { lastInteractionAt: new Date().toISOString() } },
-        { upsert: true }
-      );
-
-      const [prefs, watchlistItems, reactions] = await Promise.all([
+      // READ BEFORE WRITE: lastInteractionAt is how we know this is a returning customer,
+      // so it must be captured before we stamp it with "now".
+      const [prefs, watchlistItems, reactions, pastOrders] = await Promise.all([
         db.collection("userPreferences").findOne({ userId: targetUserId }),
         db.collection("watchlists").find({ userId: targetUserId }).limit(20).toArray(),
         db.collection("reactions").find({ userId: targetUserId, reaction: { $in: ["like", "dislike"] } }).limit(50).toArray(),
+        db.collection("commerce_orders")
+          .find({ customer_igsid: targetUserId })
+          .project({ displayed_product_title: 1, status: 1, created_at: 1 })
+          .sort({ created_at: -1 })
+          .limit(5)
+          .toArray(),
       ]);
+
+      const previousInteractionAt = prefs?.lastInteractionAt as string | undefined;
+
+      // Update lastInteractionAt to prevent Taste DNA decay
+      await db.collection("userPreferences").updateOne(
+        { userId: targetUserId },
+        {
+          $set: { lastInteractionAt: new Date().toISOString() },
+          $setOnInsert: { firstSeenAt: new Date().toISOString() },
+        },
+        { upsert: true }
+      );
 
       const genres = prefs?.genres || [];
       const memories = prefs?.memories || [];
@@ -448,6 +534,31 @@ export async function generateSoniaResponse(req: SoniaRequest): Promise<SoniaRes
       if (dislikedTitles.length > 0) userContextStr += `- Movies/Shows they DISLIKED (do NOT recommend these or similar): ${dislikedTitles.slice(0, 10).join(", ")}\n`;
       if (watchlistTitles.length > 0) userContextStr += `- Watchlist (already saved, avoid re-recommending): ${watchlistTitles.join(", ")}\n`;
       if (recommendedTitles.length > 0) userContextStr += `- Already Recommended (NEVER suggest these again): ${recommendedTitles.slice(-60).join(", ")}\n`;
+
+      // Returning-customer signal. A compact fact, not a transcript.
+      if (previousInteractionAt) {
+        const gapMs = Date.now() - new Date(previousInteractionAt).getTime();
+        const gapDays = Math.floor(gapMs / 86400000);
+        const ago =
+          gapDays >= 1 ? `${gapDays} day${gapDays === 1 ? "" : "s"} ago`
+          : gapMs >= 3600000 ? `${Math.floor(gapMs / 3600000)} hour(s) ago`
+          : "very recently";
+        userContextStr += `- RETURNING CUSTOMER: you have spoken with them before (last time ${ago}).\n`;
+        if (activeMediaContext?.title) {
+          userContextStr += `- Last title you discussed with them: "${activeMediaContext.title}".\n`;
+        }
+        userContextStr += `  Greet them as someone you know. Do NOT re-introduce yourself or ask questions they have already answered. Only bring up past details when they are actually relevant.\n`;
+      }
+
+      // Prior commerce history — existence only. Status is NOT stated here on purpose.
+      if (pastOrders.length > 0) {
+        const titles = Array.from(
+          new Set(pastOrders.map((o: any) => o.displayed_product_title).filter(Boolean))
+        ).slice(0, 3);
+        userContextStr += `- PRIOR ORDER HISTORY: ${pastOrders.length} previous order(s)${titles.length ? `, most recently: ${titles.join(", ")}` : ""}.\n`;
+        userContextStr += `  You may acknowledge that they have ordered from us before. You must NOT state, guess, or imply the status, price, delivery date, or outcome of any order. If there is an ACTIVE ORDER it appears in its own section below and that section is the only authority. If they ask about an order and no active order section is present, say you will check and follow up.\n`;
+      }
+
       userContextStr += "Use this profile to give highly personalised recommendations. Never suggest disliked titles or genres.";
     } catch (e) {
       console.error("[ai/sonia] Failed to fetch user context", e);
@@ -654,8 +765,20 @@ Do not invent or add other requests. Keep it natural.`;
   }
 
   const channelPolicy = getChannelPolicy(req.channel);
-  
-  let systemContent = BASE_SYSTEM_PROMPT + "\n\n" + channelPolicy + movieDataContext + userContextStr + commerceContextStr;
+
+  // The title currently under discussion. Without this the model has no way to resolve
+  // "it" / "the poster" and cannot emit a correct presentation.
+  let mediaContextStr = "";
+  if (activeMediaContext?.title) {
+    mediaContextStr =
+      `\n\nACTIVE MEDIA CONTEXT:\n` +
+      `- Title currently under discussion: "${activeMediaContext.title}"\n` +
+      `- TMDB id: ${activeMediaContext.tmdbId} (${activeMediaContext.mediaType || "movie"})\n` +
+      `If the user says "it", "that one", or asks for "the poster" without naming a title, they mean this one. ` +
+      `Use this TMDB id in the presentation object rather than guessing.`;
+  }
+
+  let systemContent = BASE_SYSTEM_PROMPT + "\n\n" + channelPolicy + movieDataContext + mediaContextStr + userContextStr + commerceContextStr;
 
   if (req.contextMode === "commerce") {
     systemContent += `\n\n[STRICT COMMERCE MODE ENABLED]\nAn active order exists. You must absolutely NOT reset the conversation to generic movie chat. If the user says "Hello" or asks a general question, acknowledge it and immediately steer them back to the active order status. Your priority is finishing this transaction. DO NOT output search intent for movies while an order is active.`;
@@ -883,27 +1006,57 @@ Do not invent or add other requests. Keep it natural.`;
     // Deterministic Poster-Intent Safeguard
     const userText = chatMessages.filter((m) => m.role === "user").pop()?.content || "";
     const posterIntentDetected = isPosterRequest(userText);
+    const requestedTitle = posterIntentDetected ? extractPosterTitle(userText) : null;
     let fallbackTriggered = false;
+    let titleResolutionFailed = false;
 
-    if (parsed.presentation && (parsed.presentation.type === "image" || parsed.presentation.type === "movie_card")) {
-      if (activeMediaContext) {
-        // ALWAYS trust our backend TMDB search over the LLM's hallucinated TMDB ID
-        parsed.presentation.tmdbId = activeMediaContext.tmdbId;
-        parsed.presentation.mediaType = parsed.presentation.mediaType || activeMediaContext.mediaType;
+    // Which title should the poster resolve against? A title named in THIS message wins
+    // over the active context; otherwise we fall back to whatever is under discussion.
+    let posterTarget: any = activeMediaContext;
+    if (requestedTitle && tmdbKey) {
+      const named = await searchTMDB(requestedTitle, tmdbKey, req.lang);
+      if (named) {
+        posterTarget = {
+          title: named.title,
+          tmdbId: named.id,
+          mediaType: named.mediaType,
+          source: "named_poster_request",
+          setAt: new Date().toISOString(),
+        };
+        // Remember it, so a later "show me it" resolves to this title.
+        activeMediaContext = posterTarget;
+        if (targetUserId) {
+          clientPromise
+            .then((client) =>
+              client.db("dxbmovies").collection("userPreferences").updateOne(
+                { userId: targetUserId },
+                { $set: { activeMediaContext: posterTarget } },
+                { upsert: true },
+              ),
+            )
+            .catch((e) => console.error("[ai/sonia] activeMediaContext save failed", e));
+        }
+      } else {
+        titleResolutionFailed = true;
       }
     }
 
-    if (
-      !parsed.presentation &&
-      userText &&
-      posterIntentDetected &&
-      activeMediaContext
-    ) {
+    if (parsed.presentation && (parsed.presentation.type === "image" || parsed.presentation.type === "movie_card")) {
+      // Trust our own TMDB resolution over the model's id — but only when we actually
+      // resolved something. Previously this overwrote the id unconditionally from the
+      // active context, so asking for a DIFFERENT title returned the wrong poster.
+      if (posterTarget?.tmdbId) {
+        parsed.presentation.tmdbId = posterTarget.tmdbId;
+        parsed.presentation.mediaType = parsed.presentation.mediaType || posterTarget.mediaType;
+      }
+    }
+
+    if (!parsed.presentation && userText && posterIntentDetected && posterTarget?.tmdbId) {
       fallbackTriggered = true;
       parsed.presentation = {
         type: "image",
-        tmdbId: activeMediaContext.tmdbId,
-        mediaType: activeMediaContext.mediaType,
+        tmdbId: posterTarget.tmdbId,
+        mediaType: posterTarget.mediaType,
         deliveryMode: "text_then_media"
       };
       
@@ -920,10 +1073,27 @@ Do not invent or add other requests. Keep it natural.`;
       }
     }
 
+    // A poster was asked for and we have nothing to show: answer in words. Never go silent.
+    if (posterIntentDetected && !parsed.presentation) {
+      const noImageExcuse =
+        finalMessage.toLowerCase().includes("text-based ai") ||
+        finalMessage.toLowerCase().includes("can't share images") ||
+        finalMessage.toLowerCase().includes("cannot share images") ||
+        finalMessage.toLowerCase().includes("unable to share images");
+      if (!finalMessage.trim() || noImageExcuse) {
+        finalMessage = titleResolutionFailed || requestedTitle
+          ? `I couldn't find "${requestedTitle}" — could you double-check the title?`
+          : "Which title would you like to see?";
+      }
+    }
+
     if (posterIntentDetected || parsed.presentation?.type === "image" || parsed.presentation?.type === "movie_card") {
       console.log(`\n=== SONIA POSTER TRACE ===\n` + JSON.stringify({
         userText,
         activeRecommendedTitle: activeMediaContext?.title,
+        requestedTitle,
+        posterTargetTitle: posterTarget?.title,
+        titleResolutionFailed,
         rawModelOutput: text,
         parsedPresentation: parsed.presentation,
         posterIntentDetected,
