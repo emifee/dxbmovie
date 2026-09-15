@@ -1,3 +1,4 @@
+import { SITE_ORIGIN } from "@/lib/brand";
 import { NextResponse } from "next/server";
 import {
   sendTextMessage,
@@ -128,7 +129,7 @@ export async function POST(req: Request) {
           subtitle: "Total: $540 | Availability verified",
           image_url: "https://m.media-amazon.com/images/I/71it2biogSS._AC_SL1500_.jpg",
           buttons: [
-            { type: "web_url", title: "Pay securely", url: "https://dxbmovie.online" }
+            { type: "web_url", title: "Pay securely", url: SITE_ORIGIN }
           ]
         }
       ]);

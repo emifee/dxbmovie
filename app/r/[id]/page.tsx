@@ -1,3 +1,4 @@
+import { siteUrl } from "@/lib/brand";
 import { Metadata } from "next";
 import { Redirector } from "@/app/m/[id]/redirector";
 
@@ -15,35 +16,35 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     if (!res.ok) throw new Error("TMDB fetch failed");
     const data = await res.json();
     
-    const title = data.title || data.name || "DXBmovies Reel";
-    const description = `Watch the trailer for ${title} on DXBmovies.`;
+    const title = data.title || data.name || "WaZhop Cinema Reel";
+    const description = `Watch the trailer for ${title} on WaZhop Cinema.`;
     
     // For reels, a landscape backdrop is generally better if available
     const imageUrl = data.backdrop_path 
       ? `https://image.tmdb.org/t/p/w780${data.backdrop_path}`
       : data.poster_path 
         ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${data.poster_path}`
-        : "https://dxbmovie.online/icons/icon-512.png";
+        : siteUrl("/icons/icon-512.png");
 
     return {
-      title: `${title} - Trailer - DXBmovies`,
+      title: `${title} - Trailer - WaZhop Cinema`,
       description,
       openGraph: {
-        title: `${title} - Trailer - DXBmovies`,
+        title: `${title} - Trailer - WaZhop Cinema`,
         description,
         images: [{ url: imageUrl }],
         type: "video.movie",
       },
       twitter: {
         card: "summary_large_image",
-        title: `${title} - Trailer - DXBmovies`,
+        title: `${title} - Trailer - WaZhop Cinema`,
         description,
         images: [imageUrl],
       },
     };
   } catch (e) {
     return {
-      title: "DXBmovies Reel",
+      title: "WaZhop Cinema Reel",
     };
   }
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { SITE_ORIGIN } from "@/lib/brand";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { X, Star, Play, Plus, Sparkles, Check, Share2 } from "lucide-react";
@@ -191,7 +193,7 @@ export function MovieDetailDrawer() {
                 type="button"
                 aria-label="Share"
                 onClick={() => {
-                  const url = `https://dxbmovie.online/m/${movie.id}?type=${movie.mediaType || "movie"}`;
+                  const url = `${SITE_ORIGIN}/m/${movie.id}?type=${movie.mediaType || "movie"}`;
                   if (navigator.share) {
                     navigator.share({ title: `Check out ${movie.title}`, url }).catch(() => {});
                   } else {

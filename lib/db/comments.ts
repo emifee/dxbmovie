@@ -124,7 +124,7 @@ export async function getDailyUserReplyCount(userId: string): Promise<number> {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
-  // We count threads where DXBmovies replied to this user today.
+  // We count threads where WaZhop Cinema replied to this user today.
   // A simple way is to count messages authored by us where the parent was authored by them, 
   // but tracking per-user exactly is easier by checking the thread's messages.
   // Actually, let's just query `messages` where `isOurAccount === true` and `createdAt >= startOfDay`.

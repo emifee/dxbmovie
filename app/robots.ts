@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
- 
+import { siteUrl } from '@/lib/brand'
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
@@ -7,6 +8,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/card/'], // don't need Google indexing backend routes or user cards as heavily
     },
-    sitemap: 'https://dxbmovie.online/sitemap.xml',
+    sitemap: siteUrl('/sitemap.xml'),
   }
 }

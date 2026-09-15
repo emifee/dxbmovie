@@ -1,5 +1,7 @@
 "use client";
 
+import { SITE_ORIGIN } from "@/lib/brand";
+
 import { useEffect, useState, useRef, useCallback } from "react";
 import { ThumbsUp, ThumbsDown, Plus, Volume2, VolumeX, Check, Sparkles, Film, Share2, Search, X, Loader2, Play } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
@@ -785,7 +787,7 @@ export default function ReelsPage() {
                           onClick={(e) => { 
                             e.stopPropagation(); 
                             if (!reel.movie) return;
-                            const url = `https://dxbmovie.online/r/${reel.movie.id}?type=${reel.movie.mediaType || 'movie'}`;
+                            const url = `${SITE_ORIGIN}/r/${reel.movie.id}?type=${reel.movie.mediaType || 'movie'}`;
                             if (navigator.share) {
                               navigator.share({ title: `Watch ${reel.title} Trailer`, url }).catch(() => {});
                             } else {

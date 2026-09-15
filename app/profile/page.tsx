@@ -1,5 +1,7 @@
 "use client";
 
+import { SITE_ORIGIN, SITE_HOST } from "@/lib/brand";
+
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { ChevronRight, Plus, X, Sparkles, LogOut, Pencil, Check, Trash2, Smartphone, User, Palette } from "lucide-react";
@@ -215,7 +217,7 @@ export default function ProfilePage() {
           const file = new File([blob], "movie-fans-card.png", { type: "image/png" });
           await navigator.share({
             title: "My Movie DNA",
-            text: `Check out my Movie Fans Card on DXBmovies! https://dxbmovie.online/card/${username || (session?.user as any)?.id || ""}`,
+            text: `Check out my Movie Fans Card on WaZhop Cinema! ${SITE_ORIGIN}/card/${username || (session?.user as any)?.id || ""}`,
             files: [file],
           });
         } else {
@@ -433,7 +435,7 @@ export default function ProfilePage() {
               </div>
               <h1 className="mt-3 text-2xl font-bold tracking-tight text-white">{fullName}</h1>
               {username ? (
-                <p className="mt-0.5 text-sm text-primary">dxbmovie.online/card/{username}</p>
+                <p className="mt-0.5 text-sm text-primary">{SITE_HOST}/card/{username}</p>
               ) : (
                 <p className="mt-0.5 text-sm text-text-secondary">Joined {joinedDisplay}</p>
               )}
@@ -530,7 +532,7 @@ export default function ProfilePage() {
                     </div>
                     
                     <p className="text-[10px] text-white/40 mt-4 tracking-widest uppercase">
-                      dxbmovie.online/card/{username || (session?.user as any)?.id}
+                      {SITE_HOST}/card/{username || (session?.user as any)?.id}
                     </p>
                   </div>
                 </div>
@@ -544,7 +546,7 @@ export default function ProfilePage() {
               {/* Top: logo + tagline */}
               <div className="z-10 mb-10 text-center">
                 <h1 className="text-2xl font-bold">
-                  <span className="text-gradient">DXBmovies</span>
+                  <span className="text-gradient">WaZhop Cinema</span>
                 </h1>
                 <p className="mt-1 text-sm text-text-secondary">Your ultimate movie companion</p>
               </div>
@@ -1066,7 +1068,7 @@ function PWAModal({ onClose }: { onClose: () => void }) {
 
         <div className="mb-5 flex items-center gap-3">
           <Smartphone size={22} className="text-primary" />
-          <h2 className="text-lg font-bold text-white">Download DXBmovies</h2>
+          <h2 className="text-lg font-bold text-white">Download WaZhop Cinema</h2>
         </div>
         <p className="mb-5 text-sm text-text-secondary">
           Install the app on your phone. No App Store needed. Works just like a native app.
@@ -1092,7 +1094,7 @@ function PWAModal({ onClose }: { onClose: () => void }) {
             <li className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-xs font-bold text-white">1</span>
               <p className="text-sm text-white">
-                Open <span className="font-semibold">DXBmovies</span> in <span className="font-semibold">Safari</span> on your iPhone or iPad.
+                Open <span className="font-semibold">WaZhop Cinema</span> in <span className="font-semibold">Safari</span> on your iPhone or iPad.
               </p>
             </li>
             <li className="flex gap-3">
@@ -1124,7 +1126,7 @@ function PWAModal({ onClose }: { onClose: () => void }) {
             <li className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-xs font-bold text-white">1</span>
               <p className="text-sm text-white">
-                Open <span className="font-semibold">DXBmovies</span> in <span className="font-semibold">Chrome</span>.
+                Open <span className="font-semibold">WaZhop Cinema</span> in <span className="font-semibold">Chrome</span>.
               </p>
             </li>
             <li className="flex gap-3">

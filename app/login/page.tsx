@@ -16,7 +16,7 @@ export default function LoginPage() {
       {/* Top: logo + tagline */}
       <div className="z-10 text-center mb-10">
         <h1 className="text-2xl font-bold">
-          <span className="text-gradient">DXBmovies</span>
+          <span className="text-gradient">WaZhop Cinema</span>
         </h1>
         <p className="mt-1 text-sm text-text-secondary">Your ultimate movie companion</p>
       </div>

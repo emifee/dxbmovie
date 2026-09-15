@@ -1,27 +1,28 @@
 import { MetadataRoute } from 'next'
- 
+import { SITE_ORIGIN, siteUrl } from '@/lib/brand'
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: 'https://dxbmovie.online',
+      url: SITE_ORIGIN,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
     },
     {
-      url: 'https://dxbmovie.online/login',
+      url: siteUrl('/login'),
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: 'https://dxbmovie.online/terms',
+      url: siteUrl('/terms'),
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
-      url: 'https://dxbmovie.online/privacy',
+      url: siteUrl('/privacy'),
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.5,

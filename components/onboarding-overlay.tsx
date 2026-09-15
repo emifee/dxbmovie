@@ -193,7 +193,7 @@ export function OnboardingOverlay() {
               What should we call you?
             </h2>
             <p className="mt-2 text-sm text-text-secondary">
-              DXBmovies will use this to talk to you.
+              WaZhop Cinema will use this to talk to you.
             </p>
             <div className="input-glow mt-6 w-full rounded-2xl border border-border bg-surface px-4 py-3.5 transition">
               <input

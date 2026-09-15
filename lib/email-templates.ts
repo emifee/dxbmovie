@@ -1,3 +1,4 @@
+import { SITE_ORIGIN, SITE_HOST } from "@/lib/brand";
 import { tmdbImage } from "./utils";
 import type { Movie } from "./types";
 
@@ -7,7 +8,7 @@ import type { Movie } from "./types";
  */
 function buildMovieCard(m: Movie, width: number): string {
   const poster = tmdbImage(m.posterPath, "w500") || "";
-  const detailLink = `https://dxbmovie.online/${m.mediaType === "tv" ? "r" : "m"}/${m.id}`;
+  const detailLink = `${SITE_ORIGIN}/${m.mediaType === "tv" ? "r" : "m"}/${m.id}`;
   const typeLabel = m.mediaType === "tv" ? "TV SHOW" : "MOVIE";
   const rating = (m.rating ?? 0).toFixed(1);
 
@@ -59,7 +60,7 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>What's Trending on DXB Movies | Tv Shows</title>
+  <title>What's Trending on WaZhop Cinema</title>
   <!--[if mso]>
   <noscript>
     <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
@@ -85,10 +86,10 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
           <!-- ══════ LOGO + BRAND ROW ══════ -->
           <tr>
             <td style="padding: 32px 40px 0 40px; text-align: center;">
-              <a href="https://dxbmovie.online" style="text-decoration: none;" target="_blank">
-                <img src="https://dxbmovie.online/apple-touch-icon.png" width="72" height="72" alt="DXB Movies" style="display: inline-block; border-radius: 18px; border: 2px solid rgba(147,51,234,0.4); box-shadow: 0 0 24px rgba(147,51,234,0.3);" />
+              <a href="${SITE_ORIGIN}" style="text-decoration: none;" target="_blank">
+                <img src="${SITE_ORIGIN}/apple-touch-icon.png" width="72" height="72" alt="WaZhop Cinema" style="display: inline-block; border-radius: 18px; border: 2px solid rgba(147,51,234,0.4); box-shadow: 0 0 24px rgba(147,51,234,0.3);" />
               </a>
-              <p style="margin: 12px 0 0 0; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #9333ea;">DXB MOVIES | TV SHOWS</p>
+              <p style="margin: 12px 0 0 0; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #9333ea;">WAZHOP CINEMA</p>
             </td>
           </tr>
 
@@ -131,7 +132,7 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
           <!-- ══════ CTA BUTTON ══════ -->
           <tr>
             <td style="padding: 8px 40px 40px 40px; text-align: center;">
-              <a href="https://dxbmovie.online" target="_blank"
+              <a href="${SITE_ORIGIN}" target="_blank"
                 style="display: inline-block; background: linear-gradient(135deg, #9333ea 0%, #ec4899 100%); color: #ffffff; text-decoration: none; padding: 16px 52px; border-radius: 50px; font-size: 14px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; box-shadow: 0 8px 24px rgba(147,51,234,0.4);">
                 🍿 &nbsp;DISCOVER MORE
               </a>
@@ -145,7 +146,7 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
           <tr>
             <td style="padding: 0 40px 32px 40px;">
               <div style="background: linear-gradient(135deg, rgba(147,51,234,0.08), rgba(236,72,153,0.08)); border: 1px solid rgba(147,51,234,0.2); border-radius: 14px; padding: 20px; text-align: center;">
-                <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 700; color: #a855f7; letter-spacing: 1px; text-transform: uppercase;">Also on DXBMovies</p>
+                <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 700; color: #a855f7; letter-spacing: 1px; text-transform: uppercase;">Also on WaZhop Cinema</p>
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                   <tr>
                     <td style="text-align: center; padding: 0 4px;">
@@ -173,10 +174,10 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
             <td style="padding: 24px 40px; text-align: center; background-color: #080811; border-radius: 0 0 20px 20px;">
               <p style="margin: 0 0 6px 0; color: #4b5563; font-size: 11px; line-height: 1.7;">
                 You're receiving this because you signed up at
-                <a href="https://dxbmovie.online" style="color: #9333ea; text-decoration: none;">dxbmovie.online</a>
+                <a href="${SITE_ORIGIN}" style="color: #9333ea; text-decoration: none;">${SITE_HOST}</a>
               </p>
               <p style="margin: 0; color: #374151; font-size: 11px;">
-                © ${new Date().getFullYear()} DXB Movies | Tv Shows · Sent from
+                © ${new Date().getFullYear()} WaZhop Cinema · Sent from
                 <a href="mailto:hello@dxbmovie.online" style="color: #6b7280; text-decoration: none;">hello@dxbmovie.online</a>
               </p>
             </td>

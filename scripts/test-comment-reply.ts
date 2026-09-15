@@ -17,7 +17,7 @@ async function runDiagnostic() {
   console.log("GET Response Body:", JSON.stringify(getData, null, 2));
 
   console.log("\n--- 2. Testing POST Reply ---");
-  const result = await replyToComment(commentId, "DXB comment diagnostic ✅");
+  const result = await replyToComment(commentId, "WaZhop Cinema comment diagnostic ✅");
   console.log("POST Result via client.ts:", JSON.stringify(result, null, 2));
 }
 

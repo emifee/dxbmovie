@@ -1,5 +1,7 @@
 "use client";
 
+import { SITE_ORIGIN } from "@/lib/brand";
+
 import { useState, useEffect } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -71,13 +73,13 @@ export default function PublicListPage({ params }: { params: { slug: string } })
   }, [params.slug]);
 
   async function handleShare() {
-    const url = `https://dxbmovie.online/list/${params.slug}`;
+    const url = `${SITE_ORIGIN}/list/${params.slug}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(list?.name || "Check out my movie list on DXBmovies!")}`, "_blank");
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(list?.name || "Check out my movie list on WaZhop Cinema!")}`, "_blank");
     }
   }
 
@@ -142,7 +144,7 @@ export default function PublicListPage({ params }: { params: { slug: string } })
             >
               <ArrowLeft size={20} />
             </Link>
-            <span className="text-sm font-medium text-white/40">DXBmovies</span>
+            <span className="text-sm font-medium text-white/40">WaZhop Cinema</span>
           </div>
 
           {/* List header */}
@@ -163,7 +165,7 @@ export default function PublicListPage({ params }: { params: { slug: string } })
                 )}
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">{list.userName || "DXBmovies User"}</p>
+                <p className="text-sm font-semibold text-white">{list.userName || "WaZhop Cinema User"}</p>
                 <p className="text-xs text-white/40">
                   {list.items.length} title{list.items.length !== 1 ? "s" : ""}
                   {list.creatorOnline && (
@@ -226,7 +228,7 @@ export default function PublicListPage({ params }: { params: { slug: string } })
 
         {/* Footer CTA */}
         <div className="mt-10 rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-8 text-center">
-          <p className="text-sm font-semibold text-white mb-1">Discover more on DXBmovies</p>
+          <p className="text-sm font-semibold text-white mb-1">Discover more on WaZhop Cinema</p>
           <p className="text-xs text-white/40 mb-4">AI-powered movie discovery tailored to your taste</p>
           <Link
             href="/"

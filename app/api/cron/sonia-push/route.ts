@@ -5,7 +5,7 @@ import Groq from "groq-sdk";
 import OpenAI from "openai";
 import { getTasteTitle } from "@/lib/utils";
 
-const SONIA_SYSTEM = `You are Sonia, a friendly AI movie companion for DXBmovies.
+const SONIA_SYSTEM = `You are Sonia, a friendly AI movie companion for WaZhop Cinema.
 Generate a single short push notification that gives the user their exclusive "Daily Pick" which expires at midnight.
 
 Rules:

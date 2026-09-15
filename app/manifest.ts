@@ -1,9 +1,10 @@
 import { MetadataRoute } from "next";
+import { BRAND_NAME, BRAND_SHORT_NAME } from "@/lib/brand";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "DXBmovies",
-    short_name: "DXB",
+    name: BRAND_NAME,
+    short_name: BRAND_SHORT_NAME,
     description: "Your ultimate movie companion — discover what to watch tonight",
     start_url: "/",
     display: "standalone",

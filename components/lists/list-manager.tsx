@@ -1,5 +1,7 @@
 "use client";
 
+import { SITE_ORIGIN } from "@/lib/brand";
+
 import { useState } from "react";
 import Image from "next/image";
 import { Plus, Pencil, Trash2, Globe, Lock, Share2, CheckCircle2, ListVideo } from "lucide-react";
@@ -51,7 +53,7 @@ export function ListManager({ lists, onChange }: Props) {
   }
 
   async function handleShare(list: UserList) {
-    const url = `https://dxbmovie.online/list/${list.slug}`;
+    const url = `${SITE_ORIGIN}/list/${list.slug}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopiedSlug(list.slug);

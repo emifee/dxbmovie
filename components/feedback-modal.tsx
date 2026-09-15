@@ -116,7 +116,7 @@ export function FeedbackModal({ onClose }: Props) {
         {step === "review" && (
           <>
             <div className="mb-4 flex items-center gap-2">
-              <h2 className="text-lg font-bold text-white">How are you finding DXBmovies?</h2>
+              <h2 className="text-lg font-bold text-white">How are you finding WaZhop Cinema?</h2>
             </div>
             <p className="mb-6 text-sm text-text-secondary">Takes 10 seconds, helps us improve for you.</p>
 
@@ -219,7 +219,7 @@ export function FeedbackModal({ onClose }: Props) {
               <Check size={28} />
             </div>
             <h2 className="text-lg font-bold text-white">Thank you! 🙏</h2>
-            <p className="text-sm text-text-secondary">Your feedback shapes DXBmovies. We really appreciate it.</p>
+            <p className="text-sm text-text-secondary">Your feedback shapes WaZhop Cinema. We really appreciate it.</p>
           </div>
         )}
       </div>

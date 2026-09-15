@@ -105,7 +105,7 @@ export function PwaPrompt() {
             <Download size={24} />
           </div>
           <div>
-            <h3 className="font-bold text-white">Install DXBmovies</h3>
+            <h3 className="font-bold text-white">Install WaZhop Cinema</h3>
             <p className="text-sm text-text-secondary">
               Add to your home screen for a faster, app-like experience.
             </p>

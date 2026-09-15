@@ -86,7 +86,7 @@ const ask = (text: string, userId = "ig-1") =>
 
 const GREEN_MILE = { id: 497, title: "The Green Mile", media_type: "movie", poster_path: "/gm.jpg", vote_average: 8.5, release_date: "1999-12-10", overview: "" };
 
-describe("business identity — DXBmovies sells digital products", () => {
+describe("business identity — WaZhop Cinema sells digital products", () => {
   test("the prompt never claims we only discuss movies", async () => {
     await ask("Do you sell products?");
     const prompt = mockPrompts[0];

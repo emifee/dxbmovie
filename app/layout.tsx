@@ -7,40 +7,54 @@ import { PWAAutoPrompt } from "@/components/pwa-auto-prompt";
 import { Providers } from "./providers";
 import { SaveProfileNudge } from "@/components/save-profile-nudge";
 import { ActorModal } from "@/components/actor-modal";
+import { BRAND_NAME, BRAND_SHORT_NAME, SITE_ORIGIN, siteUrl } from "@/lib/brand";
 
 const GA_ID = "G-GRWVXZCPD9";
 
 export const metadata: Metadata = {
-  title: "DXBmovies – AI Movie Companion & Tracker",
+  title: `${BRAND_NAME} – AI Movie Companion & Tracker`,
   description:
-    "DXBmovies is an AI-powered movie recommendation engine and tracker. Discover what to watch, get personalized recommendations, and track your favorite films. Note: DXBmovies is a companion app, not a streaming platform.",
-  keywords: ["movie recommendations", "AI movie assistant", "movie tracker", "what to watch", "movie companion", "film discovery", "not a streaming site"],
-  metadataBase: new URL("https://dxbmovie.online"),
+    `${BRAND_NAME} is an AI-powered movie recommendation engine and tracker. Discover what to watch, get personalized recommendations, and track your favorite films. Note: ${BRAND_NAME} is a companion app, not a streaming platform.`,
+  keywords: [
+    // The brand terms lead, and they are the reason this rebrand exists: a
+    // search for WaZhop should reach all three of its platforms, and this site
+    // was the one that said nothing about WaZhop anywhere on it.
+    "WaZhop Cinema",
+    "WaZhop",
+    "movie recommendations",
+    "AI movie assistant",
+    "movie tracker",
+    "what to watch",
+    "movie companion",
+    "film discovery",
+    "not a streaming site",
+  ],
+  metadataBase: new URL(SITE_ORIGIN),
   openGraph: {
-    title: "DXBmovies – AI Movie Companion & Tracker",
+    title: `${BRAND_NAME} – AI Movie Companion & Tracker`,
     description: "Your personal AI movie companion. Discover new movies, get personalized recommendations, and track your favorites. (Not a streaming platform).",
-    url: "https://dxbmovie.online",
-    siteName: "DXBmovies",
+    url: SITE_ORIGIN,
+    siteName: BRAND_NAME,
     type: "website",
     images: [
       {
-        url: "https://dxbmovie.online/icons/icon-512.png",
+        url: siteUrl("/icons/icon-512.png"),
         width: 512,
         height: 512,
-        alt: "DXB Logo",
+        alt: `${BRAND_NAME} logo`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DXBmovies – AI Movie Companion",
+    title: `${BRAND_NAME} – AI Movie Companion`,
     description: "Discover the perfect film with your AI movie companion and tracker.",
-    images: ["https://dxbmovie.online/icons/icon-512.png"],
+    images: [siteUrl("/icons/icon-512.png")],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "DXB",
+    title: BRAND_SHORT_NAME,
   },
   icons: {
     icon: [
@@ -100,10 +114,10 @@ export default function RootLayout({
             {
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "DXBmovies",
-              "url": "https://dxbmovie.online",
+              "name": "WaZhop Cinema",
+              "url": "${SITE_ORIGIN}",
               "applicationCategory": "EntertainmentApplication",
-              "description": "An AI-powered movie recommendation engine and tracker. DXBmovies helps you discover what to watch next. It is a companion app and NOT a streaming platform or ticketing site.",
+              "description": "An AI-powered movie recommendation engine and tracker. WaZhop Cinema helps you discover what to watch next. It is a companion app and NOT a streaming platform or ticketing site.",
               "offers": {
                 "@type": "Offer",
                 "price": "0"

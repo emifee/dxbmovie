@@ -34,13 +34,13 @@ export const MODELS: Record<ModelTier, ModelInfo> = {
   advanced: {
     tier: "advanced",
     id: "gemini-2.0-flash",
-    label: "DXB Advanced",
+    label: "WaZhop Advanced",
     provider: "google",
   },
   cheap: {
     tier: "cheap",
     id: "gemini-2.0-flash-lite",
-    label: "DXB Fast",
+    label: "WaZhop Fast",
     provider: "google",
   },
 };

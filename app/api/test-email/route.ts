@@ -56,9 +56,9 @@ export async function GET(request: Request) {
 
     await sendEmail({
       to: email,
-      subject: "Welcome to DXB Movies | Tv Shows 🎬 (Preview)",
+      subject: "Welcome to WaZhop Cinema 🎬 (Preview)",
       htmlContent,
-      senderName: "DXB Movies | Tv Shows",
+      senderName: "WaZhop Cinema",
     });
 
     return NextResponse.json({

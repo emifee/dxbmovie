@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Data Deletion Instructions | DXBmovies",
-  description: "Instructions for requesting the deletion of your data from DXBmovies.",
+  title: "Data Deletion Instructions | WaZhop Cinema",
+  description: "Instructions for requesting the deletion of your data from WaZhop Cinema.",
 };
 
 export default function DataDeletionPage() {
@@ -20,9 +20,9 @@ export default function DataDeletionPage() {
         <div>
           <h2 className="mb-2 font-semibold text-white">1. Introduction</h2>
           <p>
-            At DXBmovies, we respect your privacy and your right to control your personal data. 
+            At WaZhop Cinema, we respect your privacy and your right to control your personal data. 
             This page provides instructions on how to request the deletion of any personal data we 
-            may hold about you, including data from your DXBmovies account and any data received 
+            may hold about you, including data from your WaZhop Cinema account and any data received 
             through our Meta/Instagram integrations.
           </p>
         </div>
@@ -31,7 +31,7 @@ export default function DataDeletionPage() {
           <h2 className="mb-2 font-semibold text-white">2. What Data Can Be Deleted?</h2>
           <p>You can request the deletion of:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
-            <li><strong>DXBmovies Account Data:</strong> Profile information (name, email, profile picture), movie preferences, watchlists, reactions, and AI companion conversation history.</li>
+            <li><strong>WaZhop Cinema Account Data:</strong> Profile information (name, email, profile picture), movie preferences, watchlists, reactions, and AI companion conversation history.</li>
             <li><strong>Instagram/Meta Integration Data:</strong> Any Instagram identifiers, direct messages (DMs), comments, or related integration data we may have temporarily processed or stored while interacting with our automated services via @dxbmovies on Instagram.</li>
           </ul>
         </div>
@@ -49,7 +49,7 @@ export default function DataDeletionPage() {
           <p className="mt-4 font-medium text-white">Please include the following information in your email so we can locate your data:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
             <li><strong>Subject Line:</strong> Data Deletion Request</li>
-            <li>The <strong>email address</strong> associated with your DXBmovies account (if you have one).</li>
+            <li>The <strong>email address</strong> associated with your WaZhop Cinema account (if you have one).</li>
             <li>Your <strong>Instagram handle/username</strong> (e.g., @yourusername) if you are requesting deletion of data related to our Instagram automated messaging or comments.</li>
           </ul>
         </div>

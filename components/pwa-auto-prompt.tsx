@@ -49,7 +49,7 @@ export function PWAAutoPrompt() {
 
         <div className="mb-5 flex items-center gap-3">
           <Smartphone size={22} className="text-primary" />
-          <h2 className="text-lg font-bold text-white">Download DXBmovies</h2>
+          <h2 className="text-lg font-bold text-white">Download WaZhop Cinema</h2>
         </div>
         <p className="mb-5 text-sm text-text-secondary">
           Install the app on your phone. No App Store needed. Works just like a native app.
@@ -75,7 +75,7 @@ export function PWAAutoPrompt() {
             <li className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-xs font-bold text-white">1</span>
               <p className="text-sm text-white">
-                Open <span className="font-semibold">DXBmovies</span> in <span className="font-semibold">Safari</span> on your iPhone or iPad.
+                Open <span className="font-semibold">WaZhop Cinema</span> in <span className="font-semibold">Safari</span> on your iPhone or iPad.
               </p>
             </li>
             <li className="flex gap-3">
@@ -106,7 +106,7 @@ export function PWAAutoPrompt() {
             <li className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-xs font-bold text-white">1</span>
               <p className="text-sm text-white">
-                Open <span className="font-semibold">DXBmovies</span> in <span className="font-semibold">Chrome</span>.
+                Open <span className="font-semibold">WaZhop Cinema</span> in <span className="font-semibold">Chrome</span>.
               </p>
             </li>
             <li className="flex gap-3">

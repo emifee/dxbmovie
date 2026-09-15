@@ -63,7 +63,7 @@ export async function executeCommerceTool(toolName: string, args: any): Promise<
 
 export const commerceTools = {
   search_catalog: {
-    description: "Search the internal DXBmovies product catalog for merchandise related to a movie, character, or general query. Use this to find products.",
+    description: "Search the internal WaZhop Cinema product catalog for merchandise related to a movie, character, or general query. Use this to find products.",
     parameters: {
       type: "object",
       properties: {

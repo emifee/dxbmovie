@@ -1,3 +1,4 @@
+import { siteUrl } from "@/lib/brand";
 import { Metadata } from "next";
 import { Redirector } from "./redirector";
 
@@ -15,31 +16,31 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     if (!res.ok) throw new Error("TMDB fetch failed");
     const data = await res.json();
     
-    const title = data.title || data.name || "DXBmovies";
-    const description = data.overview || "Discover this on DXBmovies.";
+    const title = data.title || data.name || "WaZhop Cinema";
+    const description = data.overview || "Discover this on WaZhop Cinema.";
     const imageUrl = data.poster_path 
       ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${data.poster_path}`
-      : "https://dxbmovie.online/icons/icon-512.png";
+      : siteUrl("/icons/icon-512.png");
 
     return {
-      title: `${title} - DXBmovies`,
+      title: `${title} - WaZhop Cinema`,
       description,
       openGraph: {
-        title: `${title} - DXBmovies`,
+        title: `${title} - WaZhop Cinema`,
         description,
         images: [{ url: imageUrl }],
         type: "video.movie",
       },
       twitter: {
         card: "summary_large_image",
-        title: `${title} - DXBmovies`,
+        title: `${title} - WaZhop Cinema`,
         description,
         images: [imageUrl],
       },
     };
   } catch (e) {
     return {
-      title: "DXBmovies",
+      title: "WaZhop Cinema",
     };
   }
 }
