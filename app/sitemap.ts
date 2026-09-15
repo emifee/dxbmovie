@@ -10,6 +10,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: siteUrl('/reels'),
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
       url: siteUrl('/login'),
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -26,6 +32,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.5,
+    },
+    // Meta requires a publicly reachable data-deletion page for app review, and
+    // this app uses Instagram webhooks. Nothing in the app links to it, so a
+    // crawler has no path to it other than the sitemap.
+    {
+      url: siteUrl('/data-deletion'),
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
   ]
 }
