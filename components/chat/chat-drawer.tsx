@@ -102,7 +102,7 @@ export function ChatDrawer() {
     windowStart,
   } as AccountState);
 
-  const assistantName = !signedIn || !aiCompanion ? "WaZhop Cinema" : aiCompanion.name;
+  const assistantName = !signedIn || !aiCompanion ? "WaZhop DXB Cinema" : aiCompanion.name;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -1049,7 +1049,7 @@ export function ChatDrawer() {
                       e.currentTarget.style.height = "auto";
                     }
                   }}
-                  placeholder="Ask WaZhop Cinema…"
+                  placeholder="Ask WaZhop DXB Cinema…"
                   className="min-w-0 flex-1 resize-none bg-transparent py-2 text-base leading-snug text-white placeholder:text-white/30 focus:outline-none"
                   style={{ maxHeight: "140px", overflowY: "auto" }}
                 />

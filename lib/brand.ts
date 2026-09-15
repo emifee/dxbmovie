@@ -36,16 +36,33 @@
  * system RESOLVES.
  */
 
-/** The product's name, as written anywhere a person will read it. */
-export const BRAND_NAME = "WaZhop Cinema";
+/**
+ * The product's name, as written anywhere a person will read it.
+ *
+ * DXB is KEPT in the name rather than dropped. The app's icon is the DXB mark
+ * and it stays — which is only coherent if the name it sits under still
+ * contains DXB. Naming the product "WaZhop Cinema" while shipping a DXB icon
+ * would leave the two contradicting each other on every home screen, and
+ * replacing the icon with WaZhop's own orange W would make this app and the
+ * marketplace indistinguishable side by side. Carrying DXB forward resolves
+ * both: the mark keeps its meaning, and the name gains the parent brand.
+ */
+export const BRAND_NAME = "WaZhop DXB Cinema";
 
 /**
  * Short form for space-constrained surfaces — the PWA home-screen label and the
- * iOS web-app title. "DXB" was the old one. Kept to the full brand rather than
- * "Cinema" on its own: an icon captioned "Cinema" says nothing about whose it
- * is, which is the entire point of the rebrand.
+ * iOS web-app title, where the full three words do not fit. "DXB" alone was the
+ * old value; this keeps the mark that matches the icon and adds the parent
+ * brand, which is the whole reason for the rename.
  */
-export const BRAND_SHORT_NAME = "WaZhop Cinema";
+export const BRAND_SHORT_NAME = "WaZhop DXB";
+
+/**
+ * The bare mark, for places that have room for a few characters and no more —
+ * the collapsed sidebar rail. Unchanged from before the rebrand on purpose:
+ * it is the same lettering as the icon.
+ */
+export const BRAND_MARK = "DXB";
 
 /** The parent brand, for copy that needs to place this product within it. */
 export const PARENT_BRAND = "WaZhop";

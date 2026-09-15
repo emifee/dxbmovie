@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | WaZhop Cinema",
+  title: "Privacy Policy | WaZhop DXB Cinema",
 };
 
 export default function PrivacyPage() {

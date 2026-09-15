@@ -43,7 +43,7 @@ export function MenuDrawer() {
       <div className="absolute inset-y-0 left-0 flex w-72 max-w-[80%] flex-col border-r border-border bg-surface px-5 py-6 animate-slide-in-left">
         <div className="flex items-center justify-between">
           <Link href="/" onClick={close} className="text-lg font-bold">
-            <span className="text-gradient">WaZhop Cinema</span>
+            <span className="text-gradient">WaZhop DXB Cinema</span>
             <span className="text-white">.Ai</span>
           </Link>
           <button

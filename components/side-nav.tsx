@@ -37,11 +37,11 @@ export function SideNav() {
       <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between px-2")}>
         {!collapsed ? (
           <Link href="/" className="text-xl font-bold text-gradient">
-            WaZhop Cinema
+            WaZhop DXB Cinema
           </Link>
         ) : (
-          <Link href="/" aria-label="WaZhop Cinema home" className="text-lg font-bold text-gradient">
-            WaZhop
+          <Link href="/" aria-label="WaZhop DXB Cinema home" className="text-lg font-bold text-gradient">
+            DXB
           </Link>
         )}
         {!collapsed && (

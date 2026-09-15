@@ -43,7 +43,7 @@ export async function GET(req: Request) {
       }
 
       // 1. Evidence Mode Context
-      const tier1 = `Tier 1 (WaZhop Cinema Map): Movie: ${thread.postContext.movieTitle || "Unknown"} (${thread.postContext.releaseYear || "Unknown"}).`;
+      const tier1 = `Tier 1 (WaZhop DXB Cinema Map): Movie: ${thread.postContext.movieTitle || "Unknown"} (${thread.postContext.releaseYear || "Unknown"}).`;
       const tier2 = `Tier 2 (TMDB): Overview: ${thread.postContext.overview || "None provided"}`;
       // Tier 3 could be pulled from a separate collection, for now placeholder
       const tier3 = `Tier 3 (Internal Notes): None at this time.`;

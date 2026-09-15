@@ -69,7 +69,7 @@ export function GoogleGate() {
 
         <h2 className="text-xl font-bold text-white">Continue the conversation</h2>
         <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-text-secondary">
-          Create your free account to keep chatting with WaZhop Cinema, save your taste,
+          Create your free account to keep chatting with WaZhop DXB Cinema, save your taste,
           and pick up right where you left off.
         </p>
 

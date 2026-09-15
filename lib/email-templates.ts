@@ -60,7 +60,7 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>What's Trending on WaZhop Cinema</title>
+  <title>What's Trending on WaZhop DXB Cinema</title>
   <!--[if mso]>
   <noscript>
     <xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
@@ -87,9 +87,9 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
           <tr>
             <td style="padding: 32px 40px 0 40px; text-align: center;">
               <a href="${SITE_ORIGIN}" style="text-decoration: none;" target="_blank">
-                <img src="${SITE_ORIGIN}/apple-touch-icon.png" width="72" height="72" alt="WaZhop Cinema" style="display: inline-block; border-radius: 18px; border: 2px solid rgba(147,51,234,0.4); box-shadow: 0 0 24px rgba(147,51,234,0.3);" />
+                <img src="${SITE_ORIGIN}/apple-touch-icon.png" width="72" height="72" alt="WaZhop DXB Cinema" style="display: inline-block; border-radius: 18px; border: 2px solid rgba(147,51,234,0.4); box-shadow: 0 0 24px rgba(147,51,234,0.3);" />
               </a>
-              <p style="margin: 12px 0 0 0; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #9333ea;">WAZHOP CINEMA</p>
+              <p style="margin: 12px 0 0 0; font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #9333ea;">WAZHOP DXB CINEMA</p>
             </td>
           </tr>
 
@@ -146,7 +146,7 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
           <tr>
             <td style="padding: 0 40px 32px 40px;">
               <div style="background: linear-gradient(135deg, rgba(147,51,234,0.08), rgba(236,72,153,0.08)); border: 1px solid rgba(147,51,234,0.2); border-radius: 14px; padding: 20px; text-align: center;">
-                <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 700; color: #a855f7; letter-spacing: 1px; text-transform: uppercase;">Also on WaZhop Cinema</p>
+                <p style="margin: 0 0 12px 0; font-size: 12px; font-weight: 700; color: #a855f7; letter-spacing: 1px; text-transform: uppercase;">Also on WaZhop DXB Cinema</p>
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">
                   <tr>
                     <td style="text-align: center; padding: 0 4px;">
@@ -177,7 +177,7 @@ export function getWelcomeEmailHtml(userName: string, selectedMovies: Movie[]): 
                 <a href="${SITE_ORIGIN}" style="color: #9333ea; text-decoration: none;">${SITE_HOST}</a>
               </p>
               <p style="margin: 0; color: #374151; font-size: 11px;">
-                © ${new Date().getFullYear()} WaZhop Cinema · Sent from
+                © ${new Date().getFullYear()} WaZhop DXB Cinema · Sent from
                 <a href="mailto:hello@dxbmovie.online" style="color: #6b7280; text-decoration: none;">hello@dxbmovie.online</a>
               </p>
             </td>

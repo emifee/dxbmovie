@@ -217,7 +217,7 @@ export default function ProfilePage() {
           const file = new File([blob], "movie-fans-card.png", { type: "image/png" });
           await navigator.share({
             title: "My Movie DNA",
-            text: `Check out my Movie Fans Card on WaZhop Cinema! ${SITE_ORIGIN}/card/${username || (session?.user as any)?.id || ""}`,
+            text: `Check out my Movie Fans Card on WaZhop DXB Cinema! ${SITE_ORIGIN}/card/${username || (session?.user as any)?.id || ""}`,
             files: [file],
           });
         } else {
@@ -546,7 +546,7 @@ export default function ProfilePage() {
               {/* Top: logo + tagline */}
               <div className="z-10 mb-10 text-center">
                 <h1 className="text-2xl font-bold">
-                  <span className="text-gradient">WaZhop Cinema</span>
+                  <span className="text-gradient">WaZhop DXB Cinema</span>
                 </h1>
                 <p className="mt-1 text-sm text-text-secondary">Your ultimate movie companion</p>
               </div>
@@ -1068,7 +1068,7 @@ function PWAModal({ onClose }: { onClose: () => void }) {
 
         <div className="mb-5 flex items-center gap-3">
           <Smartphone size={22} className="text-primary" />
-          <h2 className="text-lg font-bold text-white">Download WaZhop Cinema</h2>
+          <h2 className="text-lg font-bold text-white">Download WaZhop DXB Cinema</h2>
         </div>
         <p className="mb-5 text-sm text-text-secondary">
           Install the app on your phone. No App Store needed. Works just like a native app.
@@ -1094,7 +1094,7 @@ function PWAModal({ onClose }: { onClose: () => void }) {
             <li className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-xs font-bold text-white">1</span>
               <p className="text-sm text-white">
-                Open <span className="font-semibold">WaZhop Cinema</span> in <span className="font-semibold">Safari</span> on your iPhone or iPad.
+                Open <span className="font-semibold">WaZhop DXB Cinema</span> in <span className="font-semibold">Safari</span> on your iPhone or iPad.
               </p>
             </li>
             <li className="flex gap-3">
@@ -1126,7 +1126,7 @@ function PWAModal({ onClose }: { onClose: () => void }) {
             <li className="flex gap-3">
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-xs font-bold text-white">1</span>
               <p className="text-sm text-white">
-                Open <span className="font-semibold">WaZhop Cinema</span> in <span className="font-semibold">Chrome</span>.
+                Open <span className="font-semibold">WaZhop DXB Cinema</span> in <span className="font-semibold">Chrome</span>.
               </p>
             </li>
             <li className="flex gap-3">

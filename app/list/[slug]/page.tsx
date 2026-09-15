@@ -79,7 +79,7 @@ export default function PublicListPage({ params }: { params: { slug: string } })
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(list?.name || "Check out my movie list on WaZhop Cinema!")}`, "_blank");
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(list?.name || "Check out my movie list on WaZhop DXB Cinema!")}`, "_blank");
     }
   }
 
@@ -144,7 +144,7 @@ export default function PublicListPage({ params }: { params: { slug: string } })
             >
               <ArrowLeft size={20} />
             </Link>
-            <span className="text-sm font-medium text-white/40">WaZhop Cinema</span>
+            <span className="text-sm font-medium text-white/40">WaZhop DXB Cinema</span>
           </div>
 
           {/* List header */}
@@ -165,7 +165,7 @@ export default function PublicListPage({ params }: { params: { slug: string } })
                 )}
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">{list.userName || "WaZhop Cinema User"}</p>
+                <p className="text-sm font-semibold text-white">{list.userName || "WaZhop DXB Cinema User"}</p>
                 <p className="text-xs text-white/40">
                   {list.items.length} title{list.items.length !== 1 ? "s" : ""}
                   {list.creatorOnline && (
@@ -228,7 +228,7 @@ export default function PublicListPage({ params }: { params: { slug: string } })
 
         {/* Footer CTA */}
         <div className="mt-10 rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-8 text-center">
-          <p className="text-sm font-semibold text-white mb-1">Discover more on WaZhop Cinema</p>
+          <p className="text-sm font-semibold text-white mb-1">Discover more on WaZhop DXB Cinema</p>
           <p className="text-xs text-white/40 mb-4">AI-powered movie discovery tailored to your taste</p>
           <Link
             href="/"

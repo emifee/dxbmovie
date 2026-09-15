@@ -24,7 +24,7 @@ export async function sendEmail({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        sender: { email: "hello@dxbmovie.online", name: senderName ?? "WaZhop Cinema" },
+        sender: { email: "hello@dxbmovie.online", name: senderName ?? "WaZhop DXB Cinema" },
         to: [{ email: to }],
         subject: subject,
         htmlContent: htmlContent,

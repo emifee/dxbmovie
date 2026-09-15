@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | WaZhop Cinema",
+  title: "Terms of Service | WaZhop DXB Cinema",
 };
 
 export default function TermsPage() {
@@ -19,13 +19,13 @@ export default function TermsPage() {
         <div>
           <h2 className="mb-2 font-semibold text-white">1. Acceptance</h2>
           <p>
-            By accessing or using WaZhop Cinema ("the Service"), you agree to be bound by
+            By accessing or using WaZhop DXB Cinema ("the Service"), you agree to be bound by
             these Terms. If you do not agree, do not use the Service.
           </p>
         </div>
 
         <div>
-          <h2 className="mb-2 font-semibold text-white">2. Who Can Use WaZhop Cinema</h2>
+          <h2 className="mb-2 font-semibold text-white">2. Who Can Use WaZhop DXB Cinema</h2>
           <p>
             You must have a valid Google account to sign in. The Service is intended
             for personal, non-commercial use only. You are responsible for all
@@ -36,7 +36,7 @@ export default function TermsPage() {
         <div>
           <h2 className="mb-2 font-semibold text-white">3. What We Provide</h2>
           <p>
-            WaZhop Cinema offers AI-powered movie recommendations, a conversational
+            WaZhop DXB Cinema offers AI-powered movie recommendations, a conversational
             companion, and tools to track your watchlist and preferences. Movie data
             is sourced from The Movie Database (TMDB). We do not host or stream any
             video content.

@@ -16,8 +16,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     if (!res.ok) throw new Error("TMDB fetch failed");
     const data = await res.json();
     
-    const title = data.title || data.name || "WaZhop Cinema Reel";
-    const description = `Watch the trailer for ${title} on WaZhop Cinema.`;
+    const title = data.title || data.name || "WaZhop DXB Cinema Reel";
+    const description = `Watch the trailer for ${title} on WaZhop DXB Cinema.`;
     
     // For reels, a landscape backdrop is generally better if available
     const imageUrl = data.backdrop_path 
@@ -27,24 +27,24 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
         : siteUrl("/icons/icon-512.png");
 
     return {
-      title: `${title} - Trailer - WaZhop Cinema`,
+      title: `${title} - Trailer - WaZhop DXB Cinema`,
       description,
       openGraph: {
-        title: `${title} - Trailer - WaZhop Cinema`,
+        title: `${title} - Trailer - WaZhop DXB Cinema`,
         description,
         images: [{ url: imageUrl }],
         type: "video.movie",
       },
       twitter: {
         card: "summary_large_image",
-        title: `${title} - Trailer - WaZhop Cinema`,
+        title: `${title} - Trailer - WaZhop DXB Cinema`,
         description,
         images: [imageUrl],
       },
     };
   } catch (e) {
     return {
-      title: "WaZhop Cinema Reel",
+      title: "WaZhop DXB Cinema Reel",
     };
   }
 }

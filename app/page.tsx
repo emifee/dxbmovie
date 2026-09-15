@@ -366,7 +366,7 @@ export default function HomePage() {
     return () => window.removeEventListener("dxb-not-interested", handleNotInterested);
   }, [status]);
 
-  // Fetch Trending on WaZhop Cinema
+  // Fetch Trending on WaZhop DXB Cinema
   useEffect(() => {
     fetch("/api/movies/dxb-trending")
       .then(res => res.json())
@@ -715,7 +715,7 @@ export default function HomePage() {
           <div className="relative z-20 mt-3 lg:mt-5 space-y-1">
             {dxbTrending.length > 0 && (
               <MovieCarousel 
-                title="Trending on WaZhop Cinema" 
+                title="Trending on WaZhop DXB Cinema" 
                 movies={dxbTrending.filter(m => !dislikedIds.has(m.id))} 
                 />
             )}

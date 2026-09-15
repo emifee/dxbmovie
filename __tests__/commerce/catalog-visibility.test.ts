@@ -1,7 +1,7 @@
 /**
  * What Sonia is allowed to offer.
  *
- * The catalog is the source of truth for what WaZhop Cinema sells. A customer-facing lookup
+ * The catalog is the source of truth for what WaZhop DXB Cinema sells. A customer-facing lookup
  * must only ever surface products an admin has explicitly switched on — otherwise Sonia
  * can offer something we cannot actually sell (e.g. Microsoft 365, which is configured
  * with orderingEnabled: false pending resale authorisation).

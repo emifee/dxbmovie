@@ -19,8 +19,15 @@ export const metadata: Metadata = {
     // The brand terms lead, and they are the reason this rebrand exists: a
     // search for WaZhop should reach all three of its platforms, and this site
     // was the one that said nothing about WaZhop anywhere on it.
-    "WaZhop Cinema",
+    "WaZhop DXB Cinema",
     "WaZhop",
+    // The names this site is already known and linked by. Kept deliberately
+    // through the move: the domain is changing at the same time as the name, so
+    // anyone searching what they remember — or following an old link — needs
+    // something here that still matches. They come out once the redirect has
+    // been live long enough for the new name to rank on its own.
+    "DXB Cinema",
+    "DXBmovies",
     "movie recommendations",
     "AI movie assistant",
     "movie tracker",
@@ -114,10 +121,10 @@ export default function RootLayout({
             {
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "WaZhop Cinema",
+              "name": "WaZhop DXB Cinema",
               "url": "${SITE_ORIGIN}",
               "applicationCategory": "EntertainmentApplication",
-              "description": "An AI-powered movie recommendation engine and tracker. WaZhop Cinema helps you discover what to watch next. It is a companion app and NOT a streaming platform or ticketing site.",
+              "description": "An AI-powered movie recommendation engine and tracker. WaZhop DXB Cinema helps you discover what to watch next. It is a companion app and NOT a streaming platform or ticketing site.",
               "offers": {
                 "@type": "Offer",
                 "price": "0"

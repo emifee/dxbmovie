@@ -16,31 +16,31 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     if (!res.ok) throw new Error("TMDB fetch failed");
     const data = await res.json();
     
-    const title = data.title || data.name || "WaZhop Cinema";
-    const description = data.overview || "Discover this on WaZhop Cinema.";
+    const title = data.title || data.name || "WaZhop DXB Cinema";
+    const description = data.overview || "Discover this on WaZhop DXB Cinema.";
     const imageUrl = data.poster_path 
       ? `https://image.tmdb.org/t/p/w600_and_h900_bestv2${data.poster_path}`
       : siteUrl("/icons/icon-512.png");
 
     return {
-      title: `${title} - WaZhop Cinema`,
+      title: `${title} - WaZhop DXB Cinema`,
       description,
       openGraph: {
-        title: `${title} - WaZhop Cinema`,
+        title: `${title} - WaZhop DXB Cinema`,
         description,
         images: [{ url: imageUrl }],
         type: "video.movie",
       },
       twitter: {
         card: "summary_large_image",
-        title: `${title} - WaZhop Cinema`,
+        title: `${title} - WaZhop DXB Cinema`,
         description,
         images: [imageUrl],
       },
     };
   } catch (e) {
     return {
-      title: "WaZhop Cinema",
+      title: "WaZhop DXB Cinema",
     };
   }
 }

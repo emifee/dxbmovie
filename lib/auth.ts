@@ -127,9 +127,9 @@ export const authOptions: NextAuthOptions = {
           const htmlContent = getWelcomeEmailHtml(user.name || "", selectedMovies);
           await sendEmail({
             to: user.email,
-            subject: "Welcome to WaZhop Cinema 🎬",
+            subject: "Welcome to WaZhop DXB Cinema 🎬",
             htmlContent,
-            senderName: "WaZhop Cinema",
+            senderName: "WaZhop DXB Cinema",
           });
         } catch (e) {
           console.error("[createUser] welcome email failed:", e);
